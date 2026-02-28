@@ -1,0 +1,283 @@
+import React, { useState } from 'react';
+import DashboardLayout from '../../layouts/DashboardLayout';
+import IncidentStatusCard from '../../components/incident/IncidentStatusCard';
+import { DataTable, type Column } from '../../components/common/DataTable';
+import { Pill } from '../../components/common/Pill';
+import {
+    Search,
+    Package,
+    CheckCircle2,
+    FileText,
+    AlertCircle
+} from 'lucide-react';
+import { useAuthStore } from '../../store/auth.store';
+import { useIncidents } from '../../hooks/useIncidents';
+import { Select } from '../../components/common/Select';
+import { PROVINCES, STATUS_OPTIONS, SEVERITY_OPTIONS } from '../../data/constants';
+import { formatCategory } from '../../utils/formatters';
+
+const MyAssignedIncidents: React.FC = () => {
+    const { user } = useAuthStore();
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const [statusFilter, setStatusFilter] = useState('');
+    const [severityFilter, setSeverityFilter] = useState('');
+    const [provinceFilter, setProvinceFilter] = useState('');
+
+    const {
+        data: casesData,
+        isLoading: loading,
+    } = useIncidents({
+        assignedToId: user?.id,
+        take: 10, // Keep getting 1000 for now to support the existing local filtering logic which is complex
+    });
+
+    const cases = casesData?.data || [];
+
+    // Calculate stats from real data
+    const openCount = cases.filter(c => c.status === 'OPEN').length;
+    const inProgressCount = cases.filter(c => c.status === 'IN_PROGRESS' || c.status === 'INVESTIGATING').length;
+    const criticalCount = cases.filter(c => (c.severity || c.severityLevel)?.toLowerCase() === 'critical').length;
+    const closedCount = cases.filter(c => c.status === 'CLOSED').length;
+
+    const stats = [
+        { label: 'My Open', count: openCount, icon: Package, iconBg: 'bg-subtle-green', iconColor: 'text-green', percentage: `${cases.length > 0 ? ((openCount / cases.length) * 100).toFixed(1) : 0}%` },
+        { label: 'In Progress', count: inProgressCount, icon: CheckCircle2, iconBg: 'bg-blue-50', iconColor: 'text-blue-500', showBottomBar: true, barColor: 'bg-blue-500' },
+        { label: 'Critical', count: criticalCount, icon: FileText, iconBg: 'bg-subtle-red', iconColor: 'text-brand-red', showBottomBar: true, barColor: 'bg-brand-red' },
+        { label: 'Closed (MTD)', count: closedCount, icon: AlertCircle, iconBg: 'bg-teal-50', iconColor: 'text-teal-500', showBottomBar: true, barColor: 'bg-teal-500' },
+    ];
+
+    // Map database status to component-expected values
+    const mapStatus = (status: string): 'Open' | 'Investigating' | 'Resolved' | 'Closed' => {
+        const statusMap: Record<string, 'Open' | 'Investigating' | 'Resolved' | 'Closed'> = {
+            'OPEN': 'Open',
+            'PENDING': 'Open',
+            'IN_PROGRESS': 'Investigating',
+            'INVESTIGATING': 'Investigating',
+            'RESOLVED': 'Resolved',
+            'CLOSED': 'Closed'
+        };
+        return statusMap[status] || 'Open';
+    };
+
+    // Capitalize severity properly
+    const capitalizeSeverity = (severity: string | undefined): 'Critical' | 'High' | 'Medium' | 'Low' => {
+        const sev = severity ? severity.toLowerCase() : 'medium';
+        if (sev === 'critical') return 'Critical';
+        if (sev === 'high') return 'High';
+        if (sev === 'low') return 'Low';
+        return 'Medium';
+    };
+
+    const transformedIncidents = cases.map(incident => ({
+        refId: incident.incidentNumber,
+        description: incident.description,
+        type: incident.category || incident.type,
+        severity: capitalizeSeverity(incident.severity || incident.severityLevel),
+        status: mapStatus(incident.status),
+        date: new Date(incident.createdAt).toLocaleDateString(),
+        rawDate: incident.createdAt,
+        assigned: incident.assignedTo?.name || 'Me',
+        loc: incident.building?.name || incident.building?.province?.name || 'N/A',
+        provinceName: incident.building?.province?.name || 'N/A'
+    }));
+
+    // Filter incidents based on search and filters
+    const filteredIncidents = transformedIncidents.filter(incident => {
+        const matchesSearch = !searchQuery || (
+            incident.refId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            incident.description?.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+
+        const matchesStatus = !statusFilter || incident.status === statusFilter;
+        const matchesSeverity = !severityFilter || incident.severity === severityFilter;
+        const matchesProvince = !provinceFilter || incident.provinceName === provinceFilter;
+
+        return matchesSearch && matchesStatus && matchesSeverity && matchesProvince;
+    });
+
+    // Pagination
+    const totalPages = Math.ceil(filteredIncidents.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedIncidents = filteredIncidents.slice(startIndex, endIndex);
+
+    const columns: Column<typeof transformedIncidents[0]>[] = [
+        {
+            header: 'Reference',
+            accessorKey: 'refId',
+            sortable: true,
+            cell: (item) => (
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-green/20 flex items-center justify-center">
+                        <div className="w-4 h-4 rounded-full bg-green"></div>
+                    </div>
+                    <span className="font-bold text-dark-green text-sm">{item.refId}</span>
+                </div>
+            )
+        },
+        {
+            header: 'Type',
+            accessorKey: 'type',
+            sortable: true,
+            cell: (item) => <span className="text-sm text-dark-grey font-medium">{formatCategory(item.type)}</span>
+        },
+        {
+            header: 'Severity',
+            accessorKey: 'severity',
+            sortable: true,
+            cell: (item) => (
+                <Pill
+                    label={item.severity}
+                    variant={item.severity.toLowerCase()}
+                />
+            )
+        },
+        {
+            header: 'Status',
+            accessorKey: 'status',
+            sortable: true,
+            cell: (item) => (
+                <Pill
+                    label={item.status}
+                    variant={item.status.toLowerCase()}
+                    className="rounded-lg"
+                />
+            )
+        },
+        {
+            header: 'Reported',
+            accessorKey: 'rawDate',
+            sortable: true,
+            cell: (item) => <span className="text-sm text-dark-grey font-medium">{item.date}</span>
+        },
+        {
+            header: 'Assigned to',
+            accessorKey: 'assigned',
+            cell: (item) => (
+                <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-semi-subtle-grey flex items-center justify-center text-xs font-bold text-dark-green shadow-sm">
+                        {item.assigned[0]}
+                    </div>
+                    <span className="text-sm text-dark-grey font-bold">{item.assigned}</span>
+                </div>
+            )
+        },
+        {
+            header: 'Location',
+            accessorKey: 'loc',
+            sortable: true,
+            cell: (item) => <span className="text-sm text-light-grey font-medium">{item.loc}</span>
+        }
+    ];
+
+    return (
+        <DashboardLayout
+            title="My Assigned Incidents"
+            description="My Assigned Incidents"
+            breadcrumbs={[{ label: "Dashboard", path: "/admin/dashboard" }, { label: "My Assigned Incidents" }]}
+        >
+            <div className="flex flex-col gap-8">
+                {/* Stats Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {stats.map((stat, index) => (
+                        <IncidentStatusCard key={index} {...stat} />
+                    ))}
+                </div>
+
+                {/* Filters & Search */}
+                <div className="flex flex-col xl:flex-row items-center justify-between gap-4 mt-4">
+                    <div className="relative w-full xl:max-w-xl">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-light-grey" size={20} />
+                        <input
+                            type="text"
+                            placeholder="Search by Reference ID ...."
+                            value={searchQuery}
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                setCurrentPage(1); // Reset to first page on search
+                            }}
+                            className="w-full pl-12 pr-4 py-3.5 bg-white border border-semi-subtle-grey rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-green/20 transition-all shadow-sm"
+                        />
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
+                        <div className="w-[160px]">
+                            <Select
+                                value={provinceFilter}
+                                onChange={(val) => {
+                                    setProvinceFilter(val);
+                                    setCurrentPage(1);
+                                }}
+                                options={[
+                                    { value: '', label: 'All provinces' },
+                                    ...PROVINCES.map(p => ({ value: p, label: p }))
+                                ]}
+                                placeholder="All provinces"
+                                bgColor="bg-light-green"
+                            />
+                        </div>
+                        <div className="w-[160px]">
+                            <Select
+                                value={statusFilter}
+                                onChange={(val) => {
+                                    setStatusFilter(val);
+                                    setCurrentPage(1);
+                                }}
+                                options={[
+                                    { value: '', label: 'All statuses' },
+                                    ...STATUS_OPTIONS
+                                ]}
+                                placeholder="All statuses"
+                                bgColor="bg-light-green"
+                            />
+                        </div>
+                        <div className="w-[160px]">
+                            <Select
+                                value={severityFilter}
+                                onChange={(val) => {
+                                    setSeverityFilter(val);
+                                    setCurrentPage(1);
+                                }}
+                                options={[
+                                    { value: '', label: 'All severities' },
+                                    ...SEVERITY_OPTIONS
+                                ]}
+                                placeholder="All severities"
+                                bgColor="bg-light-green"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <DataTable
+                    title="Assigned Incidents"
+                    data={paginatedIncidents}
+                    columns={columns}
+                    keyField="refId"
+                    selectable={true}
+                    selectedIds={selectedIds}
+                    onSelectionChange={setSelectedIds}
+                    loading={loading}
+                    onRowClick={(item) => console.log('Clicked incident', item.refId)}
+                    paginatable={true}
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    itemsPerPage={itemsPerPage}
+                    totalItems={filteredIncidents.length}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={(size) => {
+                        setItemsPerPage(size);
+                        setCurrentPage(1);
+                    }}
+                    defaultSortBy="rawDate"
+                    defaultSortOrder="desc"
+                />
+            </div>
+        </DashboardLayout>
+    );
+};
+
+export default MyAssignedIncidents;
