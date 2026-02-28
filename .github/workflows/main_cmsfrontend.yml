@@ -9,8 +9,6 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
 
     steps:
       - name: Checkout Source Code
@@ -19,30 +17,29 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20.x' # 20 is the current LTS, very stable for Azure
+          node-version: '20.x'
 
-      # 1. Install ALL dependencies (including dev tools like Vite/Tailwind)
-      - name: Install Dependencies
+      # 1. Install EVERYTHING (including Vite and TypeScript) to build the app
+      - name: Install Build Dependencies
         run: npm install
 
-      # 2. Build the React application (creates the 'dist' folder)
-      - name: Build Project
+      # 2. Run the build command (creates the 'dist' folder)
+      - name: Build React App
         run: npm run build
 
-      # 3. Clean up: Remove dev dependencies to keep the deployment small
-      # We also force install 'serve' here just in case you forgot to add it to package.json
-      - name: Prepare Production Artifacts
+      # 3. CRITICAL: Clean up dev dependencies to keep the deployment small.
+      # This removes Vite, TypeScript, etc., but keeps Express for server.cjs
+      - name: Install Production Dependencies
         run: |
           rm -rf node_modules
-          npm install --omit=dev
-          npm install serve 
+          npm install --production
 
-      # 4. Deploy everything remaining in the folder (dist + node_modules + package.json)
+      # 4. Deploy the root folder (contains dist, server.cjs, package.json, and node_modules)
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'CMSFrontend'
           slot-name: 'Production'
-          package: . 
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_419FE168126C459BA8748B55474CB491 }}
+          package: .
