@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import usePagination from '../../hooks/usePagination';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import { Pill } from '../../components/common/Pill';
@@ -23,7 +24,7 @@ import {
     Tooltip
 } from 'recharts';
 import { DataTable, type Column } from '../../components/common/DataTable';
-import { securityService } from '../../services/securityService';
+import { useSecurityStats, useSecurityIncidents, useSecurityTrends, useSecuritySeverity } from '../../hooks/useSecurity';
 import { Select } from '../../components/common/Select';
 import { STATUS_OPTIONS, SEVERITY_OPTIONS } from '../../data/constants';
 
@@ -62,70 +63,46 @@ const INCIDENTS_DATA = [
 const SecurityDashboard: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedIds, setSelectedIds] = useState<string[]>(['3']);
-    const [stats, setStats] = useState(STATS_DATA);
-    const [incidents, setIncidents] = useState(INCIDENTS_DATA);
-
-    const [chartData, setChartData] = useState(BAR_CHART_DATA);
-    const [severityData, setSeverityData] = useState(PIE_CHART_DATA);
     const [statusFilter, setStatusFilter] = useState('');
     const [severityFilter, setSeverityFilter] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(10);
 
-    React.useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [statsData, incidentsData, trendsData, severitiesData] = await Promise.all([
-                    securityService.getStats(),
-                    securityService.getIncidents(),
-                    securityService.getTrends(),
-                    securityService.getSeverity()
-                ]);
+    // TanStack Query hooks
+    const { data: statsData } = useSecurityStats();
+    const { data: incidentsData } = useSecurityIncidents();
+    const { data: trendsData } = useSecurityTrends();
+    const { data: severityApiData } = useSecuritySeverity();
 
-                if (statsData && statsData.length > 0) {
-                    const updated = STATS_DATA.map(s => {
-                        const backendItem = statsData.find((b: any) => b.id === s.id);
-                        return backendItem ? { ...s, value: backendItem.value } : s;
-                    });
-                    setStats(updated);
-                }
+    const stats = useMemo(() => {
+        if (!statsData || statsData.length === 0) return STATS_DATA;
+        return STATS_DATA.map(s => {
+            const backendItem = statsData.find((b: any) => b.id === s.id);
+            return backendItem ? { ...s, value: backendItem.value } : s;
+        });
+    }, [statsData]);
 
-                if (incidentsData) {
-                    const mappedIncidents = incidentsData.map((dict: any) => {
-                        let status = dict.status || 'Open';
-                        if (status === 'IN_PROGRESS') status = 'Investigating';
-                        if (status === 'RESOLVED') status = 'Resolved';
-                        if (status === 'CLOSED') status = 'Closed';
-                        if (status === 'OPEN') status = 'Open';
+    const incidents = useMemo(() => {
+        if (!incidentsData) return INCIDENTS_DATA;
+        return incidentsData.map((dict: any) => {
+            let status = dict.status || 'Open';
+            if (status === 'IN_PROGRESS') status = 'Investigating';
+            if (status === 'RESOLVED') status = 'Resolved';
+            if (status === 'CLOSED') status = 'Closed';
+            if (status === 'OPEN') status = 'Open';
+            return {
+                id: dict.id,
+                incId: dict.caseNumber || 'INC-NEW',
+                description: dict.description ? (dict.description.length > 50 ? dict.description.substring(0, 50) + '...' : dict.description) : 'Security Incident',
+                detail: dict.description || 'No details',
+                severity: dict.severity || dict.severityLevel || 'Low',
+                status
+            };
+        });
+    }, [incidentsData]) as any[];
 
-                        return {
-                            id: dict.id,
-                            incId: dict.caseNumber || 'INC-NEW',
-                            description: dict.description ? (dict.description.length > 50 ? dict.description.substring(0, 50) + '...' : dict.description) : 'Security Incident',
-                            detail: dict.description || 'No details',
-                            severity: dict.severity || dict.severityLevel || 'Low',
-                            status: status
-                        };
-                    });
-                    setIncidents(mappedIncidents);
-                }
+    const chartData = useMemo(() => (trendsData as any[] | undefined) || BAR_CHART_DATA, [trendsData]);
+    const severityData = useMemo(() => (severityApiData as any[] | undefined) || PIE_CHART_DATA, [severityApiData]);
 
-                if (trendsData) {
-                    setChartData(trendsData);
-                }
-
-                if (severitiesData) {
-                    setSeverityData(severitiesData);
-                }
-
-            } catch (err) {
-                console.error(err);
-            }
-        };
-        fetchData();
-    }, []);
-
-    const filteredIncidents = incidents.filter(inc => {
+    const filteredIncidents = incidents.filter((inc: any) => {
         const matchesSearch = inc.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
             inc.incId.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = !statusFilter || inc.status === statusFilter;
@@ -133,17 +110,18 @@ const SecurityDashboard: React.FC = () => {
         return matchesSearch && matchesStatus && matchesSeverity;
     });
 
-    // Pagination logic
-    const totalPages = Math.ceil(filteredIncidents.length / itemsPerPage);
-    const paginatedIncidents = filteredIncidents.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
-
-    // Reset pagination on filter change
-    React.useEffect(() => {
-        setCurrentPage(1);
-    }, [statusFilter, severityFilter, searchTerm]);
+    const {
+        paginatedData: paginatedIncidents,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        itemsPerPage,
+        setItemsPerPage,
+    } = usePagination({
+        data: filteredIncidents,
+        defaultItemsPerPage: 10,
+        resetOnChange: [statusFilter, severityFilter, searchTerm],
+    });
 
     const columns: Column<typeof INCIDENTS_DATA[0]>[] = [
         {
@@ -271,7 +249,7 @@ const SecurityDashboard: React.FC = () => {
                                             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                                         />
                                         <Bar dataKey="count" radius={[6, 6, 6, 6]} barSize={50}>
-                                            {chartData.map((_entry, index) => (
+                                            {chartData.map((_entry: any, index: number) => (
                                                 <Cell key={`cell-${index}`} fill={index === chartData.length - 2 ? '#0f4c3a' : '#45bfa3'} />
                                             ))}
                                         </Bar>
@@ -303,7 +281,7 @@ const SecurityDashboard: React.FC = () => {
                                             stroke="none"
                                             cornerRadius={4}
                                         >
-                                            {severityData.map((entry, index) => (
+                                            {severityData.map((entry: any, index: number) => (
                                                 <Cell key={`cell-${index}`} fill={entry.color} />
                                             ))}
                                         </Pie>
@@ -314,7 +292,7 @@ const SecurityDashboard: React.FC = () => {
                             </div>
 
                             <div className="space-y-4">
-                                {severityData.map((item) => (
+                                {severityData.map((item: any) => (
                                     <div key={item.name} className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
                                             <div className="px-2 py-1 rounded-md text-xs font-bold text-white min-w-[55px] text-center" style={{ backgroundColor: item.color }}>

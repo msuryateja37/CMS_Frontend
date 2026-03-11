@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import {
     Plus,
@@ -13,59 +13,39 @@ import {
 import clsx from 'clsx';
 import { DataTable, type Column } from '../../components/common/DataTable';
 import { Pill } from '../../components/common/Pill';
-
-// --- MOCK DATA ---
-
-
-import { ohsService } from '../../services/ohsService';
+import { useJSAs, useOHSStats } from '../../hooks/useOHS';
 
 // ... (keep Stats)
 
 const JSADocuments: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
-    const [jsaList, setJsaList] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState({
-        approved: 0,
-        pending: 0,
-        expired: 0,
-        total: 0
-    });
 
-    React.useEffect(() => {
-        const loadJsa = async () => {
-            try {
-                const [jsaData, statsData] = await Promise.all([
-                    ohsService.getJSAs(),
-                    ohsService.getStats()
-                ]);
-                const mapped = jsaData.map((j: any) => ({
-                    id: j.id,
-                    jsaId: j.jsa_id || j.id,
-                    title: j.job_name || 'Untitled',
-                    description: j.description || j.remarks || 'No description',
-                    status: j.status || 'Draft',
-                    tags: j.hazards ? j.hazards.split(',').map((s: string) => s.trim()) : [],
-                    created: j.created_at ? new Date(j.created_at).toLocaleDateString() : 'N/A',
-                    review: j.review_date ? new Date(j.review_date).toLocaleDateString() : 'N/A',
-                    author: j.created_by ? j.created_by.substring(0, 8) : 'Unknown' // displaying ID or part of it
-                }));
-                setJsaList(mapped);
-                setStats({
-                    approved: statsData.jsa.approved,
-                    pending: statsData.jsa.pending,
-                    expired: statsData.jsa.expired,
-                    total: statsData.jsa.total
-                });
-            } catch (e) {
-                console.error(e);
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadJsa();
-    }, []);
+    // TanStack Query hooks
+    const { data: jsaData, isLoading: loading } = useJSAs();
+    const { data: statsData } = useOHSStats();
+
+    const jsaList = useMemo(() => {
+        if (!jsaData) return [];
+        return jsaData.map((j: any) => ({
+            id: j.id,
+            jsaId: j.jsa_id || j.id,
+            title: j.job_name || 'Untitled',
+            description: j.description || j.remarks || 'No description',
+            status: j.status || 'Draft',
+            tags: j.hazards ? j.hazards.split(',').map((s: string) => s.trim()) : [],
+            created: j.created_at ? new Date(j.created_at).toLocaleDateString() : 'N/A',
+            review: j.review_date ? new Date(j.review_date).toLocaleDateString() : 'N/A',
+            author: j.created_by ? j.created_by.substring(0, 8) : 'Unknown'
+        }));
+    }, [jsaData]);
+
+    const stats = useMemo(() => ({
+        approved: statsData?.jsa?.approved ?? 0,
+        pending: statsData?.jsa?.pending ?? 0,
+        expired: statsData?.jsa?.expired ?? 0,
+        total: statsData?.jsa?.total ?? 0,
+    }), [statsData]);
 
     const STATS = [
         {
@@ -187,7 +167,7 @@ const JSADocuments: React.FC = () => {
         }
     ];
 
-    const filteredJSA = jsaList.filter(jsa =>
+    const filteredJSA = jsaList.filter((jsa: any) =>
         jsa.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         jsa.jsaId.toLowerCase().includes(searchTerm.toLowerCase())
     );

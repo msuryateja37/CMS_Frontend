@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import usePagination from '../../hooks/usePagination';
+import { useRisks, useOHSStats } from '../../hooks/useOHS';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import {
     Plus,
@@ -14,7 +16,6 @@ import clsx from 'clsx';
 import { DataTable, type Column } from '../../components/common/DataTable';
 import { Pill } from '../../components/common/Pill';
 import { Select } from '../../components/common/Select';
-import { ohsService } from '../../services/ohsService';
 import { SEVERITY_OPTIONS as LEVEL_OPTIONS } from '../../data/constants';
 import { formatCategory } from '../../utils/formatters';
 
@@ -23,18 +24,9 @@ const RiskRegister: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [levelFilter, setLevelFilter] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(10);
-    const [risks, setRisks] = useState<any[]>([]);
-    const [stats, setStats] = useState({
-        highRisks: 0,
-        mediumRisks: 0,
-        activeControls: 0
-    });
 
     const STATUS_OPTIONS = [
         { value: '', label: 'All Statuses' },
-        // { value: 'Open', label: 'Open' },
         { value: 'In Review', label: 'In Review' },
         { value: 'Mitigated', label: 'Mitigated' },
         { value: 'Closed', label: 'Closed' }
@@ -45,38 +37,29 @@ const RiskRegister: React.FC = () => {
         ...LEVEL_OPTIONS
     ];
 
-    React.useEffect(() => {
-        const fetchRisks = async () => {
-            try {
-                const [riskData, statsData] = await Promise.all([
-                    ohsService.getRisks(),
-                    ohsService.getStats()
-                ]);
-                // Map backend data if needed
-                const mapped = riskData.map((r: any) => ({
-                    id: r.riskId || r.id,
-                    description: r.description || 'No description',
-                    category: r.category || 'General',
-                    level: r.riskLevel || 'Medium',
-                    status: r.status || 'Open',
-                    owner: 'Unassigned',
-                    mitigation: r.mitigationStrategy || r.mitigation || 'None',
-                    lastReview: r.createdAt ? new Date(r.createdAt).toLocaleDateString() : 'N/A'
-                }));
-                if (riskData.length > 0) setRisks(mapped);
+    // TanStack Query hooks
+    const { data: riskData, isLoading: risksLoading } = useRisks();
+    const { data: statsData } = useOHSStats();
 
-                setStats({
-                    highRisks: statsData.risks.high + statsData.risks.critical, // Combine or just High?
-                    mediumRisks: statsData.risks.medium,
-                    activeControls: statsData.risks.activeControls
-                });
+    const risks = useMemo(() => {
+        if (!riskData || riskData.length === 0) return [];
+        return riskData.map((r: any) => ({
+            id: r.riskId || r.id,
+            description: r.description || 'No description',
+            category: r.category || 'General',
+            level: r.riskLevel || 'Medium',
+            status: r.status || 'Open',
+            owner: 'Unassigned',
+            mitigation: r.mitigationStrategy || r.mitigation || 'None',
+            lastReview: r.createdAt ? new Date(r.createdAt).toLocaleDateString() : 'N/A'
+        }));
+    }, [riskData]);
 
-            } catch (err) {
-                console.error(err);
-            }
-        };
-        fetchRisks();
-    }, []);
+    const stats = useMemo(() => ({
+        highRisks: (statsData?.risks?.high ?? 0) + (statsData?.risks?.critical ?? 0),
+        mediumRisks: statsData?.risks?.medium ?? 0,
+        activeControls: statsData?.risks?.activeControls ?? 0,
+    }), [statsData]);
 
     const STATS = [
         {
@@ -121,7 +104,7 @@ const RiskRegister: React.FC = () => {
         }
     ];
 
-    const filteredData = risks.filter(risk => {
+    const filteredData = risks.filter((risk: any) => {
         const matchesSearch = !searchQuery || (
             risk.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
             risk.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -133,16 +116,18 @@ const RiskRegister: React.FC = () => {
         return matchesSearch && matchesStatus && matchesLevel;
     });
 
-    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-    const paginatedData = filteredData.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
-
-    // Reset page on filter change
-    React.useEffect(() => {
-        setCurrentPage(1);
-    }, [statusFilter, levelFilter, searchQuery]);
+    const {
+        paginatedData,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        itemsPerPage,
+        setItemsPerPage,
+    } = usePagination({
+        data: filteredData,
+        defaultItemsPerPage: 10,
+        resetOnChange: [statusFilter, levelFilter, searchQuery],
+    });
 
 
 
@@ -306,16 +291,14 @@ const RiskRegister: React.FC = () => {
                     onSelectionChange={setSelectedIds}
                     searchable={false}
                     filterable={false}
+                    loading={risksLoading}
                     paginatable={true}
                     totalItems={filteredData.length}
                     totalPages={totalPages}
                     currentPage={currentPage}
                     onPageChange={setCurrentPage}
                     itemsPerPage={itemsPerPage}
-                    onItemsPerPageChange={(val) => {
-                        setItemsPerPage(val);
-                        setCurrentPage(1);
-                    }}
+                    onItemsPerPageChange={setItemsPerPage}
                 />
             </div>
         </DashboardLayout>

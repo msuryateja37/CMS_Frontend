@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import usePagination from '../../hooks/usePagination';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import {
     Search,
@@ -76,9 +77,7 @@ const EquipmentInventory: React.FC = () => {
     const [activeTab, setActiveTab] = useState('All Equipment');
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-    // Pagination State
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(10);
+    // Pagination State managed by usePagination below
 
     const CATEGORY_OPTIONS = [
         { value: '', label: 'All Categories' },
@@ -172,16 +171,18 @@ const EquipmentInventory: React.FC = () => {
         return matchesSearch && matchesCategory && matchesStatus && matchesTab;
     });
 
-    // Reset pagination when search or filters change
-    React.useEffect(() => {
-        setCurrentPage(1);
-    }, [searchTerm, categoryFilter, statusFilter, activeTab]);
-
-    const totalPages = Math.ceil(filteredInventory.length / itemsPerPage);
-    const paginatedInventory = filteredInventory.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
+    const {
+        paginatedData: paginatedInventory,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        itemsPerPage,
+        setItemsPerPage,
+    } = usePagination({
+        data: filteredInventory,
+        defaultItemsPerPage: 10,
+        resetOnChange: [searchTerm, categoryFilter, statusFilter, activeTab],
+    });
 
     const actionButton = {
         label: 'Add Equipment',

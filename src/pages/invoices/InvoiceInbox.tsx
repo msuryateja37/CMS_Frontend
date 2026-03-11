@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import usePagination from '../../hooks/usePagination';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import clsx from 'clsx';
 import { DataTable, type Column } from '../../components/common/DataTable';
@@ -13,7 +14,7 @@ import {
     Plus
 } from 'lucide-react';
 import { Select } from '../../components/common/Select';
-import { invoiceService } from '../../services/invoiceService';
+import { useInvoices } from '../../hooks/useFinance';
 
 interface SummaryCardProps {
     icon: React.ElementType;
@@ -79,47 +80,25 @@ const InvoiceInbox: React.FC = () => {
         { value: 'In Review', label: 'In Review' },
     ];
 
-    const [invoices, setInvoices] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [itemsPerPage, setItemsPerPage] = useState(10);
-    const [currentPage, setCurrentPage] = useState(1);
+    // TanStack Query hook
+    const { data: rawInvoices, isLoading: loading } = useInvoices();
 
-    React.useEffect(() => {
-        loadInvoices();
-    }, []);
-
-    React.useEffect(() => {
-        setCurrentPage(1);
-    }, [statusFilter, searchTerm]);
-
-    const loadInvoices = async () => {
-        setLoading(true);
-        try {
-            const data = await invoiceService.getInvoices();
-            if (data && Array.isArray(data)) {
-                const mapped = data.map((inv: any) => ({
-                    id: inv.invoiceNumber || inv.id,
-                    vendor: inv.vendorName || 'Unknown Vendor',
-                    desc: inv.description || 'Invoice ' + (inv.invoiceNumber || inv.id),
-                    amount: `R ${inv.amount || 0}`,
-                    status: inv.status === 'Pending' || !inv.status ? 'Pending Approval' : inv.status,
-                    province: inv.province?.name || inv.provinceName || (typeof inv.province === 'string' ? inv.province : '') || 'N/A',
-                    progress: inv.status === 'Paid' || inv.status === 'COMPLETED' ? 100 : (inv.status === 'Approved' ? 75 : (inv.status === 'Rejected' ? 0 : 25)),
-                    dueDate: inv.receivedDate ? new Date(inv.receivedDate).toLocaleDateString() : 'N/A'
-                }));
-                setInvoices(mapped);
-            } else {
-                setInvoices([]);
-            }
-        } catch (err) {
-            console.error('Failed to load invoices', err);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const invoices = useMemo(() => {
+        if (!rawInvoices || !Array.isArray(rawInvoices)) return [];
+        return rawInvoices.map((inv: any) => ({
+            id: inv.invoiceNumber || inv.id,
+            vendor: inv.vendorName || 'Unknown Vendor',
+            desc: inv.description || 'Invoice ' + (inv.invoiceNumber || inv.id),
+            amount: `R ${inv.amount || 0}`,
+            status: inv.status === 'Pending' || !inv.status ? 'Pending Approval' : inv.status,
+            province: inv.province?.name || inv.provinceName || (typeof inv.province === 'string' ? inv.province : '') || 'N/A',
+            progress: inv.status === 'Paid' || inv.status === 'COMPLETED' ? 100 : (inv.status === 'Approved' ? 75 : (inv.status === 'Rejected' ? 0 : 25)),
+            dueDate: inv.receivedDate ? new Date(inv.receivedDate).toLocaleDateString() : 'N/A'
+        }));
+    }, [rawInvoices]);
 
     // Filter logic
-    const filteredInvoices = invoices.filter(inv => {
+    const filteredInvoices = invoices.filter((inv) => {
         const matchesSearch = !searchTerm || (
             inv.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
             inv.vendor.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -130,14 +109,21 @@ const InvoiceInbox: React.FC = () => {
         return matchesSearch && matchesStatus;
     });
 
-    // Pagination logic
-    const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
-    const paginatedData = filteredInvoices.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
+    const {
+        paginatedData,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        itemsPerPage,
+        setItemsPerPage,
+    } = usePagination({
+        data: filteredInvoices,
+        defaultItemsPerPage: 10,
+        resetOnChange: [statusFilter, searchTerm],
+    });
 
-    const columns: Column<typeof invoices[0]>[] = [
+    type InvoiceItem = (typeof invoices)[0];
+    const columns: Column<InvoiceItem>[] = [
         {
             header: 'Invoice ID',
             accessorKey: 'id',
