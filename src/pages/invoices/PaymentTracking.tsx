@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import usePagination from '../../hooks/usePagination';
+import Pagination from '../../components/common/Pagination';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import clsx from 'clsx';
 import { Pill } from '../../components/common/Pill';
@@ -9,8 +11,6 @@ import {
     CheckCircle2,
     Search,
     Plus,
-    ChevronLeft,
-    ChevronRight,
     ChevronRight as ArrowRight
 } from 'lucide-react';
 
@@ -151,7 +151,6 @@ const PaymentTracking: React.FC = () => {
     const [rowsPerPage, setRowsPerPage] = useState('10');
     const [statusFilter, setStatusFilter] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
 
     const STATUS_CHOICES = [
         { value: '', label: 'All Statuses' },
@@ -274,18 +273,19 @@ const PaymentTracking: React.FC = () => {
         return matchesSearch && matchesStatus;
     });
 
-    // Pagination logic
-    const itemsPerPage = Number(rowsPerPage);
-    const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-    const paginatedItems = filteredItems.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
-
-    // Search/Status tracking logic
-    React.useEffect(() => {
-        setCurrentPage(1);
-    }, [statusFilter, searchTerm]);
+    const {
+        paginatedData: paginatedItems,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        totalItems,
+        itemsPerPage,
+        setItemsPerPage,
+    } = usePagination({
+        data: filteredItems,
+        defaultItemsPerPage: Number(rowsPerPage),
+        resetOnChange: [statusFilter, searchTerm],
+    });
 
     return (
         <DashboardLayout
@@ -364,64 +364,18 @@ const PaymentTracking: React.FC = () => {
                 </div>
 
                 {/* Pagination */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-4">
-                    <div className="flex items-center gap-3 text-sm">
-                        <span className="text-gray-500 font-medium">Show</span>
-                        <div className="w-20">
-                            <Select
-                                value={rowsPerPage}
-                                onChange={(val) => {
-                                    setRowsPerPage(val);
-                                    setCurrentPage(1);
-                                }}
-                                options={[
-                                    { value: '5', label: '5' },
-                                    { value: '10', label: '10' },
-                                    { value: '20', label: '20' },
-                                    { value: '50', label: '50' }
-                                ]}
-                                className="w-full"
-                                bgColor="bg-light-green"
-                            />
-                        </div>
-                        <span className="text-gray-500 font-medium">
-                            showing {paginatedItems.length} of {filteredItems.length} results
-                        </span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <button
-                            className="p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-lg hover:bg-gray-100 disabled:opacity-30"
-                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                            disabled={currentPage === 1}
-                        >
-                            <ChevronLeft size={20} />
-                        </button>
-                        <div className="flex items-center gap-1">
-                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                                <button
-                                    key={page}
-                                    onClick={() => setCurrentPage(page)}
-                                    className={clsx(
-                                        "w-9 h-9 flex items-center justify-center rounded-lg font-bold text-sm transition-all",
-                                        currentPage === page
-                                            ? "bg-green text-white shadow-sm"
-                                            : "text-gray-600 hover:bg-gray-100"
-                                    )}
-                                >
-                                    {page}
-                                </button>
-                            ))}
-                        </div>
-                        <button
-                            className="p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-lg hover:bg-gray-100 disabled:opacity-30"
-                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                            disabled={currentPage === totalPages || totalPages === 0}
-                        >
-                            <ChevronRight size={20} />
-                        </button>
-                    </div>
-                </div>
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={(size) => {
+                        setRowsPerPage(String(size));
+                        setItemsPerPage(size);
+                    }}
+                    className="pb-4"
+                />
             </div>
         </DashboardLayout>
     );

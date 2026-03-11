@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import usePagination from '../../hooks/usePagination';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import {
     Plus,
@@ -14,7 +15,7 @@ import clsx from 'clsx';
 import { DataTable, type Column } from '../../components/common/DataTable';
 import { Pill } from '../../components/common/Pill';
 import { Select } from '../../components/common/Select';
-import { emergencyService } from '../../services/emergencyService';
+import { useDrills } from '../../hooks/useEmergency';
 
 // --- MOCK DATA ---
 const DRILLS = [
@@ -87,9 +88,7 @@ const DrillSchedule: React.FC = () => {
     const [activeTab, setActiveTab] = useState('Upcoming Drills');
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-    // Pagination State
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(10);
+    // Pagination State managed by usePagination below
 
     const STATUS_OPTIONS = [
         { value: '', label: 'All Statuses' },
@@ -188,32 +187,25 @@ const DrillSchedule: React.FC = () => {
         }
     ];
 
-    const [drills, setDrills] = useState(DRILLS); // Initialize with mock, then fetch
+    // TanStack Query hook
+    const { data: drillsData } = useDrills();
 
-    React.useEffect(() => {
-        const fetchDrills = async () => {
-            try {
-                const data = await emergencyService.getDrills();
-                if (data && data.length > 0) {
-                    const mapped = data.map((d: any) => ({
-                        id: d.id,
-                        name: d.name,
-                        type: d.type,
-                        location: d.location || d.building?.name || 'Unknown Location',
-                        dateRange: d.scheduledDate ? `${new Date(d.scheduledDate).toLocaleDateString()} to ${new Date(d.scheduledDate).toLocaleDateString()}` : 'Date Pending',
-                        status: d.status || 'Scheduled',
-                        participants: d.participants || 'Staff Only',
-                        organizer: d.organizer || 'Unassigned'
-                    }));
-                    // Merge real data with mock data
-                    setDrills([...DRILLS, ...mapped]);
-                }
-            } catch (err) {
-                console.error("Failed to fetch drills:", err);
-            }
-        };
-        fetchDrills();
-    }, []);
+    const drills = useMemo(() => {
+        if (!drillsData || drillsData.length === 0) return DRILLS;
+        const mapped = drillsData.map((d: any) => ({
+            id: d.id,
+            name: d.name,
+            type: d.type,
+            location: d.location || d.building?.name || 'Unknown Location',
+            dateRange: d.scheduledDate
+                ? `${new Date(d.scheduledDate).toLocaleDateString()} to ${new Date(d.scheduledDate).toLocaleDateString()}`
+                : 'Date Pending',
+            status: d.status || 'Scheduled',
+            participants: d.participants || 'Staff Only',
+            organizer: d.organizer || 'Unassigned'
+        }));
+        return [...DRILLS, ...mapped];
+    }, [drillsData]);
 
     const filteredDrills = drills.filter(drill => {
         const matchesSearch = !searchTerm || (
@@ -232,16 +224,18 @@ const DrillSchedule: React.FC = () => {
         return matchesSearch && matchesStatus && matchesLocation && matchesTab;
     });
 
-    // Reset pagination when search or filters change
-    React.useEffect(() => {
-        setCurrentPage(1);
-    }, [searchTerm, statusFilter, locationFilter, activeTab]);
-
-    const totalPages = Math.ceil(filteredDrills.length / itemsPerPage);
-    const paginatedDrills = filteredDrills.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
+    const {
+        paginatedData: paginatedDrills,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        itemsPerPage,
+        setItemsPerPage,
+    } = usePagination({
+        data: filteredDrills,
+        defaultItemsPerPage: 10,
+        resetOnChange: [searchTerm, statusFilter, locationFilter, activeTab],
+    });
 
     const actionButton = {
         label: 'Schedule Drill',

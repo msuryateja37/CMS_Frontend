@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import {
     AlertTriangle,
@@ -11,8 +11,7 @@ import {
 import clsx from 'clsx';
 import { DataTable, type Column } from '../../components/common/DataTable';
 import { Pill } from '../../components/common/Pill';
-
-import { ohsService } from '../../services/ohsService';
+import { useHazards, useOHSStats } from '../../hooks/useOHS';
 
 const TABS = [
     'Hazard Reports',
@@ -27,48 +26,31 @@ const HazardReports: React.FC = () => {
     const [activeTab, setActiveTab] = useState('Hazard Reports');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
-    const [hazards, setHazards] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState({
-        openHazards: 0,
-        criticalRisks: 0,
-        activeJSAs: 0,
-        resolvedHazards: 0
-    });
 
-    React.useEffect(() => {
-        const loadHazards = async () => {
-            try {
-                setLoading(true);
-                const [hazardsData, statsData] = await Promise.all([
-                    ohsService.getHazards(),
-                    ohsService.getStats()
-                ]);
-                const mapped = hazardsData.map((h: any) => ({
-                    id: h.id,
-                    hazId: h.caseNumber,
-                    title: h.title,
-                    priority: h.priorityLevel || 'Low',
-                    status: h.status === 'OPEN' ? 'Open' : h.status === 'IN_PROGRESS' ? 'Under Review' : h.status,
-                    location: h.building?.name || 'Unknown',
-                    date: new Date(h.occurredAt).toLocaleDateString(),
-                    reporter: h.reportedBy?.fullName || 'Unknown'
-                }));
-                setHazards(mapped);
-                setStats({
-                    openHazards: statsData.hazards.open,
-                    criticalRisks: statsData.risks.critical,
-                    activeJSAs: statsData.jsa.active,
-                    resolvedHazards: statsData.hazards.resolved
-                });
-            } catch (err) {
-                console.error("Failed to load hazards", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadHazards();
-    }, []);
+    // TanStack Query hooks
+    const { data: hazardsData, isLoading: loading } = useHazards();
+    const { data: statsData } = useOHSStats();
+
+    const hazards = useMemo(() => {
+        if (!hazardsData) return [];
+        return hazardsData.map((h: any) => ({
+            id: h.id,
+            hazId: h.caseNumber,
+            title: h.title,
+            priority: h.priorityLevel || 'Low',
+            status: h.status === 'OPEN' ? 'Open' : h.status === 'IN_PROGRESS' ? 'Under Review' : h.status,
+            location: h.building?.name || 'Unknown',
+            date: new Date(h.occurredAt).toLocaleDateString(),
+            reporter: h.reportedBy?.fullName || 'Unknown'
+        }));
+    }, [hazardsData]);
+
+    const stats = useMemo(() => ({
+        openHazards: statsData?.hazards?.open ?? 0,
+        criticalRisks: statsData?.risks?.critical ?? 0,
+        activeJSAs: statsData?.jsa?.active ?? 0,
+        resolvedHazards: statsData?.hazards?.resolved ?? 0,
+    }), [statsData]);
 
     const STATS = [
         {
@@ -173,7 +155,7 @@ const HazardReports: React.FC = () => {
         }
     ];
 
-    const filteredHazards = hazards.filter(hazard =>
+    const filteredHazards = hazards.filter((hazard: any) =>
         hazard.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         hazard.hazId.toLowerCase().includes(searchTerm.toLowerCase())
     );

@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import usePagination from '../../hooks/usePagination';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import clsx from 'clsx';
 import { DataTable, type Column } from '../../components/common/DataTable';
@@ -65,8 +66,6 @@ export function AccessControl() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Extract unique locations from logs
   const locations = Array.from(new Set(ACCESS_LOGS.map(log => log.location))).sort();
@@ -138,17 +137,18 @@ export function AccessControl() {
     return matchesSearch && matchesStatus && matchesLocation;
   });
 
-  // Pagination logic
-  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
-  const paginatedLogs = filteredLogs.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  // Reset pagination on filter change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [statusFilter, locationFilter, searchTerm]);
+  const {
+    paginatedData: paginatedLogs,
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    itemsPerPage,
+    setItemsPerPage,
+  } = usePagination({
+    data: filteredLogs,
+    defaultItemsPerPage: 10,
+    resetOnChange: [statusFilter, locationFilter, searchTerm],
+  });
 
   return (
     <DashboardLayout

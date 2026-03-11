@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import usePagination from '../../hooks/usePagination';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import {
     Search,
@@ -130,10 +131,6 @@ const Administration: React.FC = () => {
     const [activeTab, setActiveTab] = useState('Users');
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-    // Pagination State
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(10);
-
     const ROLE_OPTIONS = [
         { value: '', label: 'All Roles' },
         ...Array.from(new Set(USERS.map(u => u.role))).map(role => ({
@@ -219,16 +216,18 @@ const Administration: React.FC = () => {
         return matchesSearch && matchesRole;
     });
 
-    // Reset pagination when search or filters change
-    React.useEffect(() => {
-        setCurrentPage(1);
-    }, [searchTerm, roleFilter, activeTab]);
-
-    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-    const paginatedUsers = filteredUsers.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
+    const {
+        paginatedData: paginatedUsers,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        itemsPerPage,
+        setItemsPerPage,
+    } = usePagination({
+        data: filteredUsers,
+        defaultItemsPerPage: 10,
+        resetOnChange: [searchTerm, roleFilter, activeTab],
+    });
 
     const actionButton = {
         label: 'Quick Report',

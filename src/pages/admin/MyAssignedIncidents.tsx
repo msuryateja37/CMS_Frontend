@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import usePagination from '../../hooks/usePagination';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import IncidentStatusCard from '../../components/incident/IncidentStatusCard';
 import { DataTable, type Column } from '../../components/common/DataTable';
@@ -18,8 +19,6 @@ import { formatCategory } from '../../utils/formatters';
 
 const MyAssignedIncidents: React.FC = () => {
     const { user } = useAuthStore();
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(10);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [statusFilter, setStatusFilter] = useState('');
@@ -98,11 +97,18 @@ const MyAssignedIncidents: React.FC = () => {
         return matchesSearch && matchesStatus && matchesSeverity && matchesProvince;
     });
 
-    // Pagination
-    const totalPages = Math.ceil(filteredIncidents.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const paginatedIncidents = filteredIncidents.slice(startIndex, endIndex);
+    const {
+        paginatedData: paginatedIncidents,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        itemsPerPage,
+        setItemsPerPage,
+    } = usePagination({
+        data: filteredIncidents,
+        defaultItemsPerPage: 10,
+        resetOnChange: [searchQuery, statusFilter, severityFilter, provinceFilter],
+    });
 
     const columns: Column<typeof transformedIncidents[0]>[] = [
         {

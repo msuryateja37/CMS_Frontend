@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
+import usePagination from '../../hooks/usePagination';
+import Pagination from '../../components/common/Pagination';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import {
     Search,
     Plus,
     ArrowRight,
     User,
-    ChevronLeft,
     ChevronRight,
 } from 'lucide-react';
 import clsx from 'clsx';
@@ -95,8 +96,6 @@ const PDCAWorkflow: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [activeTab, setActiveTab] = useState<'PDCA Cycles' | 'Actions Plans'>('PDCA Cycles');
-    const [rowsPerPage, setRowsPerPage] = useState('6');
-    const [currentPage, setCurrentPage] = useState(1);
 
     const STATUS_OPTIONS = [
         { value: '', label: 'All Statuses' },
@@ -114,17 +113,19 @@ const PDCAWorkflow: React.FC = () => {
         return matchesSearch && matchesStatus;
     });
 
-    const itemsPerPage = parseInt(rowsPerPage);
-    const totalPages = Math.ceil(filteredCycles.length / itemsPerPage);
-    const paginatedCycles = filteredCycles.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
-
-    // Reset pagination when search or filters change
-    React.useEffect(() => {
-        setCurrentPage(1);
-    }, [searchTerm, statusFilter, activeTab]);
+    const {
+        paginatedData: paginatedCycles,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        totalItems,
+        itemsPerPage,
+        setItemsPerPage,
+    } = usePagination({
+        data: filteredCycles,
+        defaultItemsPerPage: 6,
+        resetOnChange: [searchTerm, statusFilter, activeTab],
+    });
 
     const actionButton = {
         label: 'Quick Report',
@@ -263,59 +264,20 @@ const PDCAWorkflow: React.FC = () => {
                 </div>
 
                 {/* Pagination */}
-                <div className="flex items-center justify-between pt-4">
-                    <div className="flex items-center gap-3 text-sm text-gray-500">
-                        Show
-                        <div className="w-24">
-                            <Select
-                                value={rowsPerPage}
-                                onChange={(val) => {
-                                    setRowsPerPage(val);
-                                    setCurrentPage(1);
-                                }}
-                                options={[
-                                    { value: '6', label: '6' },
-                                    { value: '10', label: '10' },
-                                    { value: '25', label: '25' }
-                                ]}
-                                className="w-full"
-                            />
-                        </div>
-                        of {filteredCycles.length} results
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <button
-                            disabled={currentPage === 1}
-                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                            className="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-gray-100 transition-colors disabled:opacity-50"
-                        >
-                            <ChevronLeft size={18} />
-                        </button>
-
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                            <button
-                                key={page}
-                                onClick={() => setCurrentPage(page)}
-                                className={clsx(
-                                    "w-9 h-9 flex items-center justify-center rounded-lg font-bold text-sm transition-all",
-                                    currentPage === page
-                                        ? "bg-[#004D40] text-white shadow-md"
-                                        : "hover:bg-gray-50 text-gray-600"
-                                )}
-                            >
-                                {page}
-                            </button>
-                        ))}
-
-                        <button
-                            disabled={currentPage === totalPages || totalPages === 0}
-                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                            className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-50 text-gray-600 hover:text-gray-800 transition-colors disabled:opacity-50"
-                        >
-                            <ChevronRight size={18} />
-                        </button>
-                    </div>
-                </div>
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                    pageSizeOptions={[
+                        { value: '6', label: '6' },
+                        { value: '10', label: '10' },
+                        { value: '25', label: '25' },
+                    ]}
+                    className="pt-4"
+                />
             </div>
         </DashboardLayout>
     );
