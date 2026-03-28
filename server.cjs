@@ -1,6 +1,18 @@
 const express = require('express');
 const path = require('path');
+const rateLimit = require('express-rate-limit');
+
 const app = express();
+
+// Set up rate limiter: maximum of 100 requests per 15 minutes
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, 
+  max: 100,
+  message: 'Too many requests from this IP, please try again after 15 minutes',
+});
+
+// Apply rate limiting to all requests
+app.use(limiter);
 
 // Azure Web Apps provides the port via process.env.PORT
 // We use 8080 as a backup for local testing

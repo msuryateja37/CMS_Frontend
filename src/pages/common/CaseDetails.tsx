@@ -338,7 +338,7 @@ const CaseDetails: React.FC = () => {
                                                     {roleDocs.map((file, idx) => (
                                                         <a
                                                             key={idx}
-                                                            href={file.fileUrl}
+                                                            href={file.fileUrl?.match(/^\s*(javascript|data|vbscript):/i) ? '#' : file.fileUrl}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-green/30 hover:shadow-sm transition-all group"
@@ -380,7 +380,7 @@ const CaseDetails: React.FC = () => {
                                         scrolling="no"
                                         marginHeight={0}
                                         marginWidth={0}
-                                        src={`https://maps.google.com/maps?q=${caseData.latitude},${caseData.longitude}&z=15&output=embed`}
+                                        src={`https://maps.google.com/maps?q=${encodeURIComponent(caseData.latitude || '')},${encodeURIComponent(caseData.longitude || '')}&z=15&output=embed`}
                                     />
                                 </div>
                                 <div className="mt-3 flex gap-4 text-xs text-gray-400 font-mono">
