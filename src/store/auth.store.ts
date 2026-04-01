@@ -60,15 +60,22 @@ export const useAuthStore = create<AuthState>()(
                 const storedUser = authService.getStoredUser();
                 const token = authService.getAccessToken();
 
-                if (storedUser && token) {
+                if (token) {
                     try {
+                        // If a token exists, always validate/fetch the latest user profile.
                         const currentUser = await authService.getCurrentUser();
                         set({ user: currentUser, isAuthenticated: true });
                     } catch (error) {
                         await authService.logout();
                         set({ user: null, isAuthenticated: false });
                     }
+                } else {
+                    // No token means the session is not authenticated.
+                    set({ user: null, isAuthenticated: false });
                 }
+
+                // If token exists but stored user is missing, we still rely on /auth/me above.
+                // If both are missing, this ensures stale persisted auth state is cleared.
                 set({ loading: false, isInitialized: true, isInitializing: false });
             },
 

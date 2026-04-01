@@ -292,7 +292,7 @@ const KPIDashboard: React.FC = () => {
                     <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                         <h3 className="font-bold text-lg text-gray-800 mb-6">Monthly Incident Trends</h3>
                         <div className="h-64 w-full">
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={220}>
                                 <LineChart data={TREND_DATA} margin={{ top: 5, right: 30, left: -20, bottom: 5 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
                                     <XAxis

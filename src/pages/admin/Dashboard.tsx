@@ -161,7 +161,7 @@ const Dashboard: React.FC = () => {
 
                         <div className="flex-1 flex flex-col items-center justify-center">
                             <div className="h-[220px] w-full relative mb-6">
-                                <ResponsiveContainer width="100%" height="100%">
+                                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={200}>
                                     <PieChart>
                                         <Pie
                                             data={CATEGORY_DATA}
