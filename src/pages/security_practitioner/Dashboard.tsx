@@ -235,7 +235,7 @@ const SecurityDashboard: React.FC = () => {
                                 </button>
                             </div>
                             <div className="h-64 w-full">
-                                <ResponsiveContainer width="100%" height="100%">
+                                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={220}>
                                     <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                         <XAxis
                                             dataKey="name"
@@ -270,7 +270,7 @@ const SecurityDashboard: React.FC = () => {
                             </div>
 
                             <div className="flex-1 min-h-[220px] relative mb-4">
-                                <ResponsiveContainer width="100%" height="100%">
+                                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={200}>
                                     <PieChart>
                                         <Pie
                                             data={severityData}

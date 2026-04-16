@@ -5,7 +5,7 @@ import { INCIDENT_TRENDS_DATA } from '../../data/mockData';
 const IncidentTrendsChart: React.FC = () => {
     return (
         <div className="h-[280px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={220}>
                 <BarChart
                     data={INCIDENT_TRENDS_DATA}
                     margin={{ top: 20, right: 30, left: 0, bottom: 0 }}

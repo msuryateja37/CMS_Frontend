@@ -4,7 +4,7 @@ import { useAuthStore } from '../store/auth.store';
 
 const Login: React.FC = () => {
     const navigate = useNavigate();
-    const { login, isAuthenticated, user } = useAuthStore();
+    const { login, isAuthenticated, isInitialized, user } = useAuthStore();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -12,10 +12,10 @@ const Login: React.FC = () => {
 
     // Redirect if already authenticated
     useEffect(() => {
+        if (!isInitialized) return;
+
         if (isAuthenticated && user) {
             const roleName = user.role?.name?.toLowerCase().replace(/\s+/g, '_');
-
-            console.log('User authenticated with role:', user.role?.name, '→ normalized:', roleName);
 
             // Route based on role (normalized to lowercase with underscores)
             if (roleName === 'employee') {
@@ -35,7 +35,7 @@ const Login: React.FC = () => {
                 navigate('/admin/dashboard');
             }
         }
-    }, [isAuthenticated, user, navigate]);
+    }, [isAuthenticated, isInitialized, user, navigate]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();

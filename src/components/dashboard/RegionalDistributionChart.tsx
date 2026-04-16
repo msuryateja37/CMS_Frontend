@@ -17,7 +17,7 @@ const RegionalDistributionChart: React.FC = () => {
             </div>
 
             <div className="h-[250px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={200}>
                     <BarChart
                         data={REGIONAL_DISTRIBUTION}
                         layout="vertical"
