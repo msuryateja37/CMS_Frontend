@@ -135,7 +135,36 @@ const Sidebar: React.FC = () => {
                 })}
             </nav>
 
-            {/* Premium Feature / Logout Card */}
+            {/* Inspector Information — shown for OHS role */}
+            {(user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'ohs_practitioner') && (
+                <div className="px-4 pb-2">
+                    <div className="border-t border-white/10 pt-4 mb-3">
+                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Inspector Information</p>
+                        <div className="space-y-2">
+                            <div className="flex justify-between text-xs">
+                                <span className="text-gray-400">Name:</span>
+                                <span className="text-gray-100 font-medium text-right max-w-[60%] truncate">
+                                    {user?.fullName || 'N/A'}
+                                </span>
+                            </div>
+                            <div className="flex justify-between text-xs">
+                                <span className="text-gray-400">Office:</span>
+                                <span className="text-gray-100 font-medium text-right max-w-[60%] truncate">
+                                    {user?.department?.building?.name ?? user?.department?.name ?? 'N/A'}
+                                </span>
+                            </div>
+                            <div className="flex justify-between text-xs">
+                                <span className="text-gray-400">Province:</span>
+                                <span className="text-gray-100 font-medium text-right max-w-[60%] truncate">
+                                    {user?.department?.building?.province?.name ?? user?.province?.name ?? 'N/A'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Logout Card */}
             <div className="p-4 mt-auto">
                 <button
                     onClick={handleLogout}

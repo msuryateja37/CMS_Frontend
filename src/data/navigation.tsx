@@ -12,8 +12,10 @@ import {
     FilePlus,
     FolderOpen,
     Clock,
-    CheckCircle
+    CheckCircle,
+    Home
 } from 'lucide-react';
+
 
 export const SIDEBAR_ITEMS = [
     {
@@ -150,15 +152,27 @@ export const OHS_SIDEBAR = [
         isSingle: true
     },
     {
-        label: 'My Cases',
-        path: '/ohs/my-cases',
-        icon: Folder,
+        label: 'Disability Assessment Checklist',
+        path: '/ohs/forms/disability',
+        icon: FileText,
         isSingle: true
     },
     {
-        label: 'Cases Under Review',
-        path: '/ohs/cases-review',
-        icon: FolderOpen,
+        label: 'OHS Inspection Checklist',
+        path: '/ohs/forms/inspection',
+        icon: AlertCircle,
+        isSingle: true
+    },
+    {
+        label: 'New Building Assessment Checklist',
+        path: '/ohs/forms/building',
+        icon: Home,
+        isSingle: true
+    },
+    {
+        label: 'OHS Compliance Audit',
+        path: '/ohs/forms/audit',
+        icon: CheckCircle,
         isSingle: true
     }
 ];

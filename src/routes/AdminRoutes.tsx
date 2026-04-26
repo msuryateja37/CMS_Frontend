@@ -14,6 +14,10 @@ import HazardReports from '../pages/ohs/HazardReports';
 import RiskRegister from '../pages/ohs/RiskRegister';
 import JSADocuments from '../pages/ohs/JSADocuments';
 import SafeWorkProcedures from '../pages/ohs/SafeWorkProcedures';
+import OHSDisabilityForm from '../pages/forms/OHSDisabilityForm';
+import OHSInspectionForm from '../pages/forms/OHSInspectionForm';
+import OHSNewBuildingForm from '../pages/forms/OHSNewBuildingForm';
+
 import PermitToWork from '../pages/operations/PermitToWork';
 import Inspections from '../pages/operations/Inspections';
 import Audits from '../pages/operations/Audits';
@@ -24,6 +28,8 @@ import KPIDashboard from '../pages/performance/KPIDashboard';
 import PDCAWorkflow from '../pages/performance/PDCAWorkflow';
 import ActionPlans from '../pages/performance/ActionPlans';
 import Administration from '../pages/admin/Administration';
+import FormBuilderSettings from '../pages/admin/FormBuilderSettings';
+
 import SecurityDashboard from '../pages/security_practitioner/SecurityDashboard';
 import SecurityMyCases from '../pages/security_practitioner/SecurityMyCases';
 import SecurityCasesReview from '../pages/security_practitioner/SecurityCasesReview';
@@ -50,8 +56,11 @@ const AdminRoutes = () => {
             <Route path="/ohs/report-incident" element={<ProtectedRoute><ReportIncident /></ProtectedRoute>} />
             <Route path="/ohs/hazards" element={<ProtectedRoute><HazardReports /></ProtectedRoute>} />
             <Route path="/ohs/risk-register" element={<ProtectedRoute><RiskRegister /></ProtectedRoute>} />
-            <Route path="/ohs/jsa" element={<ProtectedRoute><JSADocuments /></ProtectedRoute>} />
             <Route path="/ohs/procedures" element={<ProtectedRoute><SafeWorkProcedures /></ProtectedRoute>} />
+            <Route path="/ohs/forms/disability" element={<ProtectedRoute><OHSDisabilityForm /></ProtectedRoute>} />
+            <Route path="/ohs/forms/inspection" element={<ProtectedRoute><OHSInspectionForm /></ProtectedRoute>} />
+            <Route path="/ohs/forms/building" element={<ProtectedRoute><OHSNewBuildingForm /></ProtectedRoute>} />
+            <Route path="/ohs/forms/audit" element={<ProtectedRoute><OHSInspectionForm /></ProtectedRoute>} />
             <Route path="/ohs" element={<Navigate to="/ohs/hazards" replace />} />
 
             {/* Security Practitioner Routes */}
@@ -80,6 +89,7 @@ const AdminRoutes = () => {
 
             {/* Administration Routes */}
             <Route path="/admin/administration" element={<ProtectedRoute><Administration /></ProtectedRoute>} />
+            <Route path="/admin/forms/builder" element={<ProtectedRoute><FormBuilderSettings /></ProtectedRoute>} />
 
             {/* Invoice Routes */}
             <Route path="/invoices/inbox" element={<ProtectedRoute><InvoiceInbox /></ProtectedRoute>} />
