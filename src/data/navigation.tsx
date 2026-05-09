@@ -43,13 +43,14 @@ export const SIDEBAR_ITEMS = [
         ]
     },
     {
-        label: 'Invoices',
+        path: '/admin/invoice-management',
+        label: 'Invoice Management',
         icon: FileText,
-        children: [
-            { path: '/invoices/inbox', label: 'Invoice Inbox' },
-            { path: '/invoices/pending', label: 'Pending Approval' },
-            { path: '/invoices/tracking', label: 'Payment Tracking' }
-        ]
+        isSingle: true
+        // Previously had submenu children:
+        // { path: '/invoices/inbox', label: 'Invoice Inbox' },
+        // { path: '/invoices/pending', label: 'Pending Approval' },
+        // { path: '/invoices/tracking', label: 'Payment Tracking' }
     },
     {
         label: 'OHS Management',
@@ -140,6 +141,12 @@ export const SUPERVISOR_SIDEBAR = [
         label: 'Approvals',
         path: '/supervisor/approvals',
         icon: CheckCircle,
+        isSingle: true
+    },
+    {
+        label: 'Invoice Management',
+        path: '/supervisor/invoices',
+        icon: FileText,
         isSingle: true
     }
 ];
