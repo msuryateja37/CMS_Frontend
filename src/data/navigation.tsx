@@ -44,7 +44,7 @@ export const SIDEBAR_ITEMS = [
     },
     {
         path: '/admin/invoice-management',
-        label: 'Invoice Management',
+        label: 'Facilities Management',
         icon: FileText,
         isSingle: true
         // Previously had submenu children:
@@ -144,7 +144,7 @@ export const SUPERVISOR_SIDEBAR = [
         isSingle: true
     },
     {
-        label: 'Invoice Management',
+        label: 'Facilities Management Services',
         path: '/supervisor/invoices',
         icon: FileText,
         isSingle: true
