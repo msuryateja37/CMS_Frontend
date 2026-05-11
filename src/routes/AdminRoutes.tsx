@@ -39,6 +39,7 @@ import { AccessControl } from '../pages/security_practitioner/AccessControl';
 import InvoiceInbox from '../pages/invoices/InvoiceInbox';
 import PendingApproval from '../pages/invoices/PendingApproval';
 import PaymentTracking from '../pages/invoices/PaymentTracking';
+import { AdminInvoiceList, AdminInvoiceDetail } from '../pages/admin/AdminInvoiceManagement';
 
 const AdminRoutes = () => {
     return (
@@ -95,6 +96,10 @@ const AdminRoutes = () => {
             <Route path="/invoices/inbox" element={<ProtectedRoute><InvoiceInbox /></ProtectedRoute>} />
             <Route path="/invoices/pending" element={<ProtectedRoute><PendingApproval /></ProtectedRoute>} />
             <Route path="/invoices/tracking" element={<ProtectedRoute><PaymentTracking /></ProtectedRoute>} />
+
+            {/* Admin Invoice Management */}
+            <Route path="/admin/invoice-management" element={<ProtectedRoute><AdminInvoiceList /></ProtectedRoute>} />
+            <Route path="/admin/invoice-management/:id" element={<ProtectedRoute><AdminInvoiceDetail /></ProtectedRoute>} />
 
             {/* Common Routes */}
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

@@ -7,6 +7,7 @@ import Approvals from '../pages/supervisor/Approvals';
 import CaseSubmissionSuccess from '../pages/supervisor/CaseSubmissionSuccess';
 import CaseDetails from '../pages/common/CaseDetails';
 import ApprovalWorkflow from '../pages/supervisor/ApprovalWorkflow';
+import { SupervisorInvoiceList, SupervisorInvoiceNew, SupervisorInvoiceDetail } from '../pages/supervisor/InvoiceManagement';
 
 const SupervisorRoutes = () => {
     return (
@@ -19,8 +20,14 @@ const SupervisorRoutes = () => {
             <Route path="cases/:id/approve" element={<ProtectedRoute><ApprovalWorkflow /></ProtectedRoute>} />
             <Route path="cases-review" element={<ProtectedRoute><CasesReview /></ProtectedRoute>} />
             <Route path="approvals" element={<ProtectedRoute><Approvals /></ProtectedRoute>} />
+
+            {/* Invoice Management Routes */}
+            <Route path="invoices" element={<ProtectedRoute><SupervisorInvoiceList /></ProtectedRoute>} />
+            <Route path="invoices/new" element={<ProtectedRoute><SupervisorInvoiceNew /></ProtectedRoute>} />
+            <Route path="invoices/:id" element={<ProtectedRoute><SupervisorInvoiceDetail /></ProtectedRoute>} />
         </Routes>
     );
 };
 
 export default SupervisorRoutes;
+
