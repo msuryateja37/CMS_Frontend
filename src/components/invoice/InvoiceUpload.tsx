@@ -1,14 +1,22 @@
 import React, { useState, useRef } from 'react';
 import { Upload, FileText, Eye, Trash2, Loader2 } from 'lucide-react';
+import { invoiceService } from '../../services/invoiceService';
 
 interface InvoiceUploadProps {
     onUploadComplete: () => void;
 }
 
+const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
 const InvoiceUpload: React.FC<InvoiceUploadProps> = ({ onUploadComplete }) => {
     const [isDragging, setIsDragging] = useState(false);
     const [uploadedFile, setUploadedFile] = useState<{ name: string; size: string } | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [uploadError, setUploadError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleDragOver = (e: React.DragEvent) => {
@@ -24,26 +32,46 @@ const InvoiceUpload: React.FC<InvoiceUploadProps> = ({ onUploadComplete }) => {
     const handleDrop = (e: React.DragEvent) => {
         e.preventDefault();
         setIsDragging(false);
-        simulateUpload('invoice_scan_91957.pdf', '842 KB');
+        const file = e.dataTransfer.files?.[0];
+        if (file) {
+            processFile(file);
+        }
     };
 
-    const handleFileSelect = () => {
-        simulateUpload('invoice_scan_91957.pdf', '842 KB');
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            processFile(file);
+        }
     };
 
-    const simulateUpload = (name: string, size: string) => {
-        setUploadedFile({ name, size });
+    const processFile = async (file: File) => {
+        setUploadedFile({ name: file.name, size: formatFileSize(file.size) });
         setIsProcessing(true);
-        // Simulate OCR processing delay
-        setTimeout(() => {
+        setUploadError(null);
+
+        try {
+            const data = await invoiceService.ocrScan(file);
+            console.log('OCR Scan Response:', data);
+
             setIsProcessing(false);
             onUploadComplete();
-        }, 2500);
+        } catch (error: any) {
+            console.error('OCR Scan Error:', error);
+            setIsProcessing(false);
+            const message = error?.response?.data?.message || error?.message || 'Failed to process invoice';
+            setUploadError(message);
+        }
     };
 
     const removeFile = () => {
         setUploadedFile(null);
         setIsProcessing(false);
+        setUploadError(null);
+        // Reset the file input so the same file can be re-selected
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
     };
 
     return (
@@ -68,6 +96,8 @@ const InvoiceUpload: React.FC<InvoiceUploadProps> = ({ onUploadComplete }) => {
                                     <p className="text-xs text-gray-500">
                                         {uploadedFile.size} • {isProcessing ? (
                                             <span className="text-yellow font-semibold">PROCESSING OCR...</span>
+                                        ) : uploadError ? (
+                                            <span className="text-red font-semibold">ERROR</span>
                                         ) : (
                                             <span className="text-green font-semibold">OCR PROCESSED</span>
                                         )}
@@ -95,6 +125,19 @@ const InvoiceUpload: React.FC<InvoiceUploadProps> = ({ onUploadComplete }) => {
                     ) : (
                         <div className="text-center py-8 text-gray-400 text-sm">
                             No files uploaded yet
+                        </div>
+                    )}
+
+                    {/* Error message */}
+                    {uploadError && (
+                        <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <p className="text-xs text-red-600 font-medium">{uploadError}</p>
+                            <button
+                                onClick={removeFile}
+                                className="text-xs text-red-500 underline mt-1 hover:text-red-700"
+                            >
+                                Try again
+                            </button>
                         </div>
                     )}
                 </div>
