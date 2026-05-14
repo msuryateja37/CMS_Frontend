@@ -12,7 +12,7 @@ export const OHSInspectionForm: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [comments, setComments] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -22,7 +22,7 @@ export const OHSInspectionForm: React.FC = () => {
       try {
         const fullForm = await getOhsAuditForm();
         setForm(fullForm);
-      } catch (err: any) {
+      } catch (err: unknown) {
         setError('Failed to load the form. Please try again later.');
         console.error('Form fetch error:', err);
       } finally {
@@ -32,7 +32,7 @@ export const OHSInspectionForm: React.FC = () => {
     fetchForm();
   }, []);
 
-  const handleAnswerChange = (questionId: string, value: any) => {
+  const handleAnswerChange = (questionId: string, value: string | string[]) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
   };
 
@@ -48,7 +48,7 @@ export const OHSInspectionForm: React.FC = () => {
         questionId,
         answerText: String(answerText),
       }));
-      await submitFormResponse(form.id, user?.id ?? 'anonymous', answersPayload);
+      await submitFormResponse(form.id, { submittedBy: user?.id ?? 'anonymous', answers: answersPayload });
       setSubmitted(true);
     } catch (err) {
       alert('Failed to submit the form. Please try again.');
@@ -148,7 +148,7 @@ export const OHSInspectionForm: React.FC = () => {
 
                 {/* Questions grid */}
                 <div
-                  className={`grid gap-5 ${section.questions.some(q => q.inputType === 'radio_with_comments')
+                  className={`grid gap-5 ${section.questions.some(q => (q.inputType as string) === 'radio_with_comments')
                       ? 'grid-cols-1'
                       : 'grid-cols-2'
                     }`}
