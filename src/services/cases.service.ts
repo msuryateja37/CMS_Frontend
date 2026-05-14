@@ -82,6 +82,7 @@ export interface Case {
   latitude?: number;
   longitude?: number;
   immediateActions?: string;
+  otherActions?: string;
   evidence?: CaseEvidence[]; // Mapped from media
 
   // For Timeline
