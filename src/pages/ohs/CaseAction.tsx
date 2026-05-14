@@ -278,7 +278,10 @@ const CaseAction: React.FC = () => {
     const sevStyle = getSeverityStyle(caseData.severity);
     const isClosed = caseData.status === 'CLOSED' || caseData.status === 'RESOLVED';
     const isUnderReview = caseData.status === 'UNDER_REVIEW';
+    const isSupervisor = user?.role?.name?.toLowerCase() === 'supervisor';
+    const isAdmin = user?.role?.name?.toLowerCase() === 'admin';
     const isCurrentAssignee = user?.id === caseData.assignedTo?.id;
+    const canEdit = !isClosed && (isCurrentAssignee || isSupervisor || isAdmin);
 
     const provinceName = caseData.building?.province?.name || '';
     const isProvincial = provincialNames.includes(provinceName);
@@ -597,7 +600,7 @@ const CaseAction: React.FC = () => {
                                 <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
                                     <div className="flex justify-between items-center mb-6">
                                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Long-term Corrective Actions</h3>
-                                        {!isClosed && isCurrentAssignee && (
+                                        {canEdit && (
                                             <button 
                                                 onClick={() => setShowActionForm(!showActionForm)}
                                                 className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all"
@@ -608,7 +611,7 @@ const CaseAction: React.FC = () => {
                                         )}
                                     </div>
 
-                                    {showActionForm && (
+                                    {showActionForm && canEdit && (
                                         <div className="bg-white p-6 rounded-xl border border-gray-200 mb-6 shadow-sm">
                                             <h4 className="text-sm font-bold text-gray-700 mb-4">Create New Action</h4>
                                             <textarea
@@ -676,7 +679,7 @@ const CaseAction: React.FC = () => {
                                 <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
                                     <div className="flex justify-between items-center mb-6">
                                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Uploaded Attachments</h3>
-                                        {!isClosed && isCurrentAssignee && (
+                                        {canEdit && (
                                             <button 
                                                 onClick={() => setShowEvidenceForm(!showEvidenceForm)}
                                                 className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all"
@@ -688,7 +691,7 @@ const CaseAction: React.FC = () => {
                                     </div>
 
                                     {/* Practitioner Actions — Upload */}
-                                    {showEvidenceForm && !isClosed && isCurrentAssignee && (
+                                    {showEvidenceForm && canEdit && (
                                         <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6 shadow-sm">
                                             <h4 className="text-sm font-bold text-gray-700 mb-4">Upload New Evidence</h4>
                                             <div>
@@ -821,7 +824,7 @@ const CaseAction: React.FC = () => {
                                             <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
                                                 <h5 className="font-bold text-sm text-gray-800 mb-1">Provincial Security Coordinator</h5>
                                                 <p className="text-xs text-gray-500 mb-4">Upload recommendations report</p>
-                                                {!isClosed && isCurrentAssignee && (
+                                                {canEdit && (
                                                     <button 
                                                         onClick={() => handleApprovalUploadClick('Provincial Security Coordinator')}
                                                         className="mt-auto flex items-center gap-2 px-3 py-1.5 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all"
@@ -833,7 +836,7 @@ const CaseAction: React.FC = () => {
                                             <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
                                                 <h5 className="font-bold text-sm text-gray-800 mb-1">Chief Director</h5>
                                                 <p className="text-xs text-gray-500 mb-4">Upload final approved report</p>
-                                                {!isClosed && isCurrentAssignee && (
+                                                {canEdit && (
                                                     <button 
                                                         onClick={() => handleApprovalUploadClick('Chief Director (Provincial)')}
                                                         className="mt-auto flex items-center gap-2 px-3 py-1.5 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all"
@@ -850,7 +853,7 @@ const CaseAction: React.FC = () => {
                                             <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
                                                 <h5 className="font-bold text-sm text-gray-800 mb-1">Assistant Director</h5>
                                                 <p className="text-xs text-gray-500 mb-4">Upload recommendations report</p>
-                                                {!isClosed && isCurrentAssignee && (
+                                                {canEdit && (
                                                     <button 
                                                         onClick={() => handleApprovalUploadClick('Assistant Director')}
                                                         className="mt-auto flex items-center gap-2 px-3 py-1.5 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all"
@@ -862,7 +865,7 @@ const CaseAction: React.FC = () => {
                                             <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
                                                 <h5 className="font-bold text-sm text-gray-800 mb-1">Director</h5>
                                                 <p className="text-xs text-gray-500 mb-4">Upload recommendations report</p>
-                                                {!isClosed && isCurrentAssignee && (
+                                                {canEdit && (
                                                     <button 
                                                         onClick={() => handleApprovalUploadClick('Director')}
                                                         className="mt-auto flex items-center gap-2 px-3 py-1.5 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all"
@@ -874,7 +877,7 @@ const CaseAction: React.FC = () => {
                                             <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
                                                 <h5 className="font-bold text-sm text-gray-800 mb-1">Chief Director</h5>
                                                 <p className="text-xs text-gray-500 mb-4">Upload final approved report</p>
-                                                {!isClosed && isCurrentAssignee && (
+                                                {canEdit && (
                                                     <button 
                                                         onClick={() => handleApprovalUploadClick('Chief Director (National)')}
                                                         className="mt-auto flex items-center gap-2 px-3 py-1.5 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all"
@@ -903,7 +906,7 @@ const CaseAction: React.FC = () => {
                                                 </span>
                                             )}
                                         </div>
-                                        {!isClosed && isCurrentAssignee && (
+                                        {canEdit && (
                                             <button 
 
                                             onClick={() => setShowCommentForm(!showCommentForm)}
@@ -916,7 +919,7 @@ const CaseAction: React.FC = () => {
                                     </div>
 
                                     {/* Practitioner Actions — Comment */}
-                                    {showCommentForm && !isClosed && isCurrentAssignee && (
+                                    {showCommentForm && canEdit && (
                                         <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6 shadow-sm">
                                             <h4 className="text-sm font-bold text-gray-700 mb-4">Add Comment / Notes</h4>
                                             <div>

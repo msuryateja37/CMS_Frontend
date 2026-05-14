@@ -4,7 +4,7 @@ import EmployeeDashboard from '../pages/employee/Dashboard';
 import MyCases from '../pages/employee/MyCases';
 import ReportIncident from '../pages/employee/ReportIncident';
 import CaseSubmissionSuccess from '../pages/employee/CaseSubmissionSuccess';
-import CaseDetails from '../pages/common/CaseDetails';
+import EmployeeCaseDetails from '../pages/employee/EmployeeCaseDetails';
 
 const EmployeeRoutes = () => {
     return (
@@ -12,7 +12,7 @@ const EmployeeRoutes = () => {
             <Route path="/" element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<ProtectedRoute><EmployeeDashboard /></ProtectedRoute>} />
             <Route path="my-cases" element={<ProtectedRoute><MyCases /></ProtectedRoute>} />
-            <Route path="my-cases/:id" element={<ProtectedRoute><CaseDetails /></ProtectedRoute>} />
+            <Route path="my-cases/:id" element={<ProtectedRoute><EmployeeCaseDetails /></ProtectedRoute>} />
             <Route path="submit-case" element={<ProtectedRoute><ReportIncident /></ProtectedRoute>} />
             <Route path="submit-case/success" element={<ProtectedRoute><CaseSubmissionSuccess /></ProtectedRoute>} />
         </Routes>
