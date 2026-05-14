@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Input } from 'antd';
 import DashboardLayout from '../../layouts/DashboardLayout';
-import casesService, { type Case } from '../../services/cases.service';
+import casesService, { type Case, type CaseApproval } from '../../services/cases.service';
 import { Pill } from '../../components/common/Pill';
 import { getStatusLabel } from '../../data/constants';
 import { formatCategory } from '../../utils/formatters';
@@ -9,7 +10,7 @@ import {
     ArrowLeft, Clock, FileText, MapPin, Calendar, Building2,
     User, AlertCircle, Shield, Users, Upload,
     Send, Loader2, MessageSquare, CheckCircle,
-    X, ArrowUpRight, Plus
+    X, ArrowUpRight, Plus, Pencil, Trash2
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 import EscalationModal from '../../components/incident/EscalationModal';
@@ -32,11 +33,91 @@ const provincialNames = [
     "Western Cape"
 ];
 
+const PROVINCIAL_APPROVAL_ROLES: { roleName: string; label: string; hint: string }[] = [
+    { roleName: 'Provincial Security Coordinator', label: 'Provincial Security Coordinator', hint: 'Recommendations report' },
+    { roleName: 'Chief Director (Provincial)', label: 'Chief Director', hint: 'Final approved report' },
+];
+
+const NATIONAL_APPROVAL_ROLES: { roleName: string; label: string; hint: string }[] = [
+    { roleName: 'Assistant Director', label: 'Assistant Director', hint: 'Recommendations report' },
+    { roleName: 'Director', label: 'Director', hint: 'Recommendations report' },
+    { roleName: 'Chief Director (National)', label: 'Chief Director', hint: 'Final approved report' },
+];
+
+function normalizeApprovals(raw: unknown): CaseApproval[] {
+    if (!Array.isArray(raw)) return [];
+    return raw.map((a: Record<string, unknown>) => {
+        const atts = a.attachments as CaseApproval['attachments'] | undefined;
+        if (atts && atts.length > 0) {
+            return { ...(a as unknown as CaseApproval), attachments: atts };
+        }
+        const legacyUrl = a.fileUrl as string | undefined;
+        if (legacyUrl) {
+            return {
+                ...(a as unknown as CaseApproval),
+                attachments: [
+                    {
+                        id: `legacy-${a.id}`,
+                        fileUrl: legacyUrl,
+                        fileName: (a.fileName as string) ?? null,
+                        fileType: (a.fileType as string) ?? null,
+                        createdAt: (a.createdAt as string) ?? new Date().toISOString(),
+                    },
+                ],
+            };
+        }
+        return { ...(a as unknown as CaseApproval), attachments: [] };
+    });
+}
+
 interface TimelineActivity {
+    id?: string;
+    category?: string;
     type?: string;
+    oldStatus?: string;
+    newStatus?: string;
     description?: string;
     user?: { name: string };
     timestamp: string;
+}
+
+function timelineEntryTitle(a: TimelineActivity): string {
+    const cat = a.category;
+    if (cat === 'PLAN') return 'Incident plan';
+    if (cat === 'COMMENT' || a.type === 'COMMENT') return 'Comment';
+    if (cat === 'CORRECTIVE_ACTION') {
+        return a.type === 'CORRECTIVE_UPDATED'
+            ? 'Corrective action updated'
+            : 'Corrective action added';
+    }
+    if (cat === 'APPROVAL') {
+        return a.type === 'APPROVAL_UPDATED'
+            ? 'Approval / recommendation updated'
+            : 'Approval / recommendation recorded';
+    }
+    if (cat === 'APPROVAL_FILE') return 'Approval document added';
+    if (cat === 'EVIDENCE') return 'Evidence uploaded';
+    if (cat === 'STATUS') return getStatusLabel(a.type ?? '');
+    if (a.description?.toLowerCase().includes('escalat')) return 'Escalated';
+    return getStatusLabel(a.type ?? '');
+}
+
+function timelineDotClass(a: TimelineActivity): string {
+    const cat = a.category;
+    if (cat === 'PLAN') return 'bg-indigo-500';
+    if (cat === 'COMMENT' || a.type === 'COMMENT') return 'bg-blue-500';
+    if (cat === 'CORRECTIVE_ACTION') return 'bg-teal-500';
+    if (cat === 'APPROVAL' || cat === 'APPROVAL_FILE') return 'bg-violet-500';
+    if (cat === 'EVIDENCE') return 'bg-cyan-500';
+    if (cat === 'STATUS') {
+        const t = (a.type ?? '').toUpperCase();
+        if (t === 'ASSIGNED') return 'bg-purple-500';
+        if (t === 'UNDER_REVIEW') return 'bg-amber-400';
+        if (t === 'CLOSED' || t === 'RESOLVED') return 'bg-gray-400';
+        return 'bg-green';
+    }
+    if (a.description?.toLowerCase().includes('escalat')) return 'bg-amber-500';
+    return 'bg-green';
 }
 
 const CaseAction: React.FC = () => {
@@ -49,6 +130,23 @@ const CaseAction: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    const mergeCase = useCallback((patch: Partial<Case>) => {
+        setCaseData((prev) => (prev ? { ...prev, ...patch } : prev));
+    }, []);
+
+    const mergeApproval = useCallback((updated: CaseApproval) => {
+        setCaseData((prev) => {
+            if (!prev) return prev;
+            const list = normalizeApprovals(prev.approvals);
+            const idx = list.findIndex((x) => x.id === updated.id);
+            const next =
+                idx >= 0
+                    ? [...list.slice(0, idx), updated, ...list.slice(idx + 1)]
+                    : [...list, updated];
+            return { ...prev, approvals: next };
+        });
+    }, []);
+
     // Activity timeline
     const [activities, setActivities] = useState<TimelineActivity[]>([]);
 
@@ -59,6 +157,11 @@ const CaseAction: React.FC = () => {
     // Comment form
     const [comment, setComment] = useState('');
     const [submittingComment, setSubmittingComment] = useState(false);
+    const [showCommentForm, setShowCommentForm] = useState(false);
+
+    const [incidentPlan, setIncidentPlan] = useState('');
+    const [editingPlan, setEditingPlan] = useState(false);
+    const [submittingPlan, setSubmittingPlan] = useState(false);
 
     // Evidence upload
     const [uploadingFiles, setUploadingFiles] = useState(false);
@@ -79,25 +182,28 @@ const CaseAction: React.FC = () => {
     // Form toggle states
     const [showActionForm, setShowActionForm] = useState(false);
     const [showEvidenceForm, setShowEvidenceForm] = useState(false);
-    const [showCommentForm, setShowCommentForm] = useState(false);
 
-    // Approvals upload state
-    const approvalFileInputRef = useRef<HTMLInputElement>(null);
-    const [selectedApprovalRole, setSelectedApprovalRole] = useState<string | null>(null);
+    // New approval / recommendation (per role slot)
+    const [newApprovalForRole, setNewApprovalForRole] = useState<string | null>(null);
+    const [newApprRecommender, setNewApprRecommender] = useState('');
+    const [newApprText, setNewApprText] = useState('');
+    const [newApprFiles, setNewApprFiles] = useState<File[]>([]);
+    const [submittingNewApproval, setSubmittingNewApproval] = useState(false);
+    const newApprFilesInputRef = useRef<HTMLInputElement>(null);
 
-    const handleApprovalUploadClick = (role: string) => {
-        setSelectedApprovalRole(role);
-        approvalFileInputRef.current?.click();
-    };
+    const [editingApprovalMeta, setEditingApprovalMeta] = useState<{
+        id: string;
+        recommenderName: string;
+        recommendationText: string;
+    } | null>(null);
+    const [savingApprovalMetaId, setSavingApprovalMetaId] = useState<string | null>(null);
+    const extraAttachInputRef = useRef<HTMLInputElement>(null);
+    const [extraAttachApprovalId, setExtraAttachApprovalId] = useState<string | null>(null);
+    const [uploadingExtraAttachments, setUploadingExtraAttachments] = useState(false);
+    const [deletingAttachmentKey, setDeletingAttachmentKey] = useState<string | null>(null);
+    const [deletingApprovalId, setDeletingApprovalId] = useState<string | null>(null);
 
-    const handleApprovalFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files || []);
-        if (files.length === 0 || !selectedApprovalRole) return;
-        
-        // Mock success for now until backend is connected
-        showSuccess(`Uploaded document for ${selectedApprovalRole} successfully.`);
-        if (approvalFileInputRef.current) approvalFileInputRef.current.value = '';
-    };
+    const [actionPatchingId, setActionPatchingId] = useState<string | null>(null);
 
     const TABS = [
         { id: 'details', label: 'Details of the case' },
@@ -115,16 +221,20 @@ const CaseAction: React.FC = () => {
         }
     }, [id]);
 
-    const fetchCaseDetails = async (caseId: string) => {
+    const fetchCaseDetails = async (caseId: string, showLoader = true) => {
         try {
-            setLoading(true);
+            if (showLoader) setLoading(true);
             const data = await casesService.getCaseById(caseId);
-            setCaseData(data);
+            setCaseData({
+                ...data,
+                approvals: normalizeApprovals(data.approvals),
+            });
+            if (data.incidentPlan) setIncidentPlan(data.incidentPlan);
         } catch (err) {
             console.error('Error fetching case details:', err);
             setError('Failed to load case details.');
         } finally {
-            setLoading(false);
+            if (showLoader) setLoading(false);
         }
     };
 
@@ -146,11 +256,19 @@ const CaseAction: React.FC = () => {
         if (!comment.trim() || !id) return;
         try {
             setSubmittingComment(true);
-            await casesService.addComment(id, comment.trim());
+            const created = await casesService.addComment(id, comment.trim());
             setComment('');
+            setShowCommentForm(false);
+            setCaseData((prev) => {
+                if (!prev) return prev;
+                const existing = prev.comments ?? [];
+                return {
+                    ...prev,
+                    comments: [...existing, created],
+                };
+            });
             showSuccess('Comment added successfully.');
-            fetchTimeline(id);
-            fetchCaseDetails(id);
+            void fetchTimeline(id);
         } catch (err) {
             console.error('Error adding comment:', err);
             setError('Failed to add comment.');
@@ -159,26 +277,38 @@ const CaseAction: React.FC = () => {
         }
     };
 
+    const handleSavePlan = async () => {
+        if (!id) return;
+        setSubmittingPlan(true);
+        try {
+            const updated = await casesService.update(id, { incidentPlan });
+            mergeCase({ incidentPlan: updated.incidentPlan ?? incidentPlan });
+            showSuccess('Incident plan updated successfully.');
+            setEditingPlan(false);
+            void fetchTimeline(id);
+        } catch (err) {
+            console.error('Error saving plan:', err);
+            setError('Failed to save incident plan.');
+        } finally {
+            setSubmittingPlan(false);
+        }
+    };
+
     const handleAddCorrectiveAction = async () => {
         if (!newActionText.trim() || !id || !caseData) return;
         try {
             setSubmittingAction(true);
-            let currentActions: string[] = [];
-            if (caseData.otherActions) {
-                try {
-                    currentActions = JSON.parse(caseData.otherActions);
-                } catch {
-                    currentActions = [caseData.otherActions];
-                }
-            }
-            const updatedActions = [...currentActions, newActionText.trim()];
-            const actionsString = JSON.stringify(updatedActions);
-            
-            await casesService.update(id, { otherActions: actionsString });
+            const created = await casesService.addCorrectiveAction(id, newActionText.trim());
+            setCaseData((prev) => {
+                if (!prev) return prev;
+                return {
+                    ...prev,
+                    correctiveActions: [...(prev.correctiveActions ?? []), created],
+                };
+            });
             showSuccess('Corrective action added successfully.');
             setNewActionText('');
             setShowActionForm(false);
-            fetchCaseDetails(id);
         } catch (err) {
             console.error('Error adding corrective action:', err);
             setError('Failed to add corrective action.');
@@ -199,21 +329,37 @@ const CaseAction: React.FC = () => {
 
     const handleUploadEvidence = async () => {
         if (selectedFiles.length === 0 || !id) return;
+        const count = selectedFiles.length;
         try {
             setUploadingFiles(true);
+            const appended: NonNullable<Case['evidence']> = [];
             for (const file of selectedFiles) {
                 const uploaded = await casesService.uploadFile(file, id);
-                await casesService.addEvidence(id, {
+                const row = await casesService.addEvidence(id, {
                     fileUrl: uploaded.url,
                     fileType: file.type,
                     fileName: file.name,
                     uploaderRole: 'OHS Practitioner',
                 });
+                appended.push({
+                    id: row.id,
+                    fileUrl: row.fileUrl,
+                    fileType: row.fileType,
+                    fileName: file.name,
+                    uploaderRole: 'OHS Practitioner',
+                    createdAt: row.uploadedAt,
+                });
             }
             setSelectedFiles([]);
-            showSuccess(`${selectedFiles.length} file(s) uploaded successfully.`);
-            fetchCaseDetails(id);
-            fetchTimeline(id);
+            setCaseData((prev) => {
+                if (!prev) return prev;
+                return {
+                    ...prev,
+                    evidence: [...(prev.evidence ?? []), ...appended],
+                };
+            });
+            showSuccess(`${count} file(s) uploaded successfully.`);
+            void fetchTimeline(id);
         } catch (err) {
             console.error('Error uploading evidence:', err);
             setError('Failed to upload evidence.');
@@ -234,15 +380,204 @@ const CaseAction: React.FC = () => {
 
         try {
             setSendingBack(true);
-            await casesService.updateStatus(id, 'UNDER_REVIEW');
+            const updated = await casesService.updateStatus(id, 'UNDER_REVIEW');
+            mergeCase({ status: updated.status ?? 'UNDER_REVIEW' });
             showSuccess('Case sent back to supervisor for review.');
-            fetchCaseDetails(id);
-            fetchTimeline(id);
+            void fetchTimeline(id);
         } catch (err) {
             console.error('Error updating status:', err);
             setError('Failed to send case back.');
         } finally {
             setSendingBack(false);
+        }
+    };
+
+    const patchCorrectiveActionRow = async (
+        actionId: string,
+        patch: { status?: string; dueDate?: string | null; notes?: string | null; actionText?: string },
+    ) => {
+        if (!id) return;
+        try {
+            setActionPatchingId(actionId);
+            const updated = await casesService.updateCorrectiveAction(id, actionId, patch);
+            setCaseData((prev) => {
+                if (!prev?.correctiveActions) return prev;
+                return {
+                    ...prev,
+                    correctiveActions: prev.correctiveActions.map((a) =>
+                        a.id === actionId ? { ...a, ...updated } : a,
+                    ),
+                };
+            });
+        } catch (err) {
+            console.error('Error updating corrective action:', err);
+            setError('Failed to update corrective action.');
+        } finally {
+            setActionPatchingId(null);
+        }
+    };
+
+    const openNewApprovalForm = (roleName: string) => {
+        setNewApprovalForRole(roleName);
+        setNewApprRecommender('');
+        setNewApprText('');
+        setNewApprFiles([]);
+    };
+
+    const submitNewApprovalForRole = async (roleName: string) => {
+        if (!id || newApprFiles.length === 0) {
+            setError('Select at least one file to upload for this approval record.');
+            return;
+        }
+        try {
+            setSubmittingNewApproval(true);
+            const files: { fileUrl: string; fileName?: string; fileType?: string }[] = [];
+            for (const file of newApprFiles) {
+                const uploaded = await casesService.uploadFile(file, id);
+                files.push({
+                    fileUrl: uploaded.url,
+                    fileName: file.name,
+                    fileType: file.type,
+                });
+            }
+            const created = await casesService.addApproval(id, {
+                roleName,
+                recommenderName: newApprRecommender.trim() || undefined,
+                recommendationText: newApprText.trim() || undefined,
+                files,
+            });
+            setCaseData((prev) => {
+                if (!prev) return prev;
+                return {
+                    ...prev,
+                    approvals: [...normalizeApprovals(prev.approvals), created],
+                };
+            });
+            showSuccess('Approval / recommendation record saved.');
+            setNewApprovalForRole(null);
+            setNewApprRecommender('');
+            setNewApprText('');
+            setNewApprFiles([]);
+            void fetchTimeline(id);
+        } catch (err) {
+            console.error('Error saving approval:', err);
+            setError('Failed to save approval record.');
+        } finally {
+            setSubmittingNewApproval(false);
+        }
+    };
+
+    const saveApprovalMeta = async () => {
+        if (!id || !editingApprovalMeta) return;
+        try {
+            setSavingApprovalMetaId(editingApprovalMeta.id);
+            const updated = await casesService.updateApproval(id, editingApprovalMeta.id, {
+                recommenderName: editingApprovalMeta.recommenderName,
+                recommendationText: editingApprovalMeta.recommendationText,
+            });
+            mergeApproval(updated);
+            setEditingApprovalMeta(null);
+            showSuccess('Recommendation details updated.');
+        } catch (err) {
+            console.error('Error updating approval:', err);
+            setError('Failed to update approval.');
+        } finally {
+            setSavingApprovalMetaId(null);
+        }
+    };
+
+    const triggerExtraAttachments = (approvalId: string) => {
+        setExtraAttachApprovalId(approvalId);
+        extraAttachInputRef.current?.click();
+    };
+
+    const onExtraAttachmentFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        if (e.target) e.target.value = '';
+        const targetId = extraAttachApprovalId;
+        if (!id || !targetId || files.length === 0) return;
+        try {
+            setUploadingExtraAttachments(true);
+            const uploadedAtts: Awaited<ReturnType<typeof casesService.addApprovalAttachment>>[] = [];
+            for (const file of files) {
+                const up = await casesService.uploadFile(file, id);
+                const att = await casesService.addApprovalAttachment(id, targetId, {
+                    fileUrl: up.url,
+                    fileName: file.name,
+                    fileType: file.type,
+                });
+                uploadedAtts.push(att);
+            }
+            setCaseData((prev) => {
+                if (!prev) return prev;
+                const list = normalizeApprovals(prev.approvals);
+                const next = list.map((ap) =>
+                    ap.id !== targetId
+                        ? ap
+                        : { ...ap, attachments: [...ap.attachments, ...uploadedAtts] },
+                );
+                return { ...prev, approvals: next };
+            });
+            showSuccess('File(s) added to this record.');
+            void fetchTimeline(id);
+        } catch (err) {
+            console.error('Error adding attachment:', err);
+            setError('Failed to add attachment.');
+        } finally {
+            setUploadingExtraAttachments(false);
+            setExtraAttachApprovalId(null);
+        }
+    };
+
+    const removeApprovalAttachment = async (approvalId: string, attachmentId: string) => {
+        if (!id || String(attachmentId).startsWith('legacy-')) {
+            setError('Remove legacy rows by re-uploading under a new record after migration.');
+            return;
+        }
+        const key = `${approvalId}:${attachmentId}`;
+        try {
+            setDeletingAttachmentKey(key);
+            await casesService.deleteApprovalAttachment(id, approvalId, attachmentId);
+            setCaseData((prev) => {
+                if (!prev) return prev;
+                const list = normalizeApprovals(prev.approvals);
+                const next = list.map((ap) =>
+                    ap.id === approvalId
+                        ? {
+                              ...ap,
+                              attachments: ap.attachments.filter((x) => x.id !== attachmentId),
+                          }
+                        : ap,
+                );
+                return { ...prev, approvals: next };
+            });
+            showSuccess('Attachment removed.');
+        } catch (err) {
+            console.error('Error deleting attachment:', err);
+            setError('Failed to remove attachment.');
+        } finally {
+            setDeletingAttachmentKey(null);
+        }
+    };
+
+    const removeApprovalRecord = async (approvalId: string) => {
+        if (!id) return;
+        try {
+            setDeletingApprovalId(approvalId);
+            await casesService.deleteApproval(id, approvalId);
+            setCaseData((prev) => {
+                if (!prev) return prev;
+                return {
+                    ...prev,
+                    approvals: normalizeApprovals(prev.approvals).filter((a) => a.id !== approvalId),
+                };
+            });
+            showSuccess('Approval record removed.');
+        } catch (err) {
+            console.error('Error deleting approval:', err);
+            setError('Failed to remove approval record.');
+        } finally {
+            setDeletingApprovalId(null);
         }
     };
 
@@ -596,10 +931,10 @@ const CaseAction: React.FC = () => {
                                     </div>
                                 )}
 
-                                {/* Corrective Actions Placeholder */}
+                                {/* Corrective actions (tracked) + original report */}
                                 <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
                                     <div className="flex justify-between items-center mb-6">
-                                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Long-term Corrective Actions</h3>
+                                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Tracked corrective actions</h3>
                                         {canEdit && (
                                             <button 
                                                 onClick={() => setShowActionForm(!showActionForm)}
@@ -613,10 +948,10 @@ const CaseAction: React.FC = () => {
 
                                     {showActionForm && canEdit && (
                                         <div className="bg-white p-6 rounded-xl border border-gray-200 mb-6 shadow-sm">
-                                            <h4 className="text-sm font-bold text-gray-700 mb-4">Create New Action</h4>
+                                            <h4 className="text-sm font-bold text-gray-700 mb-4">Create new corrective action</h4>
                                             <textarea
                                                 className="w-full p-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green focus:border-transparent min-h-[100px] mb-4"
-                                                placeholder="Describe the long-term corrective action..."
+                                                placeholder="Describe the corrective action, verification, or follow-up required..."
                                                 value={newActionText}
                                                 onChange={(e) => setNewActionText(e.target.value)}
                                             ></textarea>
@@ -633,48 +968,163 @@ const CaseAction: React.FC = () => {
                                                     className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50"
                                                 >
                                                     {submittingAction ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
-                                                    Add Action
+                                                    Add action
                                                 </button>
                                             </div>
                                         </div>
                                     )}
 
+                                    {caseData.correctiveActions && caseData.correctiveActions.length > 0 ? (
+                                        <div className="flex flex-col gap-4">
+                                            {caseData.correctiveActions.map((act) => (
+                                                <div key={act.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3">
+                                                    <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">{act.actionText}</p>
+                                                    <div className="flex flex-wrap gap-3 items-end">
+                                                        <div className="min-w-[140px]">
+                                                            <label className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Status</label>
+                                                            <select
+                                                                disabled={!canEdit || actionPatchingId === act.id}
+                                                                value={act.status ?? 'pending'}
+                                                                onChange={(e) =>
+                                                                    void patchCorrectiveActionRow(act.id, { status: e.target.value })
+                                                                }
+                                                                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white"
+                                                            >
+                                                                <option value="pending">Pending</option>
+                                                                <option value="in_progress">In progress</option>
+                                                                <option value="completed">Completed</option>
+                                                            </select>
+                                                        </div>
+                                                        <div className="min-w-[160px]">
+                                                            <label className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Due date</label>
+                                                            <input
+                                                                type="date"
+                                                                disabled={!canEdit || actionPatchingId === act.id}
+                                                                value={act.dueDate ? act.dueDate.slice(0, 10) : ''}
+                                                                onChange={(e) =>
+                                                                    void patchCorrectiveActionRow(act.id, {
+                                                                        dueDate: e.target.value || null,
+                                                                    })
+                                                                }
+                                                                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5"
+                                                            />
+                                                        </div>
+                                                        {actionPatchingId === act.id && (
+                                                            <Loader2 size={16} className="animate-spin text-green shrink-0" />
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Notes / verification</label>
+                                                        <textarea
+                                                            key={`${act.id}-notes-${act.updatedAt ?? ''}`}
+                                                            disabled={!canEdit || actionPatchingId === act.id}
+                                                            defaultValue={act.notes ?? ''}
+                                                            onBlur={(e) => {
+                                                                const v = e.target.value.trim();
+                                                                if (v !== (act.notes ?? '').trim()) {
+                                                                    void patchCorrectiveActionRow(act.id, { notes: v || null });
+                                                                }
+                                                            }}
+                                                            rows={2}
+                                                            className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5"
+                                                            placeholder="Evidence reference, verification, owner..."
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8 bg-white rounded-xl border-2 border-dashed border-gray-200 mb-4">
+                                            <p className="text-gray-400 font-medium text-sm">No tracked corrective actions yet. Add actions above as the investigation progresses.</p>
+                                        </div>
+                                    )}
+
                                     {caseData.otherActions ? (
-                                        <div>
+                                        <div className="mt-6 pt-6 border-t border-gray-200">
+                                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Original report — additional actions</h4>
                                             {(() => {
                                                 try {
-                                                    const actions = JSON.parse(caseData.otherActions);
+                                                    const actions = JSON.parse(caseData.otherActions!);
                                                     if (Array.isArray(actions)) {
                                                         return (
-                                                            <div className="flex flex-col gap-3">
+                                                            <div className="flex flex-col gap-2">
                                                                 {actions.map((action: string, idx: number) => (
-                                                                    <div key={idx} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-start gap-3">
-                                                                        <div className="w-6 h-6 rounded-full bg-green/10 text-dark-green flex items-center justify-center shrink-0 mt-0.5">
-                                                                            <span className="text-xs font-bold">{idx + 1}</span>
-                                                                        </div>
-                                                                        <p className="text-sm text-gray-700 leading-relaxed">{action}</p>
+                                                                    <div key={idx} className="bg-white/80 p-3 rounded-lg border border-gray-100 text-sm text-gray-600 leading-relaxed">
+                                                                        {action}
                                                                     </div>
                                                                 ))}
                                                             </div>
                                                         );
                                                     }
-                                                    return <p className="text-gray-700 text-sm leading-relaxed">{caseData.otherActions}</p>;
+                                                    return <p className="text-gray-600 text-sm leading-relaxed">{caseData.otherActions}</p>;
                                                 } catch {
-                                                    return <p className="text-gray-700 text-sm leading-relaxed">{caseData.otherActions}</p>;
+                                                    return <p className="text-gray-600 text-sm leading-relaxed">{caseData.otherActions}</p>;
                                                 }
                                             })()}
                                         </div>
-                                    ) : (
-                                        <div className="text-center py-10 bg-white rounded-xl border-2 border-dashed border-gray-200">
-                                            <p className="text-gray-400 font-medium text-sm">No long-term corrective actions recorded yet.</p>
-                                        </div>
-                                    )}
+                                    ) : null}
                                 </div>
                             </div>
                         )}
 
                         {activeTab === 'evidence' && (
                             <div className="space-y-6 max-w-4xl">
+                                {/* Incident Plan Section */}
+                                <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Incident Plan</h3>
+                                        {canEdit && (
+                                            <button 
+                                                onClick={() => setEditingPlan(!editingPlan)}
+                                                className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all"
+                                            >
+                                                {editingPlan ? 'Cancel' : (caseData.incidentPlan ? 'Edit Plan' : 'Add Plan')}
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {editingPlan && canEdit ? (
+                                        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                                            <p className="text-xs text-gray-500 mb-3">Use this editor for the full incident response plan, containment, communication, and follow-up steps.</p>
+                                            <Input.TextArea
+                                                className="!min-h-[280px] !text-sm"
+                                                placeholder="Write the complete plan for this incident (response, roles, timelines, verification)..."
+                                                value={incidentPlan}
+                                                onChange={(e) => setIncidentPlan(e.target.value)}
+                                                rows={16}
+                                                showCount
+                                                maxLength={20000}
+                                            />
+                                            <div className="flex justify-end gap-3 mt-4">
+                                                <button
+                                                    onClick={() => setEditingPlan(false)}
+                                                    className="px-4 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700 transition-colors"
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button
+                                                    onClick={handleSavePlan}
+                                                    disabled={submittingPlan || !incidentPlan.trim()}
+                                                    className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50"
+                                                >
+                                                    {submittingPlan ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                                                    Save Plan
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                                            {caseData.incidentPlan ? (
+                                                <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">{caseData.incidentPlan}</p>
+                                            ) : (
+                                                <div className="text-center py-6">
+                                                    <p className="text-gray-400 font-medium text-sm">No incident plan recorded yet.</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
                                 {/* Evidence Section */}
                                 <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
                                     <div className="flex justify-between items-center mb-6">
@@ -806,88 +1256,292 @@ const CaseAction: React.FC = () => {
 
                         {activeTab === 'approvals' && (
                             <div className="space-y-6 max-w-4xl">
-                                <div className="bg-gray-50 rounded-xl border border-gray-100 p-6 text-center">
-                                    <Shield className="mx-auto text-gray-300 mb-3" size={32} />
-                                    <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Director Approvals & Recommendations</h4>
-                                    <p className="text-gray-500 text-sm mb-6">Upload manual approvals and recommendations provided by directors.</p>
-                                    
-                                    <input 
-                                        type="file" 
-                                        ref={approvalFileInputRef} 
-                                        className="hidden" 
-                                        onChange={handleApprovalFileSelect} 
-                                        accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                                    />
+                                <input
+                                    ref={newApprFilesInputRef}
+                                    type="file"
+                                    multiple
+                                    className="hidden"
+                                    accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                                    onChange={(e) => {
+                                        setNewApprFiles((p) => [...p, ...Array.from(e.target.files || [])]);
+                                        if (e.target) e.target.value = '';
+                                    }}
+                                />
+                                <input
+                                    ref={extraAttachInputRef}
+                                    type="file"
+                                    multiple
+                                    className="hidden"
+                                    accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                                    onChange={onExtraAttachmentFiles}
+                                />
 
-                                    {isProvincial && (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-                                            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
-                                                <h5 className="font-bold text-sm text-gray-800 mb-1">Provincial Security Coordinator</h5>
-                                                <p className="text-xs text-gray-500 mb-4">Upload recommendations report</p>
-                                                {canEdit && (
-                                                    <button 
-                                                        onClick={() => handleApprovalUploadClick('Provincial Security Coordinator')}
-                                                        className="mt-auto flex items-center gap-2 px-3 py-1.5 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all"
-                                                    >
-                                                        <Upload size={14} /> Upload Document
-                                                    </button>
-                                                )}
-                                            </div>
-                                            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
-                                                <h5 className="font-bold text-sm text-gray-800 mb-1">Chief Director</h5>
-                                                <p className="text-xs text-gray-500 mb-4">Upload final approved report</p>
-                                                {canEdit && (
-                                                    <button 
-                                                        onClick={() => handleApprovalUploadClick('Chief Director (Provincial)')}
-                                                        className="mt-auto flex items-center gap-2 px-3 py-1.5 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all"
-                                                    >
-                                                        <Upload size={14} /> Upload Document
-                                                    </button>
-                                                )}
-                                            </div>
+                                <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
+                                    <div className="flex items-start gap-3 mb-6">
+                                        <Shield className="text-gray-400 shrink-0 mt-0.5" size={28} />
+                                        <div>
+                                            <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-1">Approvals & recommendations</h4>
+                                            <p className="text-gray-500 text-sm leading-relaxed">
+                                                Each signatory can have their own record. Add the person’s name, optional written recommendation, and one or more supporting documents. You can add more files or edit details later without reloading the case.
+                                            </p>
                                         </div>
-                                    )}
+                                    </div>
 
-                                    {!isProvincial && (
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
-                                            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
-                                                <h5 className="font-bold text-sm text-gray-800 mb-1">Assistant Director</h5>
-                                                <p className="text-xs text-gray-500 mb-4">Upload recommendations report</p>
-                                                {canEdit && (
-                                                    <button 
-                                                        onClick={() => handleApprovalUploadClick('Assistant Director')}
-                                                        className="mt-auto flex items-center gap-2 px-3 py-1.5 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all"
-                                                    >
-                                                        <Upload size={14} /> Upload Document
-                                                    </button>
-                                                )}
-                                            </div>
-                                            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
-                                                <h5 className="font-bold text-sm text-gray-800 mb-1">Director</h5>
-                                                <p className="text-xs text-gray-500 mb-4">Upload recommendations report</p>
-                                                {canEdit && (
-                                                    <button 
-                                                        onClick={() => handleApprovalUploadClick('Director')}
-                                                        className="mt-auto flex items-center gap-2 px-3 py-1.5 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all"
-                                                    >
-                                                        <Upload size={14} /> Upload Document
-                                                    </button>
-                                                )}
-                                            </div>
-                                            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
-                                                <h5 className="font-bold text-sm text-gray-800 mb-1">Chief Director</h5>
-                                                <p className="text-xs text-gray-500 mb-4">Upload final approved report</p>
-                                                {canEdit && (
-                                                    <button 
-                                                        onClick={() => handleApprovalUploadClick('Chief Director (National)')}
-                                                        className="mt-auto flex items-center gap-2 px-3 py-1.5 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all"
-                                                    >
-                                                        <Upload size={14} /> Upload Document
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
+                                    <div className={`grid gap-4 ${isProvincial ? 'md:grid-cols-2' : 'md:grid-cols-3'}`}>
+                                        {(isProvincial ? PROVINCIAL_APPROVAL_ROLES : NATIONAL_APPROVAL_ROLES).map((def) => {
+                                            const approvalsList = normalizeApprovals(caseData.approvals);
+                                            const forRole = approvalsList.filter((a) => a.roleName === def.roleName);
+                                            return (
+                                                <div
+                                                    key={def.roleName}
+                                                    className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-3 text-left"
+                                                >
+                                                    <div>
+                                                        <h5 className="font-bold text-sm text-gray-900">{def.label}</h5>
+                                                        <p className="text-xs text-gray-500 mt-0.5">{def.hint}</p>
+                                                    </div>
+
+                                                    {forRole.length > 0 && (
+                                                        <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+                                                            {forRole.map((ap) => (
+                                                                <div
+                                                                    key={ap.id}
+                                                                    className="rounded-lg border border-gray-100 bg-gray-50/80 p-3 space-y-2"
+                                                                >
+                                                                    <div className="flex justify-between gap-2 items-start">
+                                                                        <div className="min-w-0">
+                                                                            <p className="text-xs font-bold text-gray-700">
+                                                                                {ap.recommenderName?.trim() || 'Name not recorded'}
+                                                                            </p>
+                                                                            {ap.recommendationText ? (
+                                                                                <p className="text-xs text-gray-600 mt-1 whitespace-pre-wrap">
+                                                                                    {ap.recommendationText}
+                                                                                </p>
+                                                                            ) : null}
+                                                                        </div>
+                                                                        {canEdit && (
+                                                                            <div className="flex shrink-0 gap-1">
+                                                                                <button
+                                                                                    type="button"
+                                                                                    title="Edit name & recommendation text"
+                                                                                    onClick={() =>
+                                                                                        setEditingApprovalMeta({
+                                                                                            id: ap.id,
+                                                                                            recommenderName: ap.recommenderName ?? '',
+                                                                                            recommendationText: ap.recommendationText ?? '',
+                                                                                        })
+                                                                                    }
+                                                                                    className="p-1.5 rounded-md text-gray-500 hover:bg-white hover:text-gray-800"
+                                                                                >
+                                                                                    <Pencil size={14} />
+                                                                                </button>
+                                                                                <button
+                                                                                    type="button"
+                                                                                    title="Delete this record"
+                                                                                    disabled={deletingApprovalId === ap.id}
+                                                                                    onClick={() => {
+                                                                                        if (window.confirm('Remove this approval record and all its files?')) {
+                                                                                            void removeApprovalRecord(ap.id);
+                                                                                        }
+                                                                                    }}
+                                                                                    className="p-1.5 rounded-md text-gray-500 hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
+                                                                                >
+                                                                                    {deletingApprovalId === ap.id ? (
+                                                                                        <Loader2 size={14} className="animate-spin" />
+                                                                                    ) : (
+                                                                                        <Trash2 size={14} />
+                                                                                    )}
+                                                                                </button>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+
+                                                                    {editingApprovalMeta?.id === ap.id && (
+                                                                        <div className="space-y-2 pt-2 border-t border-gray-200">
+                                                                            <input
+                                                                                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5"
+                                                                                placeholder="Name of person who gave the recommendation / approval"
+                                                                                value={editingApprovalMeta.recommenderName}
+                                                                                onChange={(e) =>
+                                                                                    setEditingApprovalMeta((m) =>
+                                                                                        m ? { ...m, recommenderName: e.target.value } : m,
+                                                                                    )
+                                                                                }
+                                                                            />
+                                                                            <textarea
+                                                                                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 min-h-[72px]"
+                                                                                placeholder="Written recommendation or conditions"
+                                                                                value={editingApprovalMeta.recommendationText}
+                                                                                onChange={(e) =>
+                                                                                    setEditingApprovalMeta((m) =>
+                                                                                        m ? { ...m, recommendationText: e.target.value } : m,
+                                                                                    )
+                                                                                }
+                                                                            />
+                                                                            <div className="flex justify-end gap-2">
+                                                                                <button
+                                                                                    type="button"
+                                                                                    className="text-xs font-semibold text-gray-500"
+                                                                                    onClick={() => setEditingApprovalMeta(null)}
+                                                                                >
+                                                                                    Cancel
+                                                                                </button>
+                                                                                <button
+                                                                                    type="button"
+                                                                                    disabled={savingApprovalMetaId === ap.id}
+                                                                                    onClick={() => void saveApprovalMeta()}
+                                                                                    className="text-xs font-semibold text-white bg-dark-green px-3 py-1.5 rounded-lg disabled:opacity-50"
+                                                                                >
+                                                                                    {savingApprovalMetaId === ap.id ? 'Saving…' : 'Save'}
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+
+                                                                    <div className="space-y-1.5">
+                                                                        {ap.attachments.map((att) => (
+                                                                            <div
+                                                                                key={att.id}
+                                                                                className="flex items-center gap-2 bg-white rounded-md border border-gray-100 px-2 py-1.5"
+                                                                            >
+                                                                                <a
+                                                                                    href={
+                                                                                        att.fileUrl?.match(/^\s*(javascript|data|vbscript):/i)
+                                                                                            ? '#'
+                                                                                            : att.fileUrl
+                                                                                    }
+                                                                                    target="_blank"
+                                                                                    rel="noopener noreferrer"
+                                                                                    className="text-xs text-green font-medium truncate flex-1 min-w-0"
+                                                                                >
+                                                                                    {att.fileName || 'Document'}
+                                                                                </a>
+                                                                                {canEdit && (
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        disabled={
+                                                                                            deletingAttachmentKey === `${ap.id}:${att.id}` ||
+                                                                                            String(att.id).startsWith('legacy-')
+                                                                                        }
+                                                                                        onClick={() => void removeApprovalAttachment(ap.id, att.id)}
+                                                                                        className="text-gray-400 hover:text-red-500 shrink-0 disabled:opacity-30"
+                                                                                    >
+                                                                                        {deletingAttachmentKey === `${ap.id}:${att.id}` ? (
+                                                                                            <Loader2 size={12} className="animate-spin" />
+                                                                                        ) : (
+                                                                                            <X size={12} />
+                                                                                        )}
+                                                                                    </button>
+                                                                                )}
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+
+                                                                    {canEdit && (
+                                                                        <button
+                                                                            type="button"
+                                                                            disabled={uploadingExtraAttachments}
+                                                                            onClick={() => triggerExtraAttachments(ap.id)}
+                                                                            className="w-full mt-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-dark-green border border-green/30 rounded-lg py-1.5 hover:bg-green/5 disabled:opacity-50"
+                                                                        >
+                                                                            {uploadingExtraAttachments && extraAttachApprovalId === ap.id ? (
+                                                                                <Loader2 size={14} className="animate-spin" />
+                                                                            ) : (
+                                                                                <Upload size={14} />
+                                                                            )}
+                                                                            Add more files
+                                                                        </button>
+                                                                    )}
+                                                                    <p className="text-[10px] text-gray-400">
+                                                                        {new Date(ap.createdAt).toLocaleString('en-GB', {
+                                                                            day: '2-digit',
+                                                                            month: 'short',
+                                                                            year: 'numeric',
+                                                                            hour: '2-digit',
+                                                                            minute: '2-digit',
+                                                                        })}
+                                                                        {ap.uploadedBy?.name ? ` · logged by ${ap.uploadedBy.name}` : ''}
+                                                                    </p>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+
+                                                    {canEdit && (
+                                                        <>
+                                                            {newApprovalForRole === def.roleName ? (
+                                                                <div className="rounded-lg border border-dashed border-green/40 bg-green/5 p-3 space-y-2">
+                                                                    <p className="text-xs font-bold text-gray-700">New record</p>
+                                                                    <input
+                                                                        className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white"
+                                                                        placeholder="Name of person who gave the recommendation / approval *"
+                                                                        value={newApprRecommender}
+                                                                        onChange={(e) => setNewApprRecommender(e.target.value)}
+                                                                    />
+                                                                    <textarea
+                                                                        className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white min-h-[64px]"
+                                                                        placeholder="Written recommendation (optional)"
+                                                                        value={newApprText}
+                                                                        onChange={(e) => setNewApprText(e.target.value)}
+                                                                    />
+                                                                    <div className="flex flex-wrap gap-2">
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => newApprFilesInputRef.current?.click()}
+                                                                            className="text-xs font-semibold px-2 py-1 rounded-md bg-white border border-gray-200"
+                                                                        >
+                                                                            Choose files ({newApprFiles.length})
+                                                                        </button>
+                                                                        {newApprFiles.map((f, i) => (
+                                                                            <span
+                                                                                key={`${f.name}-${i}`}
+                                                                                className="text-[10px] bg-white border border-gray-100 rounded px-1.5 py-0.5 truncate max-w-[120px]"
+                                                                            >
+                                                                                {f.name}
+                                                                            </span>
+                                                                        ))}
+                                                                    </div>
+                                                                    <div className="flex justify-end gap-2 pt-1">
+                                                                        <button
+                                                                            type="button"
+                                                                            className="text-xs font-semibold text-gray-500"
+                                                                            onClick={() => {
+                                                                                setNewApprovalForRole(null);
+                                                                                setNewApprFiles([]);
+                                                                            }}
+                                                                        >
+                                                                            Cancel
+                                                                        </button>
+                                                                        <button
+                                                                            type="button"
+                                                                            disabled={submittingNewApproval}
+                                                                            onClick={() => void submitNewApprovalForRole(def.roleName)}
+                                                                            className="text-xs font-semibold text-white bg-dark-green px-3 py-1.5 rounded-lg disabled:opacity-50 inline-flex items-center gap-1"
+                                                                        >
+                                                                            {submittingNewApproval ? (
+                                                                                <Loader2 size={14} className="animate-spin" />
+                                                                            ) : (
+                                                                                <Upload size={14} />
+                                                                            )}
+                                                                            Save record
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            ) : (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => openNewApprovalForm(def.roleName)}
+                                                                    className="mt-auto w-full flex items-center justify-center gap-2 px-3 py-2 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90"
+                                                                >
+                                                                    <Plus size={14} /> Add recommendation / approval
+                                                                </button>
+                                                            )}
+                                                        </>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -932,10 +1586,7 @@ const CaseAction: React.FC = () => {
                                                 />
                                                 <div className="flex justify-end mt-3">
                                                     <button
-                                                        onClick={() => {
-                                                            handleAddComment();
-                                                            setShowCommentForm(false);
-                                                        }}
+                                                onClick={() => void handleAddComment()}
                                                         disabled={!comment.trim() || submittingComment}
                                                         className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
@@ -986,25 +1637,18 @@ const CaseAction: React.FC = () => {
                                         <div className="absolute left-[5px] top-2 bottom-2 w-0.5 bg-gray-200"></div>
                                         <div className="space-y-6">
                                             {activities.map((activity, index) => {
-                                                const isComment = activity.type === 'COMMENT';
-                                                const isEscalation = activity.description?.includes('escalated');
-                                                const dotColor = isComment ? 'bg-blue-500' :
-                                                    isEscalation ? 'bg-amber-500' :
-                                                        activity.type === 'ASSIGNED' ? 'bg-purple-500' :
-                                                            activity.type === 'UNDER_REVIEW' ? 'bg-amber-400' :
-                                                                activity.type === 'CLOSED' || activity.type === 'RESOLVED' ? 'bg-gray-400' :
-                                                                    'bg-green';
+                                                const isComment = activity.category === 'COMMENT' || activity.type === 'COMMENT';
+                                                const showBody = isComment || (activity.description && activity.description.trim().length > 0);
+                                                const dotColor = timelineDotClass(activity);
 
                                                 return (
-                                                    <div key={index} className="relative pl-6">
+                                                    <div key={activity.id ?? `act-${index}`} className="relative pl-6">
                                                         <div className={`absolute left-0 top-1 w-3 h-3 rounded-full border-2 border-white shadow-sm ${dotColor}`}></div>
                                                         <div>
                                                             <p className="text-sm font-semibold text-gray-800">
-                                                                {isComment ? 'Comment' :
-                                                                    isEscalation ? 'Escalated' :
-                                                                        getStatusLabel(activity.type ?? '')}
+                                                                {timelineEntryTitle(activity)}
                                                             </p>
-                                                            {(isComment || activity.description) && (
+                                                            {showBody && (
                                                                 <p className={`text-xs mt-1 ${isComment ? 'text-gray-600 bg-white border border-gray-200 px-3 py-2 rounded-lg' : 'text-gray-500'}`}>
                                                                     {activity.description}
                                                                 </p>
@@ -1048,7 +1692,7 @@ const CaseAction: React.FC = () => {
                 onSuccess={() => {
                     showSuccess('Case escalated successfully.');
                     if (id) {
-                        fetchCaseDetails(id);
+                        fetchCaseDetails(id, false);
                         fetchTimeline(id);
                     }
                 }}
