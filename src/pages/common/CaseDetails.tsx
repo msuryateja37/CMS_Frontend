@@ -7,7 +7,7 @@ import { getStatusLabel } from '../../data/constants';
 import {
     FileText, Users, ArrowLeft, Clock, UserPlus, CheckCircle,
     ArrowUpRight, MapPin, Calendar, Building2, User,
-    Shield, MessageSquare, Send, Loader2, Plus, Upload, X
+    Shield, MessageSquare, Send, Loader2, Plus, Upload, X, AlertCircle
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 import { useCaseDetails, useCaseTimeline } from '../../hooks/useIncidents';
@@ -56,27 +56,37 @@ const CaseDetails: React.FC = () => {
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
     const [showEscalation, setShowEscalation] = useState(false);
     const [comment, setComment] = useState('');
-    const [submittingComment, setSubmittingComment] = useState(false);
 
     const [activeTab, setActiveTab] = useState('details');
     const [showActionForm, setShowActionForm] = useState(false);
     const [showEvidenceForm, setShowEvidenceForm] = useState(false);
     const [showCommentForm, setShowCommentForm] = useState(false);
     
-    // Approval files (dummy refs to prevent errors since supervisor just views them here)
-    const handleApprovalFileSelect = () => {};
-    const handleApprovalUploadClick = (role: string) => {};
-    const approvalFileInputRef = useRef<HTMLInputElement>(null);
+    // Interaction State
     const [newActionText, setNewActionText] = useState('');
-    const handleAddCorrectiveAction = () => {};
-    const submittingAction = false;
+    const [submittingAction, setSubmittingAction] = useState(false);
+    const [uploadingFiles, setUploadingFiles] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-    const handleFileSelect = () => {};
-    const removeFile = (idx: number) => {};
-    const handleUploadEvidence = () => {};
-    const uploadingFiles = false;
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [successMsg, setSuccessMsg] = useState('');
+    const [errorMsg, setErrorMsg] = useState('');
+    const [targetApprovalRole, setTargetApprovalRole] = useState<string | null>(null);
+    const [uploadingApproval, setUploadingApproval] = useState(false);
+    const [submittingComment, setSubmittingComment] = useState(false);
+    const [actionPatchingId, setActionPatchingId] = useState<string | null>(null);
 
+    // Refs
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const approvalFileInputRef = useRef<HTMLInputElement>(null);
+
+    const showSuccess = (msg: string) => {
+        setSuccessMsg(msg);
+        setTimeout(() => setSuccessMsg(''), 4000);
+    };
+
+    const showError = (msg: string) => {
+        setErrorMsg(msg);
+        setTimeout(() => setErrorMsg(''), 4000);
+    };
 
     const handleAddComment = async () => {
         if (!comment.trim() || !id) return;
@@ -86,8 +96,10 @@ const CaseDetails: React.FC = () => {
             setComment('');
             refetchDetails();
             refetchTimeline();
+            showSuccess('Comment added successfully.');
         } catch (err) {
             console.error('Error adding comment:', err);
+            showError('Failed to add comment.');
         } finally {
             setSubmittingComment(false);
         }
@@ -95,12 +107,126 @@ const CaseDetails: React.FC = () => {
 
     const isSupervisor = user?.role?.name?.toLowerCase() === 'supervisor';
     const isAdmin = user?.role?.name?.toLowerCase() === 'admin';
+    const isOHS = user?.role?.name?.toLowerCase() === 'ohs practitioner';
+    const isSecurity = user?.role?.name?.toLowerCase() === 'security practitioner';
+    const isPractitioner = isOHS || isSecurity;
+
     const isAssigned = caseData?.status === 'ASSIGNED' || !!caseData?.assignedTo;
     const isClosed = caseData?.status === 'CLOSED' || caseData?.status === 'RESOLVED';
     const provinceName = caseData?.building?.province?.name || '';
     const isProvincial = provincialNames.includes(provinceName);
-    const canEdit = !isClosed && (isSupervisor || isAdmin);
+    const canEdit = !isClosed && (isSupervisor || isAdmin || isPractitioner);
     const isUnderReview = caseData?.status === 'UNDER_REVIEW';
+    const canAdd = !isClosed && (isSupervisor || isAdmin || isPractitioner);
+
+    const handleApprovalFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !id || !targetApprovalRole) return;
+
+        try {
+            setUploadingApproval(true);
+            const uploaded = await casesService.uploadFile(file, id);
+            await casesService.addApproval(id, {
+                roleName: targetApprovalRole,
+                recommenderName: user?.fullName || 'Supervisor',
+                recommendationText: `Uploaded by ${user?.fullName || 'Supervisor'}`,
+                files: [{
+                    fileUrl: uploaded.url,
+                    fileName: file.name,
+                    fileType: file.type
+                }]
+            });
+            showSuccess('Approval document uploaded successfully.');
+            refetchDetails();
+            refetchTimeline();
+        } catch (err) {
+            console.error('Error uploading approval:', err);
+            showError('Failed to upload approval document.');
+        } finally {
+            setUploadingApproval(false);
+            setTargetApprovalRole(null);
+            if (e.target) e.target.value = '';
+        }
+    };
+
+    const handleApprovalUploadClick = (role: string) => {
+        setTargetApprovalRole(role);
+        approvalFileInputRef.current?.click();
+    };
+
+    const handleAddCorrectiveAction = async () => {
+        if (!newActionText.trim() || !id) return;
+        try {
+            setSubmittingAction(true);
+            await casesService.addCorrectiveAction(id, newActionText.trim());
+            setNewActionText('');
+            setShowActionForm(false);
+            showSuccess('Corrective action added successfully.');
+            refetchDetails();
+            refetchTimeline();
+        } catch (err) {
+            console.error('Error adding corrective action:', err);
+            showError('Failed to add corrective action.');
+        } finally {
+            setSubmittingAction(false);
+        }
+    };
+
+    const patchCorrectiveActionRow = async (actionId: string, patch: any) => {
+        if (!id) return;
+        try {
+            setActionPatchingId(actionId);
+            await casesService.updateCorrectiveAction(id, actionId, patch);
+            showSuccess('Action updated.');
+            refetchDetails();
+        } catch (err) {
+            console.error('Error patching action:', err);
+            showError('Failed to update action.');
+        } finally {
+            setActionPatchingId(null);
+        }
+    };
+
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            setSelectedFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+        }
+    };
+
+    const removeFile = (idx: number) => {
+        setSelectedFiles(prev => prev.filter((_, i) => i !== idx));
+    };
+
+    const handleUploadEvidence = async () => {
+        if (selectedFiles.length === 0 || !id) return;
+        try {
+            setUploadingFiles(true);
+            const roleName = isSupervisor ? 'Supervisor' : 
+                             isOHS ? 'OHS Practitioner' : 
+                             isSecurity ? 'Security Practitioner' : 
+                             isAdmin ? 'Admin' : 'Other';
+            
+            for (const file of selectedFiles) {
+                const uploaded = await casesService.uploadFile(file, id);
+                await casesService.addEvidence(id, {
+                    fileUrl: uploaded.url,
+                    fileType: file.type,
+                    fileName: file.name,
+                    uploaderRole: roleName,
+                });
+            }
+            setSelectedFiles([]);
+            setShowEvidenceForm(false);
+            showSuccess('Evidence uploaded successfully.');
+            refetchDetails();
+            refetchTimeline();
+        } catch (err) {
+            console.error('Error uploading evidence:', err);
+            showError('Failed to upload evidence.');
+        } finally {
+            setUploadingFiles(false);
+        }
+    };
 
 
     const getSeverityStyle = (severity?: string) => {
@@ -141,6 +267,20 @@ const CaseDetails: React.FC = () => {
             breadcrumbs={[{ label: "Dashboard" }, { label: "Case Details" }]}
         >
             <div className="max-w-7xl mx-auto">
+                {/* Status Messages */}
+                {successMsg && (
+                    <div className="mb-4 flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm font-medium animate-in fade-in slide-in-from-top-2 duration-300">
+                        <CheckCircle size={16} />
+                        {successMsg}
+                    </div>
+                )}
+                {errorMsg && (
+                    <div className="mb-4 flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium animate-in fade-in slide-in-from-top-2 duration-300">
+                        <AlertCircle size={16} />
+                        {errorMsg}
+                    </div>
+                )}
+
                 {/* Top Bar: Back + Actions */}
                 <div className="flex items-center justify-between mb-6">
                     <button
@@ -453,11 +593,11 @@ const CaseDetails: React.FC = () => {
                                     </div>
                                 )}
 
-                                {/* Corrective Actions Placeholder */}
+                                 {/* Corrective Actions (Tracked) */}
                                 <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
                                     <div className="flex justify-between items-center mb-6">
-                                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Long-term Corrective Actions</h3>
-                                        {!isClosed && (isSupervisor || isAdmin) && (
+                                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Tracked Corrective Actions</h3>
+                                        {!isClosed && canAdd && (
                                             <button 
                                                 onClick={() => setShowActionForm(!showActionForm)}
                                                 className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all"
@@ -496,8 +636,73 @@ const CaseDetails: React.FC = () => {
                                         </div>
                                     )}
 
-                                    {caseData.otherActions ? (
-                                        <div>
+                                    {caseData.correctiveActions && caseData.correctiveActions.length > 0 ? (
+                                        <div className="flex flex-col gap-4">
+                                            {caseData.correctiveActions.map((act) => (
+                                                <div key={act.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3">
+                                                    <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">{act.actionText}</p>
+                                                    <div className="flex flex-wrap gap-3 items-end">
+                                                        <div className="min-w-[140px]">
+                                                            <label className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Status</label>
+                                                            <select
+                                                                disabled={!canAdd || actionPatchingId === act.id}
+                                                                value={act.status ?? 'pending'}
+                                                                onChange={(e) =>
+                                                                    void patchCorrectiveActionRow(act.id, { status: e.target.value })
+                                                                }
+                                                                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white"
+                                                            >
+                                                                <option value="pending">Pending</option>
+                                                                <option value="in_progress">In progress</option>
+                                                                <option value="completed">Completed</option>
+                                                            </select>
+                                                        </div>
+                                                        <div className="min-w-[160px]">
+                                                            <label className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Due date</label>
+                                                            <input
+                                                                type="date"
+                                                                disabled={!canAdd || actionPatchingId === act.id}
+                                                                value={act.dueDate ? act.dueDate.slice(0, 10) : ''}
+                                                                onChange={(e) =>
+                                                                    void patchCorrectiveActionRow(act.id, {
+                                                                        dueDate: e.target.value || null,
+                                                                    })
+                                                                }
+                                                                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5"
+                                                            />
+                                                        </div>
+                                                        {actionPatchingId === act.id && (
+                                                            <Loader2 size={16} className="animate-spin text-green shrink-0" />
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Notes / verification</label>
+                                                        <textarea
+                                                            disabled={!canAdd || actionPatchingId === act.id}
+                                                            defaultValue={act.notes ?? ''}
+                                                            onBlur={(e) => {
+                                                                const v = e.target.value.trim();
+                                                                if (v !== (act.notes ?? '').trim()) {
+                                                                    void patchCorrectiveActionRow(act.id, { notes: v || null });
+                                                                }
+                                                            }}
+                                                            rows={2}
+                                                            className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5"
+                                                            placeholder="Evidence reference, verification, owner..."
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8 bg-white rounded-xl border-2 border-dashed border-gray-200 mb-4">
+                                            <p className="text-gray-400 font-medium text-sm">No tracked corrective actions yet.</p>
+                                        </div>
+                                    )}
+
+                                    {caseData.otherActions && (
+                                        <div className="mt-6 pt-6 border-t border-gray-200">
+                                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Original Report Actions</h4>
                                             {(() => {
                                                 try {
                                                     const actions = JSON.parse(caseData.otherActions);
@@ -505,25 +710,18 @@ const CaseDetails: React.FC = () => {
                                                         return (
                                                             <div className="flex flex-col gap-3">
                                                                 {actions.map((action: string, idx: number) => (
-                                                                    <div key={idx} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-start gap-3">
-                                                                        <div className="w-6 h-6 rounded-full bg-green/10 text-dark-green flex items-center justify-center shrink-0 mt-0.5">
-                                                                            <span className="text-xs font-bold">{idx + 1}</span>
-                                                                        </div>
-                                                                        <p className="text-sm text-gray-700 leading-relaxed">{action}</p>
+                                                                    <div key={idx} className="bg-white/80 p-3 rounded-lg border border-gray-100 text-sm text-gray-600 leading-relaxed">
+                                                                        {action}
                                                                     </div>
                                                                 ))}
                                                             </div>
                                                         );
                                                     }
-                                                    return <p className="text-gray-700 text-sm leading-relaxed">{caseData.otherActions}</p>;
+                                                    return <p className="text-gray-600 text-sm leading-relaxed">{caseData.otherActions}</p>;
                                                 } catch {
-                                                    return <p className="text-gray-700 text-sm leading-relaxed">{caseData.otherActions}</p>;
+                                                    return <p className="text-gray-600 text-sm leading-relaxed">{caseData.otherActions}</p>;
                                                 }
                                             })()}
-                                        </div>
-                                    ) : (
-                                        <div className="text-center py-10 bg-white rounded-xl border-2 border-dashed border-gray-200">
-                                            <p className="text-gray-400 font-medium text-sm">No long-term corrective actions recorded yet.</p>
                                         </div>
                                     )}
                                 </div>
@@ -536,7 +734,7 @@ const CaseDetails: React.FC = () => {
                                 <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
                                     <div className="flex justify-between items-center mb-6">
                                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Uploaded Attachments</h3>
-                                        {!isClosed && (isSupervisor || isAdmin) && (
+                                        {!isClosed && canAdd && (
                                             <button 
                                                 onClick={() => setShowEvidenceForm(!showEvidenceForm)}
                                                 className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all"
@@ -548,7 +746,7 @@ const CaseDetails: React.FC = () => {
                                     </div>
 
                                     {/* Practitioner Actions — Upload */}
-                                    {showEvidenceForm && !isClosed && (isSupervisor || isAdmin) && (
+                                    {showEvidenceForm && !isClosed && canAdd && (
                                         <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6 shadow-sm">
                                             <h4 className="text-sm font-bold text-gray-700 mb-4">Upload New Evidence</h4>
                                             <div>
@@ -605,51 +803,64 @@ const CaseDetails: React.FC = () => {
                                     )}
 
                                     {caseData.evidence && caseData.evidence.length > 0 ? (
-                                        <div className="space-y-6">
-                                            {['Employee', 'Supervisor', 'OHS Practitioner', 'Other'].map(role => {
-                                                const roleDocs = caseData.evidence?.filter(e =>
-                                                    role === 'Other'
-                                                        ? !e.uploaderRole || !['Employee', 'Supervisor', 'OHS Practitioner'].includes(e.uploaderRole)
-                                                        : e.uploaderRole === role
-                                                );
-                                                if (!roleDocs || roleDocs.length === 0) return null;
+                                        <div className="space-y-6">                                            {(() => {
+                                                const roles = Array.from(new Set(caseData.evidence?.map(e => 
+                                                    (!e.uploaderRole || e.uploaderRole === 'Other') ? 'Employee' : e.uploaderRole
+                                                ) || []));
+                                                // Sort roles to have a consistent order
+                                                const sortedRoles = roles.sort((a, b) => {
+                                                    const order: Record<string, number> = { 'Employee': 1, 'Supervisor': 2, 'OHS Practitioner': 3, 'Security Practitioner': 4, 'Admin': 5 };
+                                                    return (order[a] || 99) - (order[b] || 99);
+                                                });
 
-                                                return (
-                                                    <div key={role}>
-                                                        <div className="flex items-center gap-2 mb-3">
-                                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${role === 'Employee' ? 'bg-blue-50 text-blue-700' :
-                                                                role === 'Supervisor' ? 'bg-light-green text-dark-green' :
+                                                return sortedRoles.map(role => {
+                                                    const roleDocs = caseData.evidence?.filter(e => {
+                                                        const r = (!e.uploaderRole || e.uploaderRole === 'Other') ? 'Employee' : e.uploaderRole;
+                                                        return r === role;
+                                                    });
+                                                    if (!roleDocs || roleDocs.length === 0) return null;
+
+                                                    return (
+                                                        <div key={role} className="mb-6 last:mb-0">
+                                                            <div className="flex items-center gap-2 mb-3">
+                                                                <span className={`px-2.5 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider ${
+                                                                    role === 'Employee' ? 'bg-blue-50 text-blue-700' :
+                                                                    role === 'Supervisor' ? 'bg-gray-200 text-gray-700' :
                                                                     role === 'OHS Practitioner' ? 'bg-amber-50 text-amber-700' :
-                                                                        'bg-gray-200 text-gray-600'
+                                                                    role === 'Security Practitioner' ? 'bg-indigo-50 text-indigo-700' :
+                                                                    role === 'Admin' ? 'bg-purple-50 text-purple-700' :
+                                                                    'bg-gray-100 text-gray-600'
                                                                 }`}>
-                                                                {role}
-                                                            </span>
-                                                            <div className="h-px flex-1 bg-gray-200" />
+                                                                    {role}
+                                                                </span>
+                                                                <div className="h-px flex-1 bg-gray-200" />
+                                                            </div>
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                                                                {roleDocs.map((file, idx) => (
+                                                                    <a
+                                                                        key={idx}
+                                                                        href={file.fileUrl}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 hover:border-green/50 hover:shadow-sm transition-all group"
+                                                                    >
+                                                                        <div className="w-9 h-9 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-100 text-gray-400 group-hover:text-green shrink-0">
+                                                                            <FileText size={18} />
+                                                                        </div>
+                                                                        <div className="overflow-hidden">
+                                                                            <p className="text-sm font-medium text-gray-700 truncate group-hover:text-green">
+                                                                                {file.fileName || `Attachment ${idx + 1}`}
+                                                                            </p>
+                                                                            <p className="text-xs text-gray-400 uppercase">{file.fileType?.split('/')[1] || 'FILE'}</p>
+                                                                        </div>
+                                                                    </a>
+                                                                ))}
+                                                            </div>
                                                         </div>
-                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                            {roleDocs.map((file, idx) => (
-                                                                <a
-                                                                    key={idx}
-                                                                    href={file.fileUrl?.match(/^\s*(javascript|data|vbscript):/i) ? '#' : file.fileUrl}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 hover:border-green/50 hover:shadow-sm transition-all group"
-                                                                >
-                                                                    <div className="w-9 h-9 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-100 text-gray-400 group-hover:text-green shrink-0">
-                                                                        <FileText size={18} />
-                                                                    </div>
-                                                                    <div className="overflow-hidden">
-                                                                        <p className="text-sm font-medium text-gray-700 truncate group-hover:text-green">
-                                                                            {file.fileName || `Attachment ${idx + 1}`}
-                                                                        </p>
-                                                                        <p className="text-xs text-gray-400 uppercase">{file.fileType?.split('/')[1] || 'FILE'}</p>
-                                                                    </div>
-                                                                </a>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
+                                                    );
+                                                });
+                                            })()}
                                         </div>
                                     ) : (
                                         <div className="text-center py-10 bg-white rounded-xl border-2 border-dashed border-gray-200">
@@ -681,7 +892,7 @@ const CaseDetails: React.FC = () => {
                                             <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
                                                 <h5 className="font-bold text-sm text-gray-800 mb-1">Provincial Security Coordinator</h5>
                                                 <p className="text-xs text-gray-500 mb-4">Upload recommendations report</p>
-                                                {!isClosed && (isSupervisor || isAdmin) && (
+                                                {!isClosed && canAdd && (
                                                     <button 
                                                         onClick={() => handleApprovalUploadClick('Provincial Security Coordinator')}
                                                         className="mt-auto flex items-center gap-2 px-3 py-1.5 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all"
@@ -693,7 +904,7 @@ const CaseDetails: React.FC = () => {
                                             <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
                                                 <h5 className="font-bold text-sm text-gray-800 mb-1">Chief Director</h5>
                                                 <p className="text-xs text-gray-500 mb-4">Upload final approved report</p>
-                                                {!isClosed && (isSupervisor || isAdmin) && (
+                                                {!isClosed && canAdd && (
                                                     <button 
                                                         onClick={() => handleApprovalUploadClick('Chief Director (Provincial)')}
                                                         className="mt-auto flex items-center gap-2 px-3 py-1.5 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all"
@@ -710,7 +921,7 @@ const CaseDetails: React.FC = () => {
                                             <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
                                                 <h5 className="font-bold text-sm text-gray-800 mb-1">Assistant Director</h5>
                                                 <p className="text-xs text-gray-500 mb-4">Upload recommendations report</p>
-                                                {!isClosed && (isSupervisor || isAdmin) && (
+                                                {!isClosed && canAdd && (
                                                     <button 
                                                         onClick={() => handleApprovalUploadClick('Assistant Director')}
                                                         className="mt-auto flex items-center gap-2 px-3 py-1.5 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all"
@@ -722,7 +933,7 @@ const CaseDetails: React.FC = () => {
                                             <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
                                                 <h5 className="font-bold text-sm text-gray-800 mb-1">Director</h5>
                                                 <p className="text-xs text-gray-500 mb-4">Upload recommendations report</p>
-                                                {!isClosed && (isSupervisor || isAdmin) && (
+                                                {!isClosed && canAdd && (
                                                     <button 
                                                         onClick={() => handleApprovalUploadClick('Director')}
                                                         className="mt-auto flex items-center gap-2 px-3 py-1.5 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all"
@@ -734,7 +945,7 @@ const CaseDetails: React.FC = () => {
                                             <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
                                                 <h5 className="font-bold text-sm text-gray-800 mb-1">Chief Director</h5>
                                                 <p className="text-xs text-gray-500 mb-4">Upload final approved report</p>
-                                                {!isClosed && (isSupervisor || isAdmin) && (
+                                                {!isClosed && canAdd && (
                                                     <button 
                                                         onClick={() => handleApprovalUploadClick('Chief Director (National)')}
                                                         className="mt-auto flex items-center gap-2 px-3 py-1.5 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all"
@@ -763,7 +974,7 @@ const CaseDetails: React.FC = () => {
                                                 </span>
                                             )}
                                         </div>
-                                        {!isClosed && (isSupervisor || isAdmin) && (
+                                        {!isClosed && canAdd && (
                                             <button 
 
                                             onClick={() => setShowCommentForm(!showCommentForm)}
@@ -776,7 +987,7 @@ const CaseDetails: React.FC = () => {
                                     </div>
 
                                     {/* Practitioner Actions — Comment */}
-                                    {showCommentForm && !isClosed && (isSupervisor || isAdmin) && (
+                                    {showCommentForm && !isClosed && canAdd && (
                                         <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6 shadow-sm">
                                             <h4 className="text-sm font-bold text-gray-700 mb-4">Add Comment / Notes</h4>
                                             <div>

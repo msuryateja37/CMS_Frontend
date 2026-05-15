@@ -335,18 +335,27 @@ const CaseAction: React.FC = () => {
             const appended: NonNullable<Case['evidence']> = [];
             for (const file of selectedFiles) {
                 const uploaded = await casesService.uploadFile(file, id);
+                const isOHS = user?.role?.name?.toLowerCase() === 'ohs practitioner';
+                const isSecurity = user?.role?.name?.toLowerCase() === 'security practitioner';
+                const isAdmin = user?.role?.name?.toLowerCase() === 'admin';
+                
+                const roleName = isSupervisor ? 'Supervisor' : 
+                                 isOHS ? 'OHS Practitioner' : 
+                                 isSecurity ? 'Security Practitioner' : 
+                                 isAdmin ? 'Admin' : 'Employee';
+
                 const row = await casesService.addEvidence(id, {
                     fileUrl: uploaded.url,
                     fileType: file.type,
                     fileName: file.name,
-                    uploaderRole: 'OHS Practitioner',
+                    uploaderRole: roleName,
                 });
                 appended.push({
                     id: row.id,
                     fileUrl: row.fileUrl,
                     fileType: row.fileType,
                     fileName: file.name,
-                    uploaderRole: 'OHS Practitioner',
+                    uploaderRole: roleName,
                     createdAt: row.uploadedAt,
                 });
             }
@@ -615,8 +624,11 @@ const CaseAction: React.FC = () => {
     const isUnderReview = caseData.status === 'UNDER_REVIEW';
     const isSupervisor = user?.role?.name?.toLowerCase() === 'supervisor';
     const isAdmin = user?.role?.name?.toLowerCase() === 'admin';
+    const isOHS = user?.role?.name?.toLowerCase() === 'ohs practitioner';
+    const isSecurity = user?.role?.name?.toLowerCase() === 'security practitioner';
+    const isPractitioner = isOHS || isSecurity;
     const isCurrentAssignee = user?.id === caseData.assignedTo?.id;
-    const canEdit = !isClosed && (isCurrentAssignee || isSupervisor || isAdmin);
+    const canEdit = !isClosed && (isCurrentAssignee || isSupervisor || isAdmin || isPractitioner);
 
     const provinceName = caseData.building?.province?.name || '';
     const isProvincial = provincialNames.includes(provinceName);
@@ -1199,50 +1211,63 @@ const CaseAction: React.FC = () => {
 
                                     {caseData.evidence && caseData.evidence.length > 0 ? (
                                         <div className="space-y-6">
-                                            {['Employee', 'Supervisor', 'OHS Practitioner', 'Other'].map(role => {
-                                                const roleDocs = caseData.evidence?.filter(e =>
-                                                    role === 'Other'
-                                                        ? !e.uploaderRole || !['Employee', 'Supervisor', 'OHS Practitioner'].includes(e.uploaderRole)
-                                                        : e.uploaderRole === role
-                                                );
-                                                if (!roleDocs || roleDocs.length === 0) return null;
+                                            {(() => {
+                                                const roles = Array.from(new Set(caseData.evidence?.map(e => 
+                                                    (!e.uploaderRole || e.uploaderRole === 'Other') ? 'Employee' : e.uploaderRole
+                                                ) || []));
+                                                // Sort roles to have a consistent order
+                                                const sortedRoles = roles.sort((a, b) => {
+                                                    const order: Record<string, number> = { 'Employee': 1, 'Supervisor': 2, 'OHS Practitioner': 3, 'Security Practitioner': 4, 'Admin': 5 };
+                                                    return (order[a] || 99) - (order[b] || 99);
+                                                });
 
-                                                return (
-                                                    <div key={role}>
-                                                        <div className="flex items-center gap-2 mb-3">
-                                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${role === 'Employee' ? 'bg-blue-50 text-blue-700' :
-                                                                role === 'Supervisor' ? 'bg-light-green text-dark-green' :
+                                                return sortedRoles.map(role => {
+                                                    const roleDocs = caseData.evidence?.filter(e => {
+                                                        const r = (!e.uploaderRole || e.uploaderRole === 'Other') ? 'Employee' : e.uploaderRole;
+                                                        return r === role;
+                                                    });
+                                                    if (!roleDocs || roleDocs.length === 0) return null;
+
+                                                    return (
+                                                        <div key={role} className="mb-6 last:mb-0">
+                                                            <div className="flex items-center gap-2 mb-3">
+                                                                <span className={`px-2.5 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider ${
+                                                                    role === 'Employee' ? 'bg-blue-50 text-blue-700' :
+                                                                    role === 'Supervisor' ? 'bg-gray-200 text-gray-700' :
                                                                     role === 'OHS Practitioner' ? 'bg-amber-50 text-amber-700' :
-                                                                        'bg-gray-200 text-gray-600'
+                                                                    role === 'Security Practitioner' ? 'bg-indigo-50 text-indigo-700' :
+                                                                    role === 'Admin' ? 'bg-purple-50 text-purple-700' :
+                                                                    'bg-gray-100 text-gray-600'
                                                                 }`}>
-                                                                {role}
-                                                            </span>
-                                                            <div className="h-px flex-1 bg-gray-200" />
+                                                                    {role}
+                                                                </span>
+                                                                <div className="h-px flex-1 bg-gray-200" />
+                                                            </div>
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                                {roleDocs.map((file, idx) => (
+                                                                    <a
+                                                                        key={idx}
+                                                                        href={file.fileUrl}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 hover:border-green/50 hover:shadow-sm transition-all group"
+                                                                    >
+                                                                        <div className="w-9 h-9 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-100 text-gray-400 group-hover:text-green shrink-0">
+                                                                            <FileText size={18} />
+                                                                        </div>
+                                                                        <div className="overflow-hidden">
+                                                                            <p className="text-sm font-medium text-gray-700 truncate group-hover:text-green">
+                                                                                {file.fileName || `Attachment ${idx + 1}`}
+                                                                            </p>
+                                                                            <p className="text-xs text-gray-400 uppercase">{file.fileType?.split('/')[1] || 'FILE'}</p>
+                                                                        </div>
+                                                                    </a>
+                                                                ))}
+                                                            </div>
                                                         </div>
-                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                            {roleDocs.map((file, idx) => (
-                                                                <a
-                                                                    key={idx}
-                                                                    href={file.fileUrl?.match(/^\s*(javascript|data|vbscript):/i) ? '#' : file.fileUrl}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 hover:border-green/50 hover:shadow-sm transition-all group"
-                                                                >
-                                                                    <div className="w-9 h-9 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-100 text-gray-400 group-hover:text-green shrink-0">
-                                                                        <FileText size={18} />
-                                                                    </div>
-                                                                    <div className="overflow-hidden">
-                                                                        <p className="text-sm font-medium text-gray-700 truncate group-hover:text-green">
-                                                                            {file.fileName || `Attachment ${idx + 1}`}
-                                                                        </p>
-                                                                        <p className="text-xs text-gray-400 uppercase">{file.fileType?.split('/')[1] || 'FILE'}</p>
-                                                                    </div>
-                                                                </a>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
+                                                    );
+                                                });
+                                            })()}
                                         </div>
                                     ) : (
                                         <div className="text-center py-10 bg-white rounded-xl border-2 border-dashed border-gray-200">
@@ -1277,14 +1302,9 @@ const CaseAction: React.FC = () => {
                                 />
 
                                 <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
-                                    <div className="flex items-start gap-3 mb-6">
-                                        <Shield className="text-gray-400 shrink-0 mt-0.5" size={28} />
-                                        <div>
-                                            <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-1">Approvals & recommendations</h4>
-                                            <p className="text-gray-500 text-sm leading-relaxed">
-                                                Each signatory can have their own record. Add the person’s name, optional written recommendation, and one or more supporting documents. You can add more files or edit details later without reloading the case.
-                                            </p>
-                                        </div>
+                                    <div className="flex flex-col items-center justify-center gap-2 mb-8 text-center">
+                                        <Shield className="text-gray-400" size={32} />
+                                        <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Approvals & recommendations</h4>
                                     </div>
 
                                     <div className={`grid gap-4 ${isProvincial ? 'md:grid-cols-2' : 'md:grid-cols-3'}`}>
@@ -1452,7 +1472,7 @@ const CaseAction: React.FC = () => {
                                                                             Add more files
                                                                         </button>
                                                                     )}
-                                                                    <p className="text-[10px] text-gray-400">
+                                                                    <p className="text-[10px] text-gray-700">
                                                                         {new Date(ap.createdAt).toLocaleString('en-GB', {
                                                                             day: '2-digit',
                                                                             month: 'short',
