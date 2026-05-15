@@ -145,7 +145,12 @@ export async function getDisabilityForm(): Promise<FormTemplate> {
 
 /** @deprecated use getFormByTitleKeyword('audit checklist') or getActiveSchema() */
 export async function getOhsAuditForm(): Promise<FormTemplate> {
-  return getFormByTitleKeyword('audit checklist');
+  return getFormByTitleKeyword('compliance audit checklist');
+}
+
+/** @deprecated use getFormByTitleKeyword('inspection checklist') or getActiveSchema() */
+export async function getOhsInspectionForm(): Promise<FormTemplate> {
+  return getFormByTitleKeyword('inspection checklist');
 }
 
 /** @deprecated use getFormByTitleKeyword('building assessment') or getActiveSchema() */

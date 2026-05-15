@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { QuestionItem } from '../../components/forms/QuestionItem';
 import type { FormTemplate } from '../../types/forms';
-import { getOhsAuditForm, submitFormResponse } from '../../services/formsService';
+import { getOhsInspectionForm, submitFormResponse } from '../../services/formsService';
 import { useAuthStore } from '../../store/auth.store';
 import DashboardLayout from '../../layouts/DashboardLayout';
 
@@ -20,7 +20,7 @@ export const OHSInspectionForm: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const fullForm = await getOhsAuditForm();
+        const fullForm = await getOhsInspectionForm();
         setForm(fullForm);
       } catch (err: unknown) {
         setError('Failed to load the form. Please try again later.');
