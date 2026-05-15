@@ -16,6 +16,7 @@ import type {
 function versionToTemplate(v: FormVersionDetail): FormTemplate {
   return {
     id: v.id,
+    formId: v.formId,
     title: v.title,
     description: v.description,
     sections: v.sections,

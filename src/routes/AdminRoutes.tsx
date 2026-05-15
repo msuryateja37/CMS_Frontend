@@ -17,6 +17,8 @@ import SafeWorkProcedures from '../pages/ohs/SafeWorkProcedures';
 import OHSDisabilityForm from '../pages/forms/OHSDisabilityForm';
 import OHSInspectionForm from '../pages/forms/OHSInspectionForm';
 import OHSNewBuildingForm from '../pages/forms/OHSNewBuildingForm';
+import OHSAuditForm from '../pages/forms/OHSAuditForm';
+import OHSFormSubmissions from '../pages/forms/OHSFormSubmissionshistory';
 
 import PermitToWork from '../pages/operations/PermitToWork';
 import Inspections from '../pages/operations/Inspections';
@@ -61,7 +63,8 @@ const AdminRoutes = () => {
             <Route path="/ohs/forms/disability" element={<ProtectedRoute><OHSDisabilityForm /></ProtectedRoute>} />
             <Route path="/ohs/forms/inspection" element={<ProtectedRoute><OHSInspectionForm /></ProtectedRoute>} />
             <Route path="/ohs/forms/building" element={<ProtectedRoute><OHSNewBuildingForm /></ProtectedRoute>} />
-            <Route path="/ohs/forms/audit" element={<ProtectedRoute><OHSInspectionForm /></ProtectedRoute>} />
+            <Route path="/ohs/forms/audit" element={<ProtectedRoute><OHSAuditForm /></ProtectedRoute>} />
+            <Route path="/ohs/forms/submissions" element={<ProtectedRoute><OHSFormSubmissions /></ProtectedRoute>} />
             <Route path="/ohs" element={<Navigate to="/ohs/hazards" replace />} />
 
             {/* Security Practitioner Routes */}

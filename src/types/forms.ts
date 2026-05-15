@@ -49,6 +49,7 @@ export interface FormSchema {
 
 export interface FormVersionMeta {
   id: string;
+  formId: string;
   versionNumber: number;
   title: string;
   description?: string | null;
@@ -117,6 +118,7 @@ export interface FormResponseRecord {
 
 export interface FormTemplate {
   id: string;
+  formId: string;
   title: string;
   description?: string | null;
   sections: FormSection[];

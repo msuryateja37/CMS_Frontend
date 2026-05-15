@@ -42,20 +42,74 @@ export const OHSDisabilityForm: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!form) return;
+    
+    // 1. Basic Validation
+    if (Object.keys(answers).length === 0) {
+      alert('The form is empty. Please answer the questions before submitting.');
+      return;
+    }
+
+    const missingFields: string[] = [];
+    form.sections.forEach(section => {
+      section.questions.forEach(q => {
+        if (q.isRequired && !answers[q.id]) {
+          missingFields.push(q.label);
+        }
+      });
+    });
+
+    if (missingFields.length > 0) {
+      alert(`Please fill in all required fields: \n- ${missingFields.join('\n- ')}`);
+      return;
+    }
+
     setSubmitting(true);
     try {
-      const answersPayload = Object.entries(answers).map(([questionId, answerText]) => ({
-        questionId,
-        answerText: String(answerText),
-      }));
-      await submitFormResponse(form.id, { submittedBy: user?.id ?? 'anonymous', answers: answersPayload });
+      // 2. Build structured payload
+      const answersPayload = Object.entries(answers).map(([questionId, value]) => {
+        const question = form.sections
+          .flatMap(s => s.questions)
+          .find(q => q.id === questionId);
+
+        const isChoiceType = ['RADIO', 'SELECT', 'CHECKBOX'].includes(question?.inputType || '');
+
+        if (isChoiceType) {
+          const option = question?.options.find(o => o.optionValue === value);
+          return {
+            questionId,
+            selectedOptionId: option?.id,
+            answerText: String(value),
+          };
+        }
+
+        return {
+          questionId,
+          answerText: String(value),
+        };
+      });
+
+      await submitFormResponse(form.formId, { 
+        submittedBy: user?.id, 
+        answers: answersPayload 
+      });
+      
       setSubmitted(true);
-    } catch (err) {
-      alert('Failed to submit the form. Please try again.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.message || 'Check your connection and try again.';
+      alert(`Failed to submit the form: ${msg}`);
       console.error('Form submit error:', err);
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleReset = () => {
+    setAnswers({});
+    setComments({});
+    setSubmitted(false);
+    setSubmitting(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const officeName = user?.department?.building?.name ?? user?.department?.name ?? 'N/A';
@@ -93,14 +147,25 @@ export const OHSDisabilityForm: React.FC = () => {
 
       {/* ── Success ── */}
       {!loading && submitted && (
-        <div className="flex items-center justify-center py-16">
-          <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg p-8 max-w-md text-center">
+        <div className="flex flex-col items-center justify-center py-16 gap-6">
+          <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg p-8 max-w-md text-center shadow-sm">
             <svg className="w-12 h-12 mx-auto mb-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <p className="text-lg font-bold mb-1">Assessment Submitted!</p>
-            <p className="text-sm">Your OHS assessment has been recorded successfully.</p>
+            <p className="text-sm text-emerald-600">Your OHS assessment has been recorded successfully.</p>
           </div>
+          
+          <button
+            onClick={handleReset}
+            className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-emerald-500 text-emerald-600 rounded-xl font-bold hover:bg-emerald-50 transition-all shadow-md active:scale-95"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M23 4v6h-6" />
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+            </svg>
+            Submit Another Assessment
+          </button>
         </div>
       )}
 
@@ -184,7 +249,7 @@ export const OHSDisabilityForm: React.FC = () => {
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
                 )}
-                {submitting ? 'Submitting...' : 'Next Step'}
+                {submitting ? 'Submitting...' : 'Submit Form'}
               </button>
             </div>
           </div>
