@@ -158,7 +158,7 @@ const ReportIncident: React.FC = () => {
             const updatedDrafts = drafts.filter((d: any) => d.id !== formData.id);
             localStorage.setItem('incident_drafts', JSON.stringify(updatedDrafts));
 
-            navigate('/employee/dashboard', {
+            navigate('/employee/submit-case/success', {
                 state: {
                     caseId: newCase.id,
                     caseNumber: newCase.incidentNumber
@@ -173,15 +173,15 @@ const ReportIncident: React.FC = () => {
 
     return (
         <DashboardLayout title="Report New Incident" description="Report Incident" breadcrumbs={[{ label: "Dashboard", path: "/employee/dashboard" }, { label: "Report Incident" }]}>
-            <div className="max-w-[1200px] mx-auto px-3 py-2 relative">
+            <div className="max-w-[1400px] mx-auto px-4 py-8 relative">
                 {/* Stepper Section with Centered Navigation */}
-                <div className="max-w-3xl mx-auto flex items-center justify-center mb-7 mt-2">
+                <div className="flex items-center justify-center mb-12 ">
                     <div className="flex items-center">
                         {steps.map((s, idx) => (
                             <React.Fragment key={s.id}>
                                 <div className="flex flex-col items-center relative group">
                                     <div
-                                        className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 z-10 ${step === s.id
+                                        className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg transition-all duration-300 z-10 ${step === s.id
                                             ? 'bg-[#1F2937] text-white ring-4 ring-gray-100'
                                             : step > s.id
                                                 ? 'bg-[#0D9488] text-white'
@@ -189,16 +189,16 @@ const ReportIncident: React.FC = () => {
                                             }`}
                                     >
                                         {step > s.id ? (
-                                            <Check size={14} strokeWidth={3} />
+                                            <Check size={20} strokeWidth={3} />
                                         ) : s.id}
                                     </div>
-                                    <span className={`absolute -bottom-5 whitespace-nowrap text-[10px] font-bold tracking-tight ${step === s.id ? 'text-gray-900' : 'text-gray-400'
+                                    <span className={`absolute -bottom-8 whitespace-nowrap text-xs font-semibold tracking-tight ${step === s.id ? 'text-gray-900' : 'text-gray-400'
                                         }`}>
                                         {s.label}
                                     </span>
                                 </div>
                                 {idx < steps.length - 1 && (
-                                    <div className="w-12 lg:w-16 h-[2px] bg-[#E5E7EB] mx-0 mt-[-16px] z-0">
+                                    <div className="w-16 lg:w-20 h-[2px] bg-[#E5E7EB] mx-0 mt-[-2px] z-0">
                                         <div
                                             className="h-full bg-[#0D9488] transition-all duration-500"
                                             style={{ width: step > s.id ? '100%' : '0%' }}
@@ -211,7 +211,7 @@ const ReportIncident: React.FC = () => {
                 </div>
 
                 {/* Content Area */}
-                <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.02)] border border-gray-100 p-4 md:p-6 mt-3 min-h-[300px] overflow-hidden">
+                <div className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-6 md:p-12 mt-4 min-h-[600px] overflow-hidden">
                     {step === 1 && (
                         <StepIncidentType
                             selected={formData.categoryId}

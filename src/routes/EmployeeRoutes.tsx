@@ -3,7 +3,7 @@ import ProtectedRoute from '../components/common/ProtectedRoute';
 import EmployeeDashboard from '../pages/employee/Dashboard';
 import MyCases from '../pages/employee/MyCases';
 import ReportIncident from '../pages/employee/ReportIncident';
-import CaseSubmissionSuccess from '../pages/employee/CaseSubmissionSuccess';
+import CaseSubmissionSuccess from '../pages/common/CaseSubmissionSuccess';
 import EmployeeCaseDetails from '../pages/employee/EmployeeCaseDetails';
 
 const EmployeeRoutes = () => {

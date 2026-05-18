@@ -74,7 +74,7 @@ const SecurityMyCases: React.FC = () => {
             header: 'Status', accessorKey: 'status', sortable: true,
             cell: (item) => {
                 const statusLabel = getStatusLabel(item.status);
-                return <Pill label={statusLabel} variant={item.status.toLowerCase().replace(/_/g, ' ')} />;
+                return <Pill label={statusLabel.toUpperCase()} variant={item.status.toLowerCase().replace(/_/g, ' ')} />;
             }
         },
         {
@@ -104,9 +104,9 @@ const SecurityMyCases: React.FC = () => {
     return (
         <DashboardLayout title="My Cases" description="My Cases" breadcrumbs={[{ label: "Dashboard", path: "/security/dashboard" }, { label: "My Cases" }]}>
             <div className="flex flex-col gap-6">
-                <div className="flex justify-end -mt-4 mb-2">
+                <div className="flex justify-end mb-1">
                     <button onClick={() => navigate('/security/report-breach')} className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm">
-                        <FilePlus size={18} /> Report New Case
+                        <FilePlus size={16} /> Report New Case
                     </button>
                 </div>
 

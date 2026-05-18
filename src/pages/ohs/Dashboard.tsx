@@ -91,7 +91,7 @@ const OHSDashboard: React.FC = () => {
             sortable: true,
             cell: (item) => {
                 const statusLabel = getStatusLabel(item.status);
-                return <Pill label={statusLabel} variant={item.status.toLowerCase().replace(/_/g, ' ')} />;
+                return <Pill label={statusLabel.toUpperCase()} variant={item.status.toLowerCase().replace(/_/g, ' ')} />;
             }
         },
         {
@@ -149,7 +149,7 @@ const OHSDashboard: React.FC = () => {
             sortable: true,
             cell: (item) => {
                 const statusLabel = getStatusLabel(item.status);
-                return <Pill label={statusLabel} variant={item.status.toLowerCase().replace(/_/g, ' ')} />;
+                return <Pill label={statusLabel.toUpperCase()} variant={item.status.toLowerCase().replace(/_/g, ' ')} />;
             }
         },
         {
@@ -172,7 +172,9 @@ const OHSDashboard: React.FC = () => {
             description="Dashboard"
             breadcrumbs={[{ label: "Dashboard", path: "/ohs/dashboard" }, { label: "Overview" }]}
         >
+
             <div className="flex flex-col gap-4">
+
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

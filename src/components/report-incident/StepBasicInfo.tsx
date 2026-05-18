@@ -236,7 +236,7 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ data, onChange, onBack, o
                             value={locationDesc}
                             onChange={(e) => setLocationDesc(e.target.value)}
                             placeholder={isSecurityBreach ? "Floor and Area (Optional)" : "Floor, room, number, area description"}
-                            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0D9488] focus:border-transparent outline-none transition-all mb-3 text-xs"
+                            className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0D9488] focus:border-transparent outline-none transition-all mb-3 text-xs font-medium"
                         />
 
                         {/* Interactive Map */}

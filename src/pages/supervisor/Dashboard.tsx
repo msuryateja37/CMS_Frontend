@@ -70,7 +70,8 @@ const SupervisorDashboard: React.FC = () => {
             sortable: true,
             cell: (item) => {
                 const statusLabel = getStatusLabel(item.status);
-                return <Pill label={statusLabel} variant={item.status.toLowerCase().replace(/_/g, ' ')} />;
+                const cleanStatusLabel = statusLabel.toUpperCase();
+                return <Pill label={cleanStatusLabel} variant={item.status.toLowerCase().replace(/_/g, ' ')} />;
             }
         },
         {
@@ -114,7 +115,7 @@ const SupervisorDashboard: React.FC = () => {
             <div className="flex flex-col gap-4">
 
                 {/* Top Actions */}
-                <div className="flex justify-end gap-3 -mt-4 mb-2">
+                <div className="flex justify-end gap-3 mb-1">
                     <button
                         onClick={() => navigate('/supervisor/cases-review')}
                         className="flex items-center gap-2 px-4 py-2 bg-green text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm text-sm"

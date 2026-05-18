@@ -110,11 +110,11 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, placeholder = 
             <button
                 type="button"
                 onClick={() => { setOpen(!open); setShowYearGrid(false); }}
-                className={`w-full flex items-center gap-3 px-5 py-3.5 bg-gray-50 border rounded-xl outline-none transition-all text-left cursor-pointer
+                className={`w-full flex items-center gap-2 px-3.5 py-2.5 bg-gray-50 border rounded-xl outline-none transition-all text-left cursor-pointer
                     ${open ? 'border-dark-green ring-2 ring-dark-green/20' : 'border-gray-200 hover:border-green/50'}`}
             >
-                <Calendar size={18} className="text-dark-green shrink-0" />
-                <span className={displayValue ? 'text-gray-700 font-medium' : 'text-gray-400'}>
+                <Calendar size={16} className="text-dark-green shrink-0" />
+                <span className={displayValue ? 'text-gray-700 font-medium text-xs' : 'text-gray-400 text-xs font-medium'}>
                     {displayValue || placeholder}
                 </span>
             </button>

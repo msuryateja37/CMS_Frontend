@@ -20,7 +20,7 @@ const StepIncidentType: React.FC<StepIncidentTypeProps> = ({ selected, onSelect 
             <h3 className="text-lg font-bold text-gray-800 mb-0.5">Incident Type</h3>
             <p className="text-xs text-gray-400 mb-4 font-medium">Select category</p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                 {INCIDENT_CATEGORIES.map((category) => (
                     <TypeCard
                         key={category.id}
