@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Settings, Bell, Check, ChevronRight } from 'lucide-react';
+import { Settings, Bell, Check, ChevronRight, Menu } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth.store';
 import { useSearchStore } from '../../store/search.store';
+import { useUIStore } from '../../store/ui.store';
 import { SearchInput, type SearchOption } from '../common/SearchInput';
 
 import { useNotifications } from '../../hooks/useNotifications';
@@ -41,6 +42,7 @@ const TopBar: React.FC<TopBarProps> = ({
 }) => {
     const user = useAuthStore((state) => state.user);
     const { searchQuery, setSearchQuery, searchResults, isSearching, performSearch } = useSearchStore();
+    const { toggleSidebar } = useUIStore();
     const navigate = useNavigate();
 
     // Debounce search
@@ -180,46 +182,57 @@ const TopBar: React.FC<TopBarProps> = ({
     };
 
     return (
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6 lg:mb-10 transition-all duration-300">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4 lg:mb-6 transition-all duration-300">
             {/* Left: Title and Breadcrumbs */}
-            <div className="shrink-0 flex flex-col sm:flex-row sm:items-center w-full lg:w-auto gap-4 sm:gap-6">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-800 leading-tight">{title}</h1>
-                    {breadcrumbs && breadcrumbs.length > 0 ? (
-                        <nav className="flex items-center gap-1 text-sm font-medium mt-0.5">
-                            {breadcrumbs.map((crumb, idx) => {
-                                const isLast = idx === breadcrumbs.length - 1;
-                                return (
-                                    <React.Fragment key={idx}>
-                                        {idx > 0 && <ChevronRight size={14} className="text-gray-300 mx-0.5" />}
-                                        {crumb.path && !isLast ? (
-                                            <Link to={crumb.path} className="text-green hover:text-dark-green hover:underline transition-colors">
-                                                {crumb.label}
-                                            </Link>
-                                        ) : (
-                                            <span className={isLast ? 'text-gray-500' : 'text-green'}>{crumb.label}</span>
-                                        )}
-                                    </React.Fragment>
-                                );
-                            })}
-                        </nav>
-                    ) : description ? (
-                        <p className="text-sm font-medium mt-0.5">
-                            <span className="text-green">Dashboard </span>
-                            <span className="text-black">/ {description}</span>
-                        </p>
-                    ) : null}
-                </div>
+            <div className="shrink-0 flex items-center w-full lg:w-auto gap-4">
+                {/* Mobile hamburger menu toggle */}
+                <button 
+                    onClick={toggleSidebar}
+                    className="p-2.5 -ml-1 text-gray-500 bg-white hover:bg-gray-50 border border-gray-100 rounded-xl transition-all lg:hidden shrink-0 shadow-sm"
+                    title="Toggle menu"
+                >
+                    <Menu size={20} />
+                </button>
 
-                {actionButton && (
-                    <button
-                        onClick={actionButton.onClick}
-                        className="flex items-center justify-center gap-2 bg-dark-green text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-opacity-90 transition-all shadow-md sm:mt-1 w-full sm:w-auto"
-                    >
-                        {actionButton.icon && <actionButton.icon size={18} />}
-                        {actionButton.label}
-                    </button>
-                )}
+                <div className="flex flex-col sm:flex-row sm:items-center w-full lg:w-auto gap-4 sm:gap-6">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-800 leading-tight">{title}</h1>
+                        {breadcrumbs && breadcrumbs.length > 0 ? (
+                            <nav className="flex items-center gap-1 text-sm font-medium mt-0.5">
+                                {breadcrumbs.map((crumb, idx) => {
+                                    const isLast = idx === breadcrumbs.length - 1;
+                                    return (
+                                        <React.Fragment key={idx}>
+                                            {idx > 0 && <ChevronRight size={14} className="text-gray-300 mx-0.5" />}
+                                            {crumb.path && !isLast ? (
+                                                <Link to={crumb.path} className="text-green hover:text-dark-green hover:underline transition-colors">
+                                                    {crumb.label}
+                                                </Link>
+                                            ) : (
+                                                <span className={isLast ? 'text-gray-500' : 'text-green'}>{crumb.label}</span>
+                                            )}
+                                        </React.Fragment>
+                                    );
+                                })}
+                            </nav>
+                        ) : description ? (
+                            <p className="text-sm font-medium mt-0.5">
+                                <span className="text-green">Dashboard </span>
+                                <span className="text-black">/ {description}</span>
+                            </p>
+                        ) : null}
+                    </div>
+
+                    {actionButton && (
+                        <button
+                            onClick={actionButton.onClick}
+                            className="flex items-center justify-center gap-2 bg-dark-green text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-opacity-90 transition-all shadow-md sm:mt-1 w-full sm:w-auto"
+                        >
+                            {actionButton.icon && <actionButton.icon size={18} />}
+                            {actionButton.label}
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Right: Search, Icons, Profile */}

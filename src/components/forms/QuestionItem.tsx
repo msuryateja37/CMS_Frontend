@@ -17,12 +17,12 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({
   onCommentChange,
 }) => {
   const baseInput =
-    'border border-gray-300 bg-gray-50 rounded-md p-2 w-full text-sm outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition';
+    'border border-gray-300 bg-gray-50 rounded-md py-1.5 px-2.5 w-full text-[13px] outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition';
 
   // ── TEXT ──────────────────────────────────────────────────────────────────
   if (question.inputType === 'TEXT') {
     return (
-      <div className="flex flex-col mb-4">
+      <div className="flex flex-col mb-3">
         <Label question={question} />
         <input
           type="text"
@@ -38,7 +38,7 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({
   // ── NUMBER ────────────────────────────────────────────────────────────────
   if (question.inputType === 'NUMBER') {
     return (
-      <div className="flex flex-col mb-4">
+      <div className="flex flex-col mb-3">
         <Label question={question} />
         <input
           type="number"
@@ -54,7 +54,7 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({
   // ── DATE ──────────────────────────────────────────────────────────────────
   if (question.inputType === 'DATE') {
     return (
-      <div className="flex flex-col mb-4">
+      <div className="flex flex-col mb-3">
         <Label question={question} />
         <input
           type="date"
@@ -69,7 +69,7 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({
   // ── TEXTAREA ──────────────────────────────────────────────────────────────
   if (question.inputType === 'TEXTAREA') {
     return (
-      <div className="flex flex-col mb-4">
+      <div className="flex flex-col mb-3">
         <Label question={question} />
         <textarea
           rows={3}
@@ -85,7 +85,7 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({
   // ── RADIO ─────────────────────────────────────────────────────────────────
   if (question.inputType === 'RADIO') {
     return (
-      <div className="flex flex-col mb-6">
+      <div className="flex flex-col mb-4">
         <Label question={question} />
         <div className="flex flex-wrap gap-4 mt-1">
           {question.options?.map((opt) => (
@@ -129,7 +129,7 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({
       onChange(next);
     };
     return (
-      <div className="flex flex-col mb-6">
+      <div className="flex flex-col mb-4">
         <Label question={question} />
         <div className="flex flex-col gap-2 mt-1">
           {question.options?.map((opt) => (
@@ -152,7 +152,7 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({
   // ── SELECT ────────────────────────────────────────────────────────────────
   if (question.inputType === 'SELECT') {
     return (
-      <div className="flex flex-col mb-4">
+      <div className="flex flex-col mb-3">
         <Label question={question} />
         <select
           className={baseInput}
@@ -173,7 +173,7 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({
   // ── Legacy: radio_with_comments (old seeded data) ─────────────────────────
   if ((question.inputType as string) === 'radio_with_comments') {
     return (
-      <div className="flex flex-col mb-6">
+      <div className="flex flex-col mb-4">
         <Label question={question} />
         <div className="flex flex-wrap gap-4 mt-1">
           {question.options?.map((opt) => (

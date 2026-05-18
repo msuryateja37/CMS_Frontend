@@ -196,15 +196,15 @@ export const OHSDisabilityForm: React.FC = () => {
           </div>
 
           {/* Form card */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 pt-6 w-full">
-            <h2 className="text-base font-bold text-gray-800 mb-6 border-b border-gray-100 pb-4">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 sm:p-6 pt-5 w-full">
+            <h2 className="text-base font-bold text-gray-800 mb-5 border-b border-gray-100 pb-3">
               {form.title}
             </h2>
 
             {form.sections.map((section, index) => (
-              <div key={section.id} className="mb-10 last:mb-0">
+              <div key={section.id} className="mb-6 last:mb-0">
                 {/* Section header */}
-                <div className="flex items-center gap-3 mb-5">
+                <div className="flex items-center gap-3 mb-3.5">
                   <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs flex-shrink-0">
                     {index + 1}
                   </div>
@@ -213,7 +213,7 @@ export const OHSDisabilityForm: React.FC = () => {
 
                 {/* Questions grid */}
                 <div
-                  className={`grid gap-5 ${section.questions.some(q => (q.inputType as string) === 'radio_with_comments')
+                  className={`grid gap-4 ${section.questions.some(q => (q.inputType as string) === 'radio_with_comments')
                       ? 'grid-cols-1'
                       : 'grid-cols-2'
                     }`}

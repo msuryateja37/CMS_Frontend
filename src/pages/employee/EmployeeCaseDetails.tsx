@@ -20,6 +20,19 @@ const severityConfig: Record<string, { bg: string; text: string; dot: string }> 
     low: { bg: 'bg-light-green', text: 'text-dark-green', dot: 'bg-green' },
 };
 
+const normalizeRoleName = (role?: string): string => {
+    if (!role) return 'Employee';
+    const lower = role.toLowerCase().trim();
+    if (lower === 'other' || lower === 'employee') return 'Employee';
+    if (lower === 'supervisor') return 'Supervisor';
+    if (lower.includes('ohs')) return 'OHS Practitioner';
+    if (lower.includes('security')) return 'Security Practitioner';
+    if (lower === 'admin') return 'Admin';
+    return role.split(' ')
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join(' ');
+};
+
 
 
 const EmployeeCaseDetails: React.FC = () => {
@@ -244,11 +257,12 @@ const EmployeeCaseDetails: React.FC = () => {
                             {caseData.evidence && caseData.evidence.length > 0 ? (
                                 <div className="space-y-6">
                                     {['Employee', 'Supervisor', 'Other'].map(role => {
-                                        const roleDocs = caseData.evidence?.filter(e =>
-                                            role === 'Other'
-                                                ? !e.uploaderRole || !['Employee', 'Supervisor'].includes(e.uploaderRole)
-                                                : e.uploaderRole === role
-                                        );
+                                        const roleDocs = caseData.evidence?.filter(e => {
+                                            const normRole = normalizeRoleName(e.uploaderRole);
+                                            return role === 'Other'
+                                                ? !e.uploaderRole || !['Employee', 'Supervisor'].includes(normRole)
+                                                : normRole === role;
+                                        });
                                         if (!roleDocs || roleDocs.length === 0) return null;
 
                                         return (

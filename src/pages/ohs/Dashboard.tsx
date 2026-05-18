@@ -172,76 +172,76 @@ const OHSDashboard: React.FC = () => {
             description="Dashboard"
             breadcrumbs={[{ label: "Dashboard", path: "/ohs/dashboard" }, { label: "Overview" }]}
         >
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4">
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-                        <div className="flex items-center gap-2 text-gray-400 mb-3">
-                            <Folder size={16} />
-                            <span className="text-xs font-semibold uppercase tracking-wide">Assigned</span>
+                    <div className="bg-white py-3 px-4 rounded-xl border border-gray-100 shadow-sm">
+                        <div className="flex items-center gap-2 text-gray-400 mb-1.5">
+                            <Folder size={15} />
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Assigned</span>
                         </div>
-                        <h3 className="text-3xl font-bold text-gray-900">{loading ? '...' : totalAssigned}</h3>
-                        <p className="text-xs text-gray-400 mt-1">Total cases assigned to you</p>
+                        <h3 className="text-2xl font-bold text-gray-900 leading-none">{loading ? '...' : totalAssigned}</h3>
+                        <p className="text-[10px] text-gray-400 mt-1 leading-tight">Total cases assigned to you</p>
                     </div>
 
-                    <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-                        <div className="flex items-center gap-2 text-amber-500 mb-3">
-                            <Clock size={16} />
-                            <span className="text-xs font-semibold uppercase tracking-wide">Pending</span>
+                    <div className="bg-white py-3 px-4 rounded-xl border border-gray-100 shadow-sm">
+                        <div className="flex items-center gap-2 text-amber-500 mb-1.5">
+                            <Clock size={15} />
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Pending</span>
                         </div>
-                        <h3 className="text-3xl font-bold text-gray-900">{loading ? '...' : pendingCases}</h3>
-                        <p className="text-xs text-gray-400 mt-1">Awaiting your action</p>
+                        <h3 className="text-2xl font-bold text-gray-900 leading-none">{loading ? '...' : pendingCases}</h3>
+                        <p className="text-[10px] text-gray-400 mt-1 leading-tight">Awaiting your action</p>
                     </div>
 
-                    <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-                        <div className="flex items-center gap-2 text-green mb-3">
-                            <CheckCircle2 size={16} />
-                            <span className="text-xs font-semibold uppercase tracking-wide">Solved</span>
+                    <div className="bg-white py-3 px-4 rounded-xl border border-gray-100 shadow-sm">
+                        <div className="flex items-center gap-2 text-green mb-1.5">
+                            <CheckCircle2 size={15} />
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Solved</span>
                         </div>
-                        <h3 className="text-3xl font-bold text-gray-900">{loading ? '...' : solvedCases}</h3>
-                        <p className="text-xs text-gray-400 mt-1">Closed & resolved</p>
+                        <h3 className="text-2xl font-bold text-gray-900 leading-none">{loading ? '...' : solvedCases}</h3>
+                        <p className="text-[10px] text-gray-400 mt-1 leading-tight">Closed & resolved</p>
                     </div>
 
-                    <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-                        <div className="flex items-center gap-2 text-blue-500 mb-3">
-                            <TrendingUp size={16} />
-                            <span className="text-xs font-semibold uppercase tracking-wide">Avg. Time</span>
+                    <div className="bg-white py-3 px-4 rounded-xl border border-gray-100 shadow-sm">
+                        <div className="flex items-center gap-2 text-blue-500 mb-1.5">
+                            <TrendingUp size={15} />
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Avg. Time</span>
                         </div>
-                        <h3 className="text-3xl font-bold text-gray-900">{loading ? '...' : avgResolutionDays.toFixed(1)}</h3>
-                        <p className="text-xs text-gray-400 mt-1">Days to resolve</p>
+                        <h3 className="text-2xl font-bold text-gray-900 leading-none">{loading ? '...' : avgResolutionDays.toFixed(1)}</h3>
+                        <p className="text-[10px] text-gray-400 mt-1 leading-tight">Days to resolve</p>
                     </div>
                 </div>
 
                 {/* Secondary Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
-                            <Clock size={18} className="text-amber-600" />
+                    <div className="bg-white py-2.5 px-3.5 rounded-xl border border-gray-100 shadow-sm flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+                            <Clock size={16} className="text-amber-600" />
                         </div>
                         <div>
-                            <p className="text-xs text-gray-400 font-semibold">Under Review</p>
-                            <p className="text-lg font-bold text-gray-900">{loading ? '...' : underReviewCases}</p>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none mb-0.5">Under Review</p>
+                            <p className="text-base font-bold text-gray-900 leading-none">{loading ? '...' : underReviewCases}</p>
                         </div>
                     </div>
 
-                    <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-lg bg-red/10 flex items-center justify-center">
-                            <AlertTriangle size={18} className="text-red-500" />
+                    <div className="bg-white py-2.5 px-3.5 rounded-xl border border-gray-100 shadow-sm flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-red/10 flex items-center justify-center shrink-0">
+                            <AlertTriangle size={16} className="text-red-500" />
                         </div>
                         <div>
-                            <p className="text-xs text-gray-400 font-semibold">Critical / High</p>
-                            <p className="text-lg font-bold text-gray-900">{loading ? '...' : criticalCount}</p>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none mb-0.5">Critical / High</p>
+                            <p className="text-base font-bold text-gray-900 leading-none">{loading ? '...' : criticalCount}</p>
                         </div>
                     </div>
 
-                    <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-                            <FileText size={18} className="text-blue-500" />
+                    <div className="bg-white py-2.5 px-3.5 rounded-xl border border-gray-100 shadow-sm flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                            <FileText size={16} className="text-blue-500" />
                         </div>
                         <div>
-                            <p className="text-xs text-gray-400 font-semibold">My Reported</p>
-                            <p className="text-lg font-bold text-gray-900">{loading ? '...' : myCases.length}</p>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none mb-0.5">My Reported</p>
+                            <p className="text-base font-bold text-gray-900 leading-none">{loading ? '...' : myCases.length}</p>
                         </div>
                     </div>
                 </div>
