@@ -13,18 +13,9 @@ import { useAuthStore } from '../../store/auth.store';
 import { useCaseDetails, useCaseTimeline } from '../../hooks/useIncidents';
 import AssignmentModal from '../../components/incident/AssignmentModal';
 import EscalationModal from '../../components/incident/EscalationModal';
+import { ApprovalsTab } from '../../components/incident/ApprovalsTab';
 import { formatCategory } from '../../utils/formatters';
 
-const provincialNames = [
-    "Eastern Cape",
-    "Gauteng",
-    "KwaZulu-Natal",
-    "Limpopo",
-    "Mpumalanga",
-    "Northern Cape",
-    "North West",
-    "Western Cape"
-];
 
 const TABS = [
     { id: 'details', label: 'Details of the case' },
@@ -69,14 +60,11 @@ const CaseDetails: React.FC = () => {
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [successMsg, setSuccessMsg] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
-    const [targetApprovalRole, setTargetApprovalRole] = useState<string | null>(null);
-    const [uploadingApproval, setUploadingApproval] = useState(false);
     const [submittingComment, setSubmittingComment] = useState(false);
     const [actionPatchingId, setActionPatchingId] = useState<string | null>(null);
 
     // Refs
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const approvalFileInputRef = useRef<HTMLInputElement>(null);
 
     const showSuccess = (msg: string) => {
         setSuccessMsg(msg);
@@ -113,46 +101,9 @@ const CaseDetails: React.FC = () => {
 
     const isAssigned = caseData?.status === 'ASSIGNED' || !!caseData?.assignedTo;
     const isClosed = caseData?.status === 'CLOSED' || caseData?.status === 'RESOLVED';
-    const provinceName = caseData?.building?.province?.name || '';
-    const isProvincial = provincialNames.includes(provinceName);
     const canEdit = !isClosed && (isSupervisor || isAdmin || isPractitioner);
     const isUnderReview = caseData?.status === 'UNDER_REVIEW';
     const canAdd = !isClosed && (isSupervisor || isAdmin || isPractitioner);
-
-    const handleApprovalFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file || !id || !targetApprovalRole) return;
-
-        try {
-            setUploadingApproval(true);
-            const uploaded = await casesService.uploadFile(file, id);
-            await casesService.addApproval(id, {
-                roleName: targetApprovalRole,
-                recommenderName: user?.fullName || 'Supervisor',
-                recommendationText: `Uploaded by ${user?.fullName || 'Supervisor'}`,
-                files: [{
-                    fileUrl: uploaded.url,
-                    fileName: file.name,
-                    fileType: file.type
-                }]
-            });
-            showSuccess('Approval document uploaded successfully.');
-            refetchDetails();
-            refetchTimeline();
-        } catch (err) {
-            console.error('Error uploading approval:', err);
-            showError('Failed to upload approval document.');
-        } finally {
-            setUploadingApproval(false);
-            setTargetApprovalRole(null);
-            if (e.target) e.target.value = '';
-        }
-    };
-
-    const handleApprovalUploadClick = (role: string) => {
-        setTargetApprovalRole(role);
-        approvalFileInputRef.current?.click();
-    };
 
     const handleAddCorrectiveAction = async () => {
         if (!newActionText.trim() || !id) return;
@@ -872,91 +823,18 @@ const CaseDetails: React.FC = () => {
                             </div>
                         )}
 
-                        {activeTab === 'approvals' && (
-                            <div className="space-y-6 max-w-4xl">
-                                <div className="bg-gray-50 rounded-xl border border-gray-100 p-6 text-center">
-                                    <Shield className="mx-auto text-gray-300 mb-3" size={32} />
-                                    <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Director Approvals & Recommendations</h4>
-                                    <p className="text-gray-500 text-sm mb-6">Upload manual approvals and recommendations provided by directors.</p>
-                                    
-                                    <input 
-                                        type="file" 
-                                        ref={approvalFileInputRef} 
-                                        className="hidden" 
-                                        onChange={handleApprovalFileSelect} 
-                                        accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                                    />
-
-                                    {isProvincial && (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-                                            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
-                                                <h5 className="font-bold text-sm text-gray-800 mb-1">Provincial Security Coordinator</h5>
-                                                <p className="text-xs text-gray-500 mb-4">Upload recommendations report</p>
-                                                {!isClosed && canAdd && (
-                                                    <button 
-                                                        onClick={() => handleApprovalUploadClick('Provincial Security Coordinator')}
-                                                        className="mt-auto flex items-center gap-2 px-3 py-1.5 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all"
-                                                    >
-                                                        <Upload size={14} /> Upload Document
-                                                    </button>
-                                                )}
-                                            </div>
-                                            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
-                                                <h5 className="font-bold text-sm text-gray-800 mb-1">Chief Director</h5>
-                                                <p className="text-xs text-gray-500 mb-4">Upload final approved report</p>
-                                                {!isClosed && canAdd && (
-                                                    <button 
-                                                        onClick={() => handleApprovalUploadClick('Chief Director (Provincial)')}
-                                                        className="mt-auto flex items-center gap-2 px-3 py-1.5 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all"
-                                                    >
-                                                        <Upload size={14} /> Upload Document
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {!isProvincial && (
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
-                                            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
-                                                <h5 className="font-bold text-sm text-gray-800 mb-1">Assistant Director</h5>
-                                                <p className="text-xs text-gray-500 mb-4">Upload recommendations report</p>
-                                                {!isClosed && canAdd && (
-                                                    <button 
-                                                        onClick={() => handleApprovalUploadClick('Assistant Director')}
-                                                        className="mt-auto flex items-center gap-2 px-3 py-1.5 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all"
-                                                    >
-                                                        <Upload size={14} /> Upload Document
-                                                    </button>
-                                                )}
-                                            </div>
-                                            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
-                                                <h5 className="font-bold text-sm text-gray-800 mb-1">Director</h5>
-                                                <p className="text-xs text-gray-500 mb-4">Upload recommendations report</p>
-                                                {!isClosed && canAdd && (
-                                                    <button 
-                                                        onClick={() => handleApprovalUploadClick('Director')}
-                                                        className="mt-auto flex items-center gap-2 px-3 py-1.5 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all"
-                                                    >
-                                                        <Upload size={14} /> Upload Document
-                                                    </button>
-                                                )}
-                                            </div>
-                                            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
-                                                <h5 className="font-bold text-sm text-gray-800 mb-1">Chief Director</h5>
-                                                <p className="text-xs text-gray-500 mb-4">Upload final approved report</p>
-                                                {!isClosed && canAdd && (
-                                                    <button 
-                                                        onClick={() => handleApprovalUploadClick('Chief Director (National)')}
-                                                        className="mt-auto flex items-center gap-2 px-3 py-1.5 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all"
-                                                    >
-                                                        <Upload size={14} /> Upload Document
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
+                        {activeTab === 'approvals' && caseData && (
+                            <div className="max-w-4xl">
+                                <ApprovalsTab
+                                    caseId={id || ''}
+                                    caseData={caseData}
+                                    canEdit={canAdd}
+                                    user={user}
+                                    onSuccess={() => {
+                                        refetchDetails();
+                                        refetchTimeline();
+                                    }}
+                                />
                             </div>
                         )}
 

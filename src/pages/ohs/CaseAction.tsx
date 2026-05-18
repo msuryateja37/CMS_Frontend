@@ -10,10 +10,11 @@ import {
     ArrowLeft, Clock, FileText, MapPin, Calendar, Building2,
     User, AlertCircle, Shield, Users, Upload,
     Send, Loader2, MessageSquare, CheckCircle,
-    X, ArrowUpRight, Plus, Pencil, Trash2
+    X, ArrowUpRight, Plus
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 import EscalationModal from '../../components/incident/EscalationModal';
+import { ApprovalsTab } from '../../components/incident/ApprovalsTab';
 
 const severityConfig: Record<string, { bg: string; text: string; dot: string }> = {
     critical: { bg: 'bg-subtle-red', text: 'text-brand-red', dot: 'bg-brand-red' },
@@ -32,43 +33,6 @@ const provincialNames = [
     "North West",
     "Western Cape"
 ];
-
-const PROVINCIAL_APPROVAL_ROLES: { roleName: string; label: string; hint: string }[] = [
-    { roleName: 'Provincial Security Coordinator', label: 'Provincial Security Coordinator', hint: 'Recommendations report' },
-    { roleName: 'Chief Director (Provincial)', label: 'Chief Director', hint: 'Final approved report' },
-];
-
-const NATIONAL_APPROVAL_ROLES: { roleName: string; label: string; hint: string }[] = [
-    { roleName: 'Assistant Director', label: 'Assistant Director', hint: 'Recommendations report' },
-    { roleName: 'Director', label: 'Director', hint: 'Recommendations report' },
-    { roleName: 'Chief Director (National)', label: 'Chief Director', hint: 'Final approved report' },
-];
-
-function normalizeApprovals(raw: unknown): CaseApproval[] {
-    if (!Array.isArray(raw)) return [];
-    return raw.map((a: Record<string, unknown>) => {
-        const atts = a.attachments as CaseApproval['attachments'] | undefined;
-        if (atts && atts.length > 0) {
-            return { ...(a as unknown as CaseApproval), attachments: atts };
-        }
-        const legacyUrl = a.fileUrl as string | undefined;
-        if (legacyUrl) {
-            return {
-                ...(a as unknown as CaseApproval),
-                attachments: [
-                    {
-                        id: `legacy-${a.id}`,
-                        fileUrl: legacyUrl,
-                        fileName: (a.fileName as string) ?? null,
-                        fileType: (a.fileType as string) ?? null,
-                        createdAt: (a.createdAt as string) ?? new Date().toISOString(),
-                    },
-                ],
-            };
-        }
-        return { ...(a as unknown as CaseApproval), attachments: [] };
-    });
-}
 
 interface TimelineActivity {
     id?: string;
@@ -134,18 +98,7 @@ const CaseAction: React.FC = () => {
         setCaseData((prev) => (prev ? { ...prev, ...patch } : prev));
     }, []);
 
-    const mergeApproval = useCallback((updated: CaseApproval) => {
-        setCaseData((prev) => {
-            if (!prev) return prev;
-            const list = normalizeApprovals(prev.approvals);
-            const idx = list.findIndex((x) => x.id === updated.id);
-            const next =
-                idx >= 0
-                    ? [...list.slice(0, idx), updated, ...list.slice(idx + 1)]
-                    : [...list, updated];
-            return { ...prev, approvals: next };
-        });
-    }, []);
+
 
     // Activity timeline
     const [activities, setActivities] = useState<TimelineActivity[]>([]);
@@ -183,25 +136,7 @@ const CaseAction: React.FC = () => {
     const [showActionForm, setShowActionForm] = useState(false);
     const [showEvidenceForm, setShowEvidenceForm] = useState(false);
 
-    // New approval / recommendation (per role slot)
-    const [newApprovalForRole, setNewApprovalForRole] = useState<string | null>(null);
-    const [newApprRecommender, setNewApprRecommender] = useState('');
-    const [newApprText, setNewApprText] = useState('');
-    const [newApprFiles, setNewApprFiles] = useState<File[]>([]);
-    const [submittingNewApproval, setSubmittingNewApproval] = useState(false);
-    const newApprFilesInputRef = useRef<HTMLInputElement>(null);
 
-    const [editingApprovalMeta, setEditingApprovalMeta] = useState<{
-        id: string;
-        recommenderName: string;
-        recommendationText: string;
-    } | null>(null);
-    const [savingApprovalMetaId, setSavingApprovalMetaId] = useState<string | null>(null);
-    const extraAttachInputRef = useRef<HTMLInputElement>(null);
-    const [extraAttachApprovalId, setExtraAttachApprovalId] = useState<string | null>(null);
-    const [uploadingExtraAttachments, setUploadingExtraAttachments] = useState(false);
-    const [deletingAttachmentKey, setDeletingAttachmentKey] = useState<string | null>(null);
-    const [deletingApprovalId, setDeletingApprovalId] = useState<string | null>(null);
 
     const [actionPatchingId, setActionPatchingId] = useState<string | null>(null);
 
@@ -225,10 +160,7 @@ const CaseAction: React.FC = () => {
         try {
             if (showLoader) setLoading(true);
             const data = await casesService.getCaseById(caseId);
-            setCaseData({
-                ...data,
-                approvals: normalizeApprovals(data.approvals),
-            });
+            setCaseData(data);
             if (data.incidentPlan) setIncidentPlan(data.incidentPlan);
         } catch (err) {
             console.error('Error fetching case details:', err);
@@ -426,169 +358,7 @@ const CaseAction: React.FC = () => {
         }
     };
 
-    const openNewApprovalForm = (roleName: string) => {
-        setNewApprovalForRole(roleName);
-        setNewApprRecommender('');
-        setNewApprText('');
-        setNewApprFiles([]);
-    };
 
-    const submitNewApprovalForRole = async (roleName: string) => {
-        if (!id || newApprFiles.length === 0) {
-            setError('Select at least one file to upload for this approval record.');
-            return;
-        }
-        try {
-            setSubmittingNewApproval(true);
-            const files: { fileUrl: string; fileName?: string; fileType?: string }[] = [];
-            for (const file of newApprFiles) {
-                const uploaded = await casesService.uploadFile(file, id);
-                files.push({
-                    fileUrl: uploaded.url,
-                    fileName: file.name,
-                    fileType: file.type,
-                });
-            }
-            const created = await casesService.addApproval(id, {
-                roleName,
-                recommenderName: newApprRecommender.trim() || undefined,
-                recommendationText: newApprText.trim() || undefined,
-                files,
-            });
-            setCaseData((prev) => {
-                if (!prev) return prev;
-                return {
-                    ...prev,
-                    approvals: [...normalizeApprovals(prev.approvals), created],
-                };
-            });
-            showSuccess('Approval / recommendation record saved.');
-            setNewApprovalForRole(null);
-            setNewApprRecommender('');
-            setNewApprText('');
-            setNewApprFiles([]);
-            void fetchTimeline(id);
-        } catch (err) {
-            console.error('Error saving approval:', err);
-            setError('Failed to save approval record.');
-        } finally {
-            setSubmittingNewApproval(false);
-        }
-    };
-
-    const saveApprovalMeta = async () => {
-        if (!id || !editingApprovalMeta) return;
-        try {
-            setSavingApprovalMetaId(editingApprovalMeta.id);
-            const updated = await casesService.updateApproval(id, editingApprovalMeta.id, {
-                recommenderName: editingApprovalMeta.recommenderName,
-                recommendationText: editingApprovalMeta.recommendationText,
-            });
-            mergeApproval(updated);
-            setEditingApprovalMeta(null);
-            showSuccess('Recommendation details updated.');
-        } catch (err) {
-            console.error('Error updating approval:', err);
-            setError('Failed to update approval.');
-        } finally {
-            setSavingApprovalMetaId(null);
-        }
-    };
-
-    const triggerExtraAttachments = (approvalId: string) => {
-        setExtraAttachApprovalId(approvalId);
-        extraAttachInputRef.current?.click();
-    };
-
-    const onExtraAttachmentFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files || []);
-        if (e.target) e.target.value = '';
-        const targetId = extraAttachApprovalId;
-        if (!id || !targetId || files.length === 0) return;
-        try {
-            setUploadingExtraAttachments(true);
-            const uploadedAtts: Awaited<ReturnType<typeof casesService.addApprovalAttachment>>[] = [];
-            for (const file of files) {
-                const up = await casesService.uploadFile(file, id);
-                const att = await casesService.addApprovalAttachment(id, targetId, {
-                    fileUrl: up.url,
-                    fileName: file.name,
-                    fileType: file.type,
-                });
-                uploadedAtts.push(att);
-            }
-            setCaseData((prev) => {
-                if (!prev) return prev;
-                const list = normalizeApprovals(prev.approvals);
-                const next = list.map((ap) =>
-                    ap.id !== targetId
-                        ? ap
-                        : { ...ap, attachments: [...ap.attachments, ...uploadedAtts] },
-                );
-                return { ...prev, approvals: next };
-            });
-            showSuccess('File(s) added to this record.');
-            void fetchTimeline(id);
-        } catch (err) {
-            console.error('Error adding attachment:', err);
-            setError('Failed to add attachment.');
-        } finally {
-            setUploadingExtraAttachments(false);
-            setExtraAttachApprovalId(null);
-        }
-    };
-
-    const removeApprovalAttachment = async (approvalId: string, attachmentId: string) => {
-        if (!id || String(attachmentId).startsWith('legacy-')) {
-            setError('Remove legacy rows by re-uploading under a new record after migration.');
-            return;
-        }
-        const key = `${approvalId}:${attachmentId}`;
-        try {
-            setDeletingAttachmentKey(key);
-            await casesService.deleteApprovalAttachment(id, approvalId, attachmentId);
-            setCaseData((prev) => {
-                if (!prev) return prev;
-                const list = normalizeApprovals(prev.approvals);
-                const next = list.map((ap) =>
-                    ap.id === approvalId
-                        ? {
-                              ...ap,
-                              attachments: ap.attachments.filter((x) => x.id !== attachmentId),
-                          }
-                        : ap,
-                );
-                return { ...prev, approvals: next };
-            });
-            showSuccess('Attachment removed.');
-        } catch (err) {
-            console.error('Error deleting attachment:', err);
-            setError('Failed to remove attachment.');
-        } finally {
-            setDeletingAttachmentKey(null);
-        }
-    };
-
-    const removeApprovalRecord = async (approvalId: string) => {
-        if (!id) return;
-        try {
-            setDeletingApprovalId(approvalId);
-            await casesService.deleteApproval(id, approvalId);
-            setCaseData((prev) => {
-                if (!prev) return prev;
-                return {
-                    ...prev,
-                    approvals: normalizeApprovals(prev.approvals).filter((a) => a.id !== approvalId),
-                };
-            });
-            showSuccess('Approval record removed.');
-        } catch (err) {
-            console.error('Error deleting approval:', err);
-            setError('Failed to remove approval record.');
-        } finally {
-            setDeletingApprovalId(null);
-        }
-    };
 
     const getSeverityStyle = (severity?: string) => {
         if (!severity) return severityConfig.medium;
@@ -630,8 +400,7 @@ const CaseAction: React.FC = () => {
     const isCurrentAssignee = user?.id === caseData.assignedTo?.id;
     const canEdit = !isClosed && (isCurrentAssignee || isSupervisor || isAdmin || isPractitioner);
 
-    const provinceName = caseData.building?.province?.name || '';
-    const isProvincial = provincialNames.includes(provinceName);
+
 
     return (
         <DashboardLayout
@@ -1292,289 +1061,17 @@ const CaseAction: React.FC = () => {
                         )}
 
                         {activeTab === 'approvals' && (
-                            <div className="space-y-6 max-w-4xl">
-                                <input
-                                    ref={newApprFilesInputRef}
-                                    type="file"
-                                    multiple
-                                    className="hidden"
-                                    accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                                    onChange={(e) => {
-                                        setNewApprFiles((p) => [...p, ...Array.from(e.target.files || [])]);
-                                        if (e.target) e.target.value = '';
+                            <div className="max-w-4xl">
+                                <ApprovalsTab
+                                    caseId={id || ''}
+                                    caseData={caseData}
+                                    canEdit={canEdit}
+                                    user={user}
+                                    onSuccess={() => {
+                                        fetchCaseDetails(id || '', false);
+                                        fetchTimeline(id || '');
                                     }}
                                 />
-                                <input
-                                    ref={extraAttachInputRef}
-                                    type="file"
-                                    multiple
-                                    className="hidden"
-                                    accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                                    onChange={onExtraAttachmentFiles}
-                                />
-
-                                <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
-                                    <div className="flex flex-col items-center justify-center gap-2 mb-8 text-center">
-                                        <Shield className="text-gray-400" size={32} />
-                                        <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Approvals & recommendations</h4>
-                                    </div>
-
-                                    <div className={`grid gap-4 ${isProvincial ? 'md:grid-cols-2' : 'md:grid-cols-3'}`}>
-                                        {(isProvincial ? PROVINCIAL_APPROVAL_ROLES : NATIONAL_APPROVAL_ROLES).map((def) => {
-                                            const approvalsList = normalizeApprovals(caseData.approvals);
-                                            const forRole = approvalsList.filter((a) => a.roleName === def.roleName);
-                                            return (
-                                                <div
-                                                    key={def.roleName}
-                                                    className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-3 text-left"
-                                                >
-                                                    <div>
-                                                        <h5 className="font-bold text-sm text-gray-900">{def.label}</h5>
-                                                        <p className="text-xs text-gray-500 mt-0.5">{def.hint}</p>
-                                                    </div>
-
-                                                    {forRole.length > 0 && (
-                                                        <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
-                                                            {forRole.map((ap) => (
-                                                                <div
-                                                                    key={ap.id}
-                                                                    className="rounded-lg border border-gray-100 bg-gray-50/80 p-3 space-y-2"
-                                                                >
-                                                                    <div className="flex justify-between gap-2 items-start">
-                                                                        <div className="min-w-0">
-                                                                            <p className="text-xs font-bold text-gray-700">
-                                                                                {ap.recommenderName?.trim() || 'Name not recorded'}
-                                                                            </p>
-                                                                            {ap.recommendationText ? (
-                                                                                <p className="text-xs text-gray-600 mt-1 whitespace-pre-wrap">
-                                                                                    {ap.recommendationText}
-                                                                                </p>
-                                                                            ) : null}
-                                                                        </div>
-                                                                        {canEdit && (
-                                                                            <div className="flex shrink-0 gap-1">
-                                                                                <button
-                                                                                    type="button"
-                                                                                    title="Edit name & recommendation text"
-                                                                                    onClick={() =>
-                                                                                        setEditingApprovalMeta({
-                                                                                            id: ap.id,
-                                                                                            recommenderName: ap.recommenderName ?? '',
-                                                                                            recommendationText: ap.recommendationText ?? '',
-                                                                                        })
-                                                                                    }
-                                                                                    className="p-1.5 rounded-md text-gray-500 hover:bg-white hover:text-gray-800"
-                                                                                >
-                                                                                    <Pencil size={14} />
-                                                                                </button>
-                                                                                <button
-                                                                                    type="button"
-                                                                                    title="Delete this record"
-                                                                                    disabled={deletingApprovalId === ap.id}
-                                                                                    onClick={() => {
-                                                                                        if (window.confirm('Remove this approval record and all its files?')) {
-                                                                                            void removeApprovalRecord(ap.id);
-                                                                                        }
-                                                                                    }}
-                                                                                    className="p-1.5 rounded-md text-gray-500 hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
-                                                                                >
-                                                                                    {deletingApprovalId === ap.id ? (
-                                                                                        <Loader2 size={14} className="animate-spin" />
-                                                                                    ) : (
-                                                                                        <Trash2 size={14} />
-                                                                                    )}
-                                                                                </button>
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-
-                                                                    {editingApprovalMeta?.id === ap.id && (
-                                                                        <div className="space-y-2 pt-2 border-t border-gray-200">
-                                                                            <input
-                                                                                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5"
-                                                                                placeholder="Name of person who gave the recommendation / approval"
-                                                                                value={editingApprovalMeta.recommenderName}
-                                                                                onChange={(e) =>
-                                                                                    setEditingApprovalMeta((m) =>
-                                                                                        m ? { ...m, recommenderName: e.target.value } : m,
-                                                                                    )
-                                                                                }
-                                                                            />
-                                                                            <textarea
-                                                                                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 min-h-[72px]"
-                                                                                placeholder="Written recommendation or conditions"
-                                                                                value={editingApprovalMeta.recommendationText}
-                                                                                onChange={(e) =>
-                                                                                    setEditingApprovalMeta((m) =>
-                                                                                        m ? { ...m, recommendationText: e.target.value } : m,
-                                                                                    )
-                                                                                }
-                                                                            />
-                                                                            <div className="flex justify-end gap-2">
-                                                                                <button
-                                                                                    type="button"
-                                                                                    className="text-xs font-semibold text-gray-500"
-                                                                                    onClick={() => setEditingApprovalMeta(null)}
-                                                                                >
-                                                                                    Cancel
-                                                                                </button>
-                                                                                <button
-                                                                                    type="button"
-                                                                                    disabled={savingApprovalMetaId === ap.id}
-                                                                                    onClick={() => void saveApprovalMeta()}
-                                                                                    className="text-xs font-semibold text-white bg-dark-green px-3 py-1.5 rounded-lg disabled:opacity-50"
-                                                                                >
-                                                                                    {savingApprovalMetaId === ap.id ? 'Saving…' : 'Save'}
-                                                                                </button>
-                                                                            </div>
-                                                                        </div>
-                                                                    )}
-
-                                                                    <div className="space-y-1.5">
-                                                                        {ap.attachments.map((att) => (
-                                                                            <div
-                                                                                key={att.id}
-                                                                                className="flex items-center gap-2 bg-white rounded-md border border-gray-100 px-2 py-1.5"
-                                                                            >
-                                                                                <a
-                                                                                    href={
-                                                                                        att.fileUrl?.match(/^\s*(javascript|data|vbscript):/i)
-                                                                                            ? '#'
-                                                                                            : att.fileUrl
-                                                                                    }
-                                                                                    target="_blank"
-                                                                                    rel="noopener noreferrer"
-                                                                                    className="text-xs text-green font-medium truncate flex-1 min-w-0"
-                                                                                >
-                                                                                    {att.fileName || 'Document'}
-                                                                                </a>
-                                                                                {canEdit && (
-                                                                                    <button
-                                                                                        type="button"
-                                                                                        disabled={
-                                                                                            deletingAttachmentKey === `${ap.id}:${att.id}` ||
-                                                                                            String(att.id).startsWith('legacy-')
-                                                                                        }
-                                                                                        onClick={() => void removeApprovalAttachment(ap.id, att.id)}
-                                                                                        className="text-gray-400 hover:text-red-500 shrink-0 disabled:opacity-30"
-                                                                                    >
-                                                                                        {deletingAttachmentKey === `${ap.id}:${att.id}` ? (
-                                                                                            <Loader2 size={12} className="animate-spin" />
-                                                                                        ) : (
-                                                                                            <X size={12} />
-                                                                                        )}
-                                                                                    </button>
-                                                                                )}
-                                                                            </div>
-                                                                        ))}
-                                                                    </div>
-
-                                                                    {canEdit && (
-                                                                        <button
-                                                                            type="button"
-                                                                            disabled={uploadingExtraAttachments}
-                                                                            onClick={() => triggerExtraAttachments(ap.id)}
-                                                                            className="w-full mt-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-dark-green border border-green/30 rounded-lg py-1.5 hover:bg-green/5 disabled:opacity-50"
-                                                                        >
-                                                                            {uploadingExtraAttachments && extraAttachApprovalId === ap.id ? (
-                                                                                <Loader2 size={14} className="animate-spin" />
-                                                                            ) : (
-                                                                                <Upload size={14} />
-                                                                            )}
-                                                                            Add more files
-                                                                        </button>
-                                                                    )}
-                                                                    <p className="text-[10px] text-gray-700">
-                                                                        {new Date(ap.createdAt).toLocaleString('en-GB', {
-                                                                            day: '2-digit',
-                                                                            month: 'short',
-                                                                            year: 'numeric',
-                                                                            hour: '2-digit',
-                                                                            minute: '2-digit',
-                                                                        })}
-                                                                        {ap.uploadedBy?.name ? ` · logged by ${ap.uploadedBy.name}` : ''}
-                                                                    </p>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    )}
-
-                                                    {canEdit && (
-                                                        <>
-                                                            {newApprovalForRole === def.roleName ? (
-                                                                <div className="rounded-lg border border-dashed border-green/40 bg-green/5 p-3 space-y-2">
-                                                                    <p className="text-xs font-bold text-gray-700">New record</p>
-                                                                    <input
-                                                                        className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white"
-                                                                        placeholder="Name of person who gave the recommendation / approval *"
-                                                                        value={newApprRecommender}
-                                                                        onChange={(e) => setNewApprRecommender(e.target.value)}
-                                                                    />
-                                                                    <textarea
-                                                                        className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white min-h-[64px]"
-                                                                        placeholder="Written recommendation (optional)"
-                                                                        value={newApprText}
-                                                                        onChange={(e) => setNewApprText(e.target.value)}
-                                                                    />
-                                                                    <div className="flex flex-wrap gap-2">
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => newApprFilesInputRef.current?.click()}
-                                                                            className="text-xs font-semibold px-2 py-1 rounded-md bg-white border border-gray-200"
-                                                                        >
-                                                                            Choose files ({newApprFiles.length})
-                                                                        </button>
-                                                                        {newApprFiles.map((f, i) => (
-                                                                            <span
-                                                                                key={`${f.name}-${i}`}
-                                                                                className="text-[10px] bg-white border border-gray-100 rounded px-1.5 py-0.5 truncate max-w-[120px]"
-                                                                            >
-                                                                                {f.name}
-                                                                            </span>
-                                                                        ))}
-                                                                    </div>
-                                                                    <div className="flex justify-end gap-2 pt-1">
-                                                                        <button
-                                                                            type="button"
-                                                                            className="text-xs font-semibold text-gray-500"
-                                                                            onClick={() => {
-                                                                                setNewApprovalForRole(null);
-                                                                                setNewApprFiles([]);
-                                                                            }}
-                                                                        >
-                                                                            Cancel
-                                                                        </button>
-                                                                        <button
-                                                                            type="button"
-                                                                            disabled={submittingNewApproval}
-                                                                            onClick={() => void submitNewApprovalForRole(def.roleName)}
-                                                                            className="text-xs font-semibold text-white bg-dark-green px-3 py-1.5 rounded-lg disabled:opacity-50 inline-flex items-center gap-1"
-                                                                        >
-                                                                            {submittingNewApproval ? (
-                                                                                <Loader2 size={14} className="animate-spin" />
-                                                                            ) : (
-                                                                                <Upload size={14} />
-                                                                            )}
-                                                                            Save record
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            ) : (
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => openNewApprovalForm(def.roleName)}
-                                                                    className="mt-auto w-full flex items-center justify-center gap-2 px-3 py-2 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90"
-                                                                >
-                                                                    <Plus size={14} /> Add recommendation / approval
-                                                                </button>
-                                                            )}
-                                                        </>
-                                                    )}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
                             </div>
                         )}
 
