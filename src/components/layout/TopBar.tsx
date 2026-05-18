@@ -182,28 +182,28 @@ const TopBar: React.FC<TopBarProps> = ({
     };
 
     return (
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4 lg:mb-6 transition-all duration-300">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 mb-2 lg:mb-3 transition-all duration-300">
             {/* Left: Title and Breadcrumbs */}
-            <div className="shrink-0 flex items-center w-full lg:w-auto gap-4">
+            <div className="shrink-0 flex items-center w-full lg:w-auto gap-2">
                 {/* Mobile hamburger menu toggle */}
                 <button 
                     onClick={toggleSidebar}
-                    className="p-2.5 -ml-1 text-gray-500 bg-white hover:bg-gray-50 border border-gray-100 rounded-xl transition-all lg:hidden shrink-0 shadow-sm"
+                    className="p-1.5 -ml-1 text-gray-500 bg-white hover:bg-gray-50 border border-gray-100 rounded-xl transition-all lg:hidden shrink-0 shadow-sm"
                     title="Toggle menu"
                 >
-                    <Menu size={20} />
+                    <Menu size={14} />
                 </button>
 
-                <div className="flex flex-col sm:flex-row sm:items-center w-full lg:w-auto gap-4 sm:gap-6">
+                <div className="flex flex-col sm:flex-row sm:items-center w-full lg:w-auto gap-2.5 sm:gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-800 leading-tight">{title}</h1>
+                        <h1 className="text-[19px] font-bold text-gray-800 leading-tight">{title}</h1>
                         {breadcrumbs && breadcrumbs.length > 0 ? (
-                            <nav className="flex items-center gap-1 text-sm font-medium mt-0.5">
+                            <nav className="flex items-center gap-1 text-[11px] font-semibold mt-0">
                                 {breadcrumbs.map((crumb, idx) => {
                                     const isLast = idx === breadcrumbs.length - 1;
                                     return (
                                         <React.Fragment key={idx}>
-                                            {idx > 0 && <ChevronRight size={14} className="text-gray-300 mx-0.5" />}
+                                            {idx > 0 && <ChevronRight size={10} className="text-gray-300 mx-0.5" />}
                                             {crumb.path && !isLast ? (
                                                 <Link to={crumb.path} className="text-green hover:text-dark-green hover:underline transition-colors">
                                                     {crumb.label}
@@ -216,7 +216,7 @@ const TopBar: React.FC<TopBarProps> = ({
                                 })}
                             </nav>
                         ) : description ? (
-                            <p className="text-sm font-medium mt-0.5">
+                            <p className="text-[11px] font-semibold mt-0">
                                 <span className="text-green">Dashboard </span>
                                 <span className="text-black">/ {description}</span>
                             </p>
@@ -226,9 +226,9 @@ const TopBar: React.FC<TopBarProps> = ({
                     {actionButton && (
                         <button
                             onClick={actionButton.onClick}
-                            className="flex items-center justify-center gap-2 bg-dark-green text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-opacity-90 transition-all shadow-md sm:mt-1 w-full sm:w-auto"
+                            className="flex items-center justify-center gap-1.5 bg-dark-green text-white px-3 py-1 rounded-lg text-[11px] font-bold hover:bg-opacity-90 transition-all shadow-md sm:mt-0.5 w-full sm:w-auto"
                         >
-                            {actionButton.icon && <actionButton.icon size={18} />}
+                            {actionButton.icon && <actionButton.icon size={12} />}
                             {actionButton.label}
                         </button>
                     )}
@@ -236,11 +236,11 @@ const TopBar: React.FC<TopBarProps> = ({
             </div>
 
             {/* Right: Search, Icons, Profile */}
-            <div className="flex flex-col-reverse md:flex-row items-center gap-4 w-full lg:w-auto">
+            <div className="flex flex-col-reverse md:flex-row items-center gap-2.5 w-full lg:w-auto">
                 {children}
 
                 {/* Functional Search with Autocomplete */}
-                <div className="w-full md:w-64 lg:w-72">
+                <div className="w-full md:w-48 lg:w-52">
                     <SearchInput
                         value={searchQuery}
                         onChange={setSearchQuery}
@@ -256,20 +256,20 @@ const TopBar: React.FC<TopBarProps> = ({
                 </div>
 
                 {/* Icons & Profile Group */}
-                <div className="flex items-center justify-between md:justify-end w-full md:w-auto gap-3">
+                <div className="flex items-center justify-between md:justify-end w-full md:w-auto gap-2">
                     {/* Icons */}
-                    <div className="flex items-center gap-1 md:gap-2">
-                        <button className="p-2.5 text-gray-400 bg-light-green hover:bg-gray-50 rounded-xl transition-all border border-transparent hover:border-gray-100">
-                            <Settings size={20} />
+                    <div className="flex items-center gap-1">
+                        <button className="p-1.5 text-gray-400 bg-light-green hover:bg-gray-50 rounded-xl transition-all border border-transparent hover:border-gray-100">
+                            <Settings size={14} />
                         </button>
                         <div className="relative" ref={notifRef}>
                             <button
                                 onClick={handleBellClick}
-                                className="p-2.5 text-gray-400 bg-light-green hover:bg-gray-50 rounded-xl transition-all relative border border-transparent hover:border-gray-100"
+                                className="p-1.5 text-gray-400 bg-light-green hover:bg-gray-50 rounded-xl transition-all relative border border-transparent hover:border-gray-100"
                             >
-                                <Bell size={20} />
+                                <Bell size={14} />
                                 {unreadCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center bg-red text-white text-[10px] font-bold rounded-full px-1 shadow-sm">
+                                    <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] flex items-center justify-center bg-red text-white text-[8px] font-bold rounded-full px-1 shadow-sm">
                                         {unreadCount > 99 ? '99+' : unreadCount}
                                     </span>
                                 )}
@@ -328,13 +328,13 @@ const TopBar: React.FC<TopBarProps> = ({
                     <div className="relative">
                         <button
                             onClick={() => navigate('/profile')}
-                            className="flex items-center gap-3 pl-2 hover:bg-gray-50 rounded-xl transition-all p-2"
+                            className="flex items-center gap-1.5 pl-2 hover:bg-gray-50 rounded-xl transition-all p-0.5"
                         >
                             <div className="flex flex-col text-right hidden sm:block">
-                                <p className="text-sm font-bold text-gray-800 leading-none">{getFullName()}</p>
-                                <p className="text-[11px] font-semibold text-gray-400 mt-1">{getUserRole()}</p>
+                                <p className="text-[11px] font-bold text-gray-800 leading-none">{getFullName()}</p>
+                                <p className="text-[9px] font-semibold text-gray-400 mt-0">{getUserRole()}</p>
                             </div>
-                            <div className="w-11 h-11 rounded-full bg-green flex items-center justify-center text-white font-bold text-lg shadow-inner border-2 border-white">
+                            <div className="w-[28px] h-[28px] rounded-full bg-green flex items-center justify-center text-white font-bold text-[11px] shadow-inner border-2 border-white">
                                 {getUserInitials()}
                             </div>
                             {/* <ChevronDown size={16} className="text-gray-400" /> */}

@@ -47,7 +47,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col overflow-hidden">
-                <main id="dashboard-main-content" className="flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-5 lg:p-6 custom-scrollbar">
+                <main id="dashboard-main-content" className="flex-1 overflow-x-hidden overflow-y-auto p-3 sm:p-4 lg:p-4.5 custom-scrollbar">
                     <TopBar
                         title={title}
                         description={description}
