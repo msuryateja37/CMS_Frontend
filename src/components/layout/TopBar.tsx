@@ -182,7 +182,7 @@ const TopBar: React.FC<TopBarProps> = ({
     };
 
     return (
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 mb-2 lg:mb-3 transition-all duration-300">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 mb-4 lg:mb-5 transition-all duration-300">
             {/* Left: Title and Breadcrumbs */}
             <div className="shrink-0 flex items-center w-full lg:w-auto gap-2">
                 {/* Mobile hamburger menu toggle */}

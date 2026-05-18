@@ -102,49 +102,49 @@ const StepAttachment: React.FC<StepProps> = ({ data, onChange, onBack, onNext, c
 
     return (
         <div className="animate-fadeIn">
-            <div className="mb-10">
-                <span className="text-sm font-bold text-gray-400 mb-1 block">Step 4/5</span>
-                <h3 className="text-2xl font-bold text-gray-800 mb-1">Attachments</h3>
-                <p className="text-gray-500 font-medium">Upload photos/videos (if safe) {isSecurityBreach ? '*' : ''}</p>
-                <div className="h-[1px] bg-gray-100 w-full mt-6" />
+            <div className="mb-4">
+                <span className="text-[10px] font-bold text-gray-400 mb-0.5 block">Step 4/5</span>
+                <h3 className="text-lg font-bold text-gray-800 mb-0.5">Attachments</h3>
+                <p className="text-xs text-gray-400 font-medium">Upload photos/videos (if safe) {isSecurityBreach ? '*' : ''}</p>
+                <div className="h-[1px] bg-gray-100 w-full mt-3" />
             </div>
 
-            <div className="mt-8">
+            <div className="mt-4">
                 <div className="w-full">
-                    <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            <svg className="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                            <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                            <p className="text-xs text-gray-500">Photos, Videos, Documents</p>
+                    <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                        <div className="flex flex-col items-center justify-center pt-3 pb-3">
+                            <svg className="w-7 h-7 mb-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                            <p className="mb-1 text-xs text-gray-500"><span className="font-bold">Click to upload</span> or drag and drop</p>
+                            <p className="text-[10px] text-gray-400">Photos, Videos, Documents</p>
                         </div>
                         <input type="file" className="hidden" multiple onChange={handleFileChange} disabled={isUploadingAny} />
                     </label>
 
                     {files.length > 0 && (
-                        <div className="mt-4 space-y-2">
+                        <div className="mt-3 space-y-1.5">
                             {files.map((file, index) => {
                                 const fileId = `${file.name}-${file.size}-${file.lastModified}`;
                                 const isFileUploading = uploading[fileId];
                                 const isUploaded = uploadedMedia.some(m => m.name === file.name);
 
                                 return (
-                                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg group transition-colors duration-200">
-                                        <div className="flex items-center gap-3">
+                                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg group transition-colors duration-200">
+                                        <div className="flex items-center gap-2">
                                             {isFileUploading ? (
-                                                <Loader2 size={18} className="animate-spin text-blue-500" />
+                                                <Loader2 size={14} className="animate-spin text-blue-500" />
                                             ) : isUploaded ? (
-                                                <CheckCircle2 size={18} className="text-green-500" />
+                                                <CheckCircle2 size={14} className="text-green-500" />
                                             ) : (
-                                                <AlertCircle size={18} className="text-amber-500" />
+                                                <AlertCircle size={14} className="text-amber-500" />
                                             )}
-                                            <span className="text-sm text-gray-700 font-medium">{file.name}</span>
+                                            <span className="text-xs text-gray-700 font-medium">{file.name}</span>
                                         </div>
                                         <button
                                             onClick={() => removeFile(index)}
-                                            className="p-2 rounded-full bg-red hover:bg-red/90 text-white transition-all duration-200"
+                                            className="p-1 rounded-md bg-red hover:bg-red/90 text-white transition-all duration-200"
                                             title="Delete attachment"
                                         >
-                                            <Trash2 size={18} />
+                                            <Trash2 size={14} />
                                         </button>
                                     </div>
                                 );
@@ -154,34 +154,34 @@ const StepAttachment: React.FC<StepProps> = ({ data, onChange, onBack, onNext, c
                 </div>
             </div>
 
-            <div className="flex items-center justify-between mt-16 pt-8 border-t border-gray-100">
-                <div className="flex gap-8">
+            <div className="flex items-center justify-between mt-6 pt-3 border-t border-gray-100">
+                <div className="flex gap-4">
                     <button
                         onClick={handleSaveDraftClick}
-                        className="text-gray-600 font-bold hover:text-gray-900 transition-colors"
+                        className="text-gray-600 font-bold hover:text-gray-900 transition-colors text-xs"
                     >
                         Save as Draft
                     </button>
                     <button
                         onClick={onDiscard}
-                        className="text-gray-600 font-bold hover:text-gray-900 transition-colors"
+                        className="text-gray-600 font-bold hover:text-gray-900 transition-colors text-xs"
                     >
                         Discard
                     </button>
                 </div>
-                <div className="flex gap-4">
+                <div className="flex gap-3">
                     <button
                         onClick={onBack}
-                        className="px-8 py-2.5 bg-light-green rounded-lg font-bold "
+                        className="px-5 py-1.5 bg-light-green rounded-lg font-bold text-xs"
                     >
                         Previous
                     </button>
                     <button
                         onClick={onNext}
                         disabled={isNextDisabled}
-                        className="px-8 py-2.5 bg-green text-white rounded-lg font-bold shadow-sm transition-colors disabled:cursor-not-allowed disabled:bg-gray-300 flex items-center gap-2"
+                        className="px-6 py-1.5 bg-green text-white rounded-lg font-bold shadow-sm transition-colors disabled:cursor-not-allowed disabled:bg-gray-300 flex items-center gap-2 text-xs"
                     >
-                        {isUploadingAny && <Loader2 size={18} className="animate-spin" />}
+                        {isUploadingAny && <Loader2 size={14} className="animate-spin" />}
                         {isUploadingAny ? 'Uploading...' : 'Next'}
                     </button>
                 </div>

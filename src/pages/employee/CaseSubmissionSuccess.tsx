@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import EmployeeLayout from './components/EmployeeLayout';
+import DashboardLayout from '../../layouts/DashboardLayout';
 import { CheckCircle, FileText, ArrowRight, Home } from 'lucide-react';
 
 interface LocationState {
@@ -21,7 +21,7 @@ const CaseSubmissionSuccess: React.FC = () => {
     }, [state, navigate]);
 
     return (
-        <EmployeeLayout
+        <DashboardLayout
             title="Welcome back"
             description="Case Submitted"
             breadcrumbs={[{ label: "Dashboard", path: "/employee/dashboard" }, { label: "Case Submitted" }]}
@@ -115,7 +115,7 @@ const CaseSubmissionSuccess: React.FC = () => {
                     </div>
                 </div>
             </div>
-        </EmployeeLayout>
+        </DashboardLayout>
     );
 };
 

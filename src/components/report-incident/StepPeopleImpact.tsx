@@ -166,22 +166,22 @@ const StepPeopleImpact: React.FC<StepProps> = ({ data, onChange, onBack, onNext,
 
     return (
         <div className="animate-fadeIn">
-            <div className="mb-8">
-                <span className="text-sm font-bold text-gray-400 mb-1 block">Step 3/5</span>
-                <h3 className="text-2xl font-bold text-gray-800 mb-1">People & Impact</h3>
-                <p className="text-gray-500 font-medium">Add involved people and describe the impact</p>
-                <div className="h-[1px] bg-gray-100 w-full mt-6" />
+            <div className="mb-4">
+                <span className="text-[10px] font-bold text-gray-400 mb-0.5 block">Step 3/5</span>
+                <h3 className="text-lg font-bold text-gray-800 mb-0.5">People & Impact</h3>
+                <p className="text-xs text-gray-400 font-medium">Add involved people and describe the impact</p>
+                <div className="h-[1px] bg-gray-100 w-full mt-3" />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 {/* Left Column: Selection & Search */}
-                <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100">
-                        <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                            <Search size={18} /> Find People
+                <div className="lg:col-span-2 space-y-4">
+                    <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                        <h4 className="font-bold text-gray-800 mb-2 flex items-center gap-2 text-xs">
+                            <Search size={14} /> Find People
                         </h4>
 
-                        <div className="grid grid-cols-1 gap-4 mb-4">
+                        <div className="grid grid-cols-1 gap-2 mb-2">
                             <Select
                                 label="Province"
                                 value={selectedProvince}
@@ -192,14 +192,14 @@ const StepPeopleImpact: React.FC<StepProps> = ({ data, onChange, onBack, onNext,
                             />
                         </div>
 
-                        <div className="relative mb-6">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <div className="relative mb-3">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
                             <input
                                 type="text"
                                 placeholder="Search by name or email..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-green focus:border-transparent outline-none"
+                                className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-green focus:border-transparent outline-none text-xs"
                             />
                         </div>
 
@@ -214,48 +214,49 @@ const StepPeopleImpact: React.FC<StepProps> = ({ data, onChange, onBack, onNext,
                             totalItems={totalItems}
                             onPageChange={setCurrentPage}
                             onItemsPerPageChange={(size) => {
-                                setItemsPerPageState(size);
-                                setCurrentPage(1); // Reset to first page on items per page change
+                                // Clamp or maintain default compact table size
+                                setItemsPerPageState(Math.min(size, 4));
+                                setCurrentPage(1);
                             }}
                             emptyMessage={loadingUsers ? "Loading users..." : selectedProvince ? "No users found in selected province" : "Please select a province"}
                         />
 
                         {/* Manual Entry Toggle */}
-                        <div className="mt-4">
+                        <div className="mt-2">
                             <button
                                 onClick={() => setShowManualEntry(!showManualEntry)}
-                                className="flex items-center gap-2 text-dark-green font-bold hover:underline"
+                                className="flex items-center gap-2 text-dark-green font-bold hover:underline text-xs"
                             >
-                                <UserPlus size={18} />
+                                <UserPlus size={14} />
                                 {showManualEntry ? 'Cancel Manual Entry' : 'Add Person Manually'}
                             </button>
 
                             {showManualEntry && (
-                                <div className="mt-4 p-4 bg-white rounded-xl border border-gray-200 animate-in fade-in slide-in-from-top-2">
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                <div className="mt-2 p-3 bg-white rounded-xl border border-gray-200 animate-in fade-in slide-in-from-top-2">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2">
                                         <input
                                             placeholder="Name"
                                             value={manualName}
                                             onChange={(e) => setManualName(e.target.value)}
-                                            className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green outline-none"
+                                            className="px-3 py-1.5 text-xs border rounded-lg focus:ring-2 focus:ring-green outline-none"
                                         />
                                         <input
                                             placeholder="Phone"
                                             value={manualPhone}
                                             onChange={(e) => setManualPhone(e.target.value)}
-                                            className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green outline-none"
+                                            className="px-3 py-1.5 text-xs border rounded-lg focus:ring-2 focus:ring-green outline-none"
                                         />
                                         <input
                                             placeholder="Email"
                                             value={manualEmail}
                                             onChange={(e) => setManualEmail(e.target.value)}
-                                            className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green outline-none"
+                                            className="px-3 py-1.5 text-xs border rounded-lg focus:ring-2 focus:ring-green outline-none"
                                         />
                                     </div>
                                     <button
                                         onClick={handleManualAdd}
                                         disabled={!manualName || !manualPhone || !manualEmail}
-                                        className="px-6 py-2 bg-green text-white rounded-lg font-bold hover:bg-dark-green disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="px-4 py-1.5 bg-green text-white rounded-lg font-bold hover:bg-dark-green disabled:opacity-50 disabled:cursor-not-allowed text-xs"
                                     >
                                         Add Person
                                     </button>
@@ -267,25 +268,25 @@ const StepPeopleImpact: React.FC<StepProps> = ({ data, onChange, onBack, onNext,
 
                 {/* Right Column: Impacted People List */}
                 <div className="lg:col-span-1">
-                    <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 h-full">
-                        <h4 className="font-bold text-gray-800 mb-4">Impacted People ({impactedPeople.length})</h4>
+                    <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 h-full min-h-[150px]">
+                        <h4 className="font-bold text-gray-800 mb-2 text-xs">Impacted People ({impactedPeople.length})</h4>
 
                         {impactedPeople.length === 0 ? (
-                            <div className="text-gray-400 text-center py-8 text-sm">
+                            <div className="text-gray-400 text-center py-4 text-xs">
                                 No people added yet.
                             </div>
                         ) : (
-                            <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
+                            <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
                                 {impactedPeople.map((person) => (
-                                    <div key={person.id || person.email} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 relative group">
+                                    <div key={person.id || person.email} className="bg-white p-2.5 rounded-xl shadow-sm border border-gray-100 relative group">
                                         <button
                                             onClick={() => handleRemovePerson(person.email)}
                                             className="absolute top-2 right-2 text-gray-300 hover:text-red-500 transition-colors"
                                         >
-                                            <Trash2 size={16} />
+                                            <Trash2 size={14} />
                                         </button>
-                                        <h5 className="font-bold text-gray-800">{person.name}</h5>
-                                        <div className="text-xs text-gray-500 mt-1 space-y-1">
+                                        <h5 className="font-bold text-gray-800 text-xs">{person.name}</h5>
+                                        <div className="text-[10px] text-gray-500 mt-0.5 space-y-0.5">
                                             <p>{person.phone}</p>
                                             <p>{person.email}</p>
                                         </div>
@@ -298,49 +299,49 @@ const StepPeopleImpact: React.FC<StepProps> = ({ data, onChange, onBack, onNext,
             </div>
 
             {/* Impact Description Section */}
-            <div className="mt-8">
-                <h4 className="text-lg font-bold text-gray-800 mb-2">Impact Description *</h4>
-                <p className="text-sm text-gray-500 mb-3">Provide a detailed description of the case and its impact (min 100 characters).</p>
+            <div className="mt-4">
+                <h4 className="text-xs font-bold text-gray-800 mb-1">Impact Description *</h4>
+                <p className="text-[11px] text-gray-400 mb-1.5">Provide a detailed description of the case and its impact (min 100 characters).</p>
                 <textarea
-                    rows={6}
+                    rows={3}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Describe the incident details and impact..."
-                    className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green focus:border-transparent outline-none transition-all resize-none"
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green focus:border-transparent outline-none transition-all resize-none text-xs"
                 />
-                <div className="text-right mt-2 text-xs font-medium">
+                <div className="text-right mt-1 text-[10px] font-bold">
                     <span className={description.length < 100 ? 'text-red-500' : 'text-green'}>
                         {description.length} / 100 characters minimum
                     </span>
                 </div>
             </div>
 
-            <div className="flex items-center justify-between mt-16 pt-8 border-t border-gray-100">
-                <div className="flex gap-8">
+            <div className="flex items-center justify-between mt-6 pt-3 border-t border-gray-100">
+                <div className="flex gap-4">
                     <button
                         onClick={handleSaveDraftClick}
-                        className="text-gray-600 font-bold hover:text-gray-900 transition-colors"
+                        className="text-gray-600 font-bold hover:text-gray-900 transition-colors text-xs"
                     >
                         Save as Draft
                     </button>
                     <button
                         onClick={onDiscard}
-                        className="text-gray-600 font-bold hover:text-gray-900 transition-colors"
+                        className="text-gray-600 font-bold hover:text-gray-900 transition-colors text-xs"
                     >
                         Discard
                     </button>
                 </div>
-                <div className="flex gap-4">
+                <div className="flex gap-3">
                     <button
                         onClick={onBack}
-                        className="px-8 py-2.5 bg-light-green rounded-lg font-bold hover:bg-gray-300 transition-colors"
+                        className="px-5 py-1.5 bg-light-green rounded-lg font-bold text-xs"
                     >
                         Previous
                     </button>
                     <button
                         onClick={handleNext}
                         disabled={description.length < 100}
-                        className="px-8 py-2.5 bg-green text-white rounded-lg font-bold shadow-sm hover:bg-[#0f766e] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                        className="px-6 py-1.5 bg-green text-white rounded-lg font-bold shadow-sm hover:bg-[#0f766e] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed text-xs"
                     >
                         Next
                     </button>

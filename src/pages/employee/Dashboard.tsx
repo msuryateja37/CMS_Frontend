@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import EmployeeLayout from './components/EmployeeLayout';
+import DashboardLayout from '../../layouts/DashboardLayout';
 import { DataTable, type Column } from '../../components/common/DataTable';
 import { Pill } from '../../components/common/Pill';
 import { getStatusLabel } from '../../data/constants';
@@ -144,7 +144,7 @@ const EmployeeDashboard: React.FC = () => {
 
     if (loading) {
         return (
-            <EmployeeLayout
+            <DashboardLayout
                 title={`Welcome back, ${firstName}`}
                 description="Dashboard"
                 breadcrumbs={[{ label: "Dashboard", path: "/employee/dashboard" }, { label: "Overview" }]}
@@ -155,13 +155,13 @@ const EmployeeDashboard: React.FC = () => {
                         <p className="text-gray-500">Loading dashboard...</p>
                     </div>
                 </div>
-            </EmployeeLayout>
+            </DashboardLayout>
         );
     }
 
     if (error) {
         return (
-            <EmployeeLayout
+            <DashboardLayout
                 title={`Welcome back, ${firstName}`}
                 description="Dashboard"
                 breadcrumbs={[{ label: "Dashboard", path: "/employee/dashboard" }, { label: "Overview" }]}
@@ -172,19 +172,19 @@ const EmployeeDashboard: React.FC = () => {
                         <p className="text-gray-700 font-medium mb-2">Failed to load dashboard</p>
                         <p className="text-gray-500 text-sm mb-4">{(error as any)?.message || 'Unknown error'}</p>
                         <button
-                            onClick={() => window.location.reload()}
-                            className="px-4 py-2 bg-green text-white rounded-lg hover:bg-[#2aa88f] transition-colors"
+                             onClick={() => window.location.reload()}
+                             className="px-4 py-2 bg-green text-white rounded-lg hover:bg-[#2aa88f] transition-colors"
                         >
                             Retry
                         </button>
                     </div>
                 </div>
-            </EmployeeLayout>
+            </DashboardLayout>
         );
     }
 
     return (
-        <EmployeeLayout
+        <DashboardLayout
             title={`Welcome back, ${firstName}`}
             description="Dashboard"
             breadcrumbs={[{ label: "Dashboard", path: "/employee/dashboard" }, { label: "Overview" }]}
@@ -292,7 +292,7 @@ const EmployeeDashboard: React.FC = () => {
                     </div>
                 </div>
             </div>
-        </EmployeeLayout>
+        </DashboardLayout>
     );
 };
 

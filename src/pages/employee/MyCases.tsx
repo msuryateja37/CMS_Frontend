@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import EmployeeLayout from './components/EmployeeLayout';
+import DashboardLayout from '../../layouts/DashboardLayout';
 import { DataTable, type Column } from '../../components/common/DataTable';
 import { Pill } from '../../components/common/Pill';
 import { type EmployeeCase } from '../../services/employeeService';
@@ -97,7 +97,7 @@ const MyCases: React.FC = () => {
 
     if (error && !cases.length) {
         return (
-            <EmployeeLayout
+            <DashboardLayout
                 title="Welcome back, Thabo"
                 description="My Cases"
                 breadcrumbs={[{ label: "Dashboard", path: "/employee/dashboard" }, { label: "My Cases" }]}
@@ -115,12 +115,12 @@ const MyCases: React.FC = () => {
                         </button>
                     </div>
                 </div>
-            </EmployeeLayout>
+            </DashboardLayout>
         );
     }
 
     return (
-        <EmployeeLayout
+        <DashboardLayout
             title="Welcome back, Thabo"
             description="My Cases"
             breadcrumbs={[{ label: "Dashboard", path: "/employee/dashboard" }, { label: "My Cases" }]}
@@ -201,7 +201,7 @@ const MyCases: React.FC = () => {
                         : "No cases found. Submit your first case to get started."}
                 />
             </div>
-        </EmployeeLayout>
+        </DashboardLayout>
     );
 };
 
