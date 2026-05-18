@@ -386,7 +386,7 @@ const CaseDetails: React.FC = () => {
                                     {/* Description Card */}
                                     <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
                                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Description</h3>
-                                        <div className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap">
+                                        <div className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap text-justify">
                                             {caseData.description || 'No description provided.'}
                                         </div>
                                     </div>

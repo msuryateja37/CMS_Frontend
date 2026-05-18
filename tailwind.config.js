@@ -28,7 +28,8 @@ export default {
         'brand-yellow': '#F8C947', 
       },
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+        sans: ['"DM Sans"', 'sans-serif'],
+        nunito: ['"Nunito Sans"', 'sans-serif'],
       },
       fontSize:{
         'md': '14px',
