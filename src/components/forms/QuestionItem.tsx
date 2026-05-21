@@ -3,21 +3,31 @@ import type { QuestionInput } from '../../types/forms';
 
 interface QuestionItemProps {
   question: QuestionInput;
-  value: any;
-  onChange: (value: any) => void;
+  value: string | string[];
+  onChange: (value: string | string[]) => void;
   commentValue?: string;
   onCommentChange?: (val: string) => void;
 }
 
-export const QuestionItem: React.FC<QuestionItemProps> = ({ question, value, onChange, commentValue, onCommentChange }) => {
-  if (question.inputType === 'text' || question.inputType === 'date') {
+export const QuestionItem: React.FC<QuestionItemProps> = ({
+  question,
+  value,
+  onChange,
+  commentValue,
+  onCommentChange,
+}) => {
+  const baseInput =
+    'border border-gray-300 bg-gray-50 rounded-md py-1.5 px-2.5 w-full text-[13px] outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition';
+
+  // ── TEXT ──────────────────────────────────────────────────────────────────
+  if (question.inputType === 'TEXT') {
     return (
-      <div className="flex flex-col mb-4">
-        <label className="text-sm font-medium text-gray-700 mb-1">{question.label}</label>
+      <div className="flex flex-col mb-3">
+        <Label question={question} />
         <input
-          type={question.inputType}
-          className="border border-gray-300 bg-gray-100 rounded-md p-2 w-full text-sm outline-none"
-          placeholder={question.placeholder}
+          type="text"
+          className={baseInput}
+          placeholder={question.placeholder ?? ''}
           value={value || ''}
           onChange={(e) => onChange(e.target.value)}
         />
@@ -25,31 +35,167 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({ question, value, onC
     );
   }
 
-  if (question.inputType === 'radio_with_comments') {
+  // ── NUMBER ────────────────────────────────────────────────────────────────
+  if (question.inputType === 'NUMBER') {
     return (
-      <div className="flex flex-col mb-6">
-        <label className="text-sm font-medium text-gray-800 mb-2">{question.label}</label>
-        <div className="flex space-x-4 mb-2">
+      <div className="flex flex-col mb-3">
+        <Label question={question} />
+        <input
+          type="number"
+          className={baseInput}
+          placeholder={question.placeholder ?? ''}
+          value={value || ''}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      </div>
+    );
+  }
+
+  // ── DATE ──────────────────────────────────────────────────────────────────
+  if (question.inputType === 'DATE') {
+    return (
+      <div className="flex flex-col mb-3">
+        <Label question={question} />
+        <input
+          type="date"
+          className={baseInput}
+          value={value || ''}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      </div>
+    );
+  }
+
+  // ── TEXTAREA ──────────────────────────────────────────────────────────────
+  if (question.inputType === 'TEXTAREA') {
+    return (
+      <div className="flex flex-col mb-3">
+        <Label question={question} />
+        <textarea
+          rows={3}
+          className={baseInput}
+          placeholder={question.placeholder ?? ''}
+          value={value || ''}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      </div>
+    );
+  }
+
+  // ── RADIO ─────────────────────────────────────────────────────────────────
+  if (question.inputType === 'RADIO') {
+    return (
+      <div className="flex flex-col mb-4">
+        <Label question={question} />
+        <div className="flex flex-wrap gap-4 mt-1">
           {question.options?.map((opt) => (
-            <label key={opt.id} className="flex items-center text-sm text-gray-600 cursor-pointer">
+            <label key={opt.id} className="flex items-center text-sm text-gray-600 cursor-pointer gap-2">
               <input
                 type="radio"
                 name={`question_${question.id}`}
                 value={opt.optionValue}
                 checked={value === opt.optionValue}
                 onChange={(e) => onChange(e.target.value)}
-                className="mr-2 text-teal-600 focus:ring-teal-500"
+                className="accent-emerald-600"
               />
               {opt.optionLabel}
             </label>
           ))}
         </div>
-        <div className="mt-1">
-          <label className="text-xs font-semibold text-gray-700 mb-1 block">Comments</label>
+        {/* Optional comment slot */}
+        {onCommentChange && (
+          <div className="mt-2">
+            <span className="text-xs font-semibold text-gray-500 mb-1 block">Comments</span>
+            <input
+              type="text"
+              className={baseInput}
+              placeholder="Enter comments…"
+              value={commentValue || ''}
+              onChange={(e) => onCommentChange(e.target.value)}
+            />
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ── CHECKBOX ──────────────────────────────────────────────────────────────
+  if (question.inputType === 'CHECKBOX') {
+    const selected: string[] = Array.isArray(value) ? value : [];
+    const toggle = (val: string) => {
+      const next = selected.includes(val)
+        ? selected.filter((v) => v !== val)
+        : [...selected, val];
+      onChange(next);
+    };
+    return (
+      <div className="flex flex-col mb-4">
+        <Label question={question} />
+        <div className="flex flex-col gap-2 mt-1">
+          {question.options?.map((opt) => (
+            <label key={opt.id} className="flex items-center text-sm text-gray-600 cursor-pointer gap-2">
+              <input
+                type="checkbox"
+                value={opt.optionValue}
+                checked={selected.includes(opt.optionValue)}
+                onChange={() => toggle(opt.optionValue)}
+                className="accent-emerald-600 w-4 h-4"
+              />
+              {opt.optionLabel}
+            </label>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ── SELECT ────────────────────────────────────────────────────────────────
+  if (question.inputType === 'SELECT') {
+    return (
+      <div className="flex flex-col mb-3">
+        <Label question={question} />
+        <select
+          className={baseInput}
+          value={value || ''}
+          onChange={(e) => onChange(e.target.value)}
+        >
+          <option value="">— select —</option>
+          {question.options?.map((opt) => (
+            <option key={opt.id} value={opt.optionValue}>
+              {opt.optionLabel}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  }
+
+  // ── Legacy: radio_with_comments (old seeded data) ─────────────────────────
+  if ((question.inputType as string) === 'radio_with_comments') {
+    return (
+      <div className="flex flex-col mb-4">
+        <Label question={question} />
+        <div className="flex flex-wrap gap-4 mt-1">
+          {question.options?.map((opt) => (
+            <label key={opt.id} className="flex items-center text-sm text-gray-600 cursor-pointer gap-2">
+              <input
+                type="radio"
+                name={`question_${question.id}`}
+                value={opt.optionValue}
+                checked={value === opt.optionValue}
+                onChange={(e) => onChange(e.target.value)}
+                className="accent-emerald-600"
+              />
+              {opt.optionLabel}
+            </label>
+          ))}
+        </div>
+        <div className="mt-2">
+          <span className="text-xs font-semibold text-gray-500 mb-1 block">Comments</span>
           <input
             type="text"
-            className="border border-gray-200 bg-gray-100 rounded-md p-2 w-full text-sm outline-none"
-            placeholder="Enter comments ..."
+            className={baseInput}
+            placeholder="Enter comments…"
             value={commentValue || ''}
             onChange={(e) => onCommentChange && onCommentChange(e.target.value)}
           />
@@ -59,6 +205,17 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({ question, value, onC
   }
 
   return (
-    <div className="text-sm text-gray-500 mb-4">Unsupported question type: {question.inputType}</div>
+    <div className="text-sm text-gray-400 italic mb-4">
+      Unsupported question type: {question.inputType}
+    </div>
   );
 };
+
+// ─── Label helper ─────────────────────────────────────────────────────────────
+
+const Label: React.FC<{ question: QuestionInput }> = ({ question }) => (
+  <label className="text-sm font-medium text-gray-700 mb-1">
+    {question.label}
+    {question.isRequired && <span className="text-red-500 ml-1">*</span>}
+  </label>
+);

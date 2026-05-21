@@ -179,18 +179,18 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ data, onChange, onBack, o
         <div className="flex flex-col animate-fadeIn">
             {/* Main Content Area - Full Width */}
             <div className="flex-1 w-full max-w-5xl mx-auto">
-                <div className="mb-10">
-                    <span className="text-sm font-bold text-gray-400 mb-1 block">Step 2/6</span>
-                    <h3 className="text-2xl font-bold text-gray-800 mb-1">Basic Info</h3>
-                    <p className="text-gray-500 font-medium">Date, Location, Severity</p>
-                    <div className="h-[1px] bg-gray-100 w-full mt-6" />
+                <div className="mb-4">
+                    <span className="text-[10px] font-bold text-gray-400 mb-0.5 block">Step 2/5</span>
+                    <h3 className="text-lg font-bold text-gray-800 mb-0.5">Basic Info</h3>
+                    <p className="text-xs text-gray-400 font-medium">Date, Location, Severity</p>
+                    <div className="h-[1px] bg-gray-100 w-full mt-3" />
                 </div>
 
-                <div className="space-y-10">
+                <div className="space-y-4">
                     {/* Time & Date Split */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-md font-bold text-gray-900 mb-3">Time of incident *</label>
+                            <label className="block text-xs font-bold text-gray-900 mb-1">Time of incident *</label>
                             <TimePicker
                                 value={getTimePart()}
                                 onChange={handleTimeChange}
@@ -198,7 +198,7 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ data, onChange, onBack, o
                             />
                         </div>
                         <div>
-                            <label className="block text-md font-bold text-gray-900 mb-3">Date of incident *</label>
+                            <label className="block text-xs font-bold text-gray-900 mb-1">Date of incident *</label>
                             <DatePicker
                                 value={getDatePart()}
                                 onChange={handleDateChange}
@@ -210,8 +210,8 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ data, onChange, onBack, o
 
                     {/* Location */}
                     <div>
-                        <label className="block text-md font-bold text-gray-900 mb-3">Location {isSecurityBreach ? '*' : ''}</label>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-4">
+                        <label className="block text-xs font-bold text-gray-900 mb-1">Location {isSecurityBreach ? '*' : ''}</label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
                             <Select
                                 label="Province"
                                 value={province}
@@ -236,12 +236,12 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ data, onChange, onBack, o
                             value={locationDesc}
                             onChange={(e) => setLocationDesc(e.target.value)}
                             placeholder={isSecurityBreach ? "Floor and Area (Optional)" : "Floor, room, number, area description"}
-                            className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0D9488] focus:border-transparent outline-none transition-all mb-6"
+                            className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0D9488] focus:border-transparent outline-none transition-all mb-3 text-xs font-medium"
                         />
 
                         {/* Interactive Map */}
-                        <div className="space-y-4">
-                            <label className="block text-md font-bold text-gray-900">Pinpoint Exact Location</label>
+                        <div className="space-y-2">
+                            <label className="block text-xs font-bold text-gray-900">Pinpoint Exact Location</label>
                             <MapSelector
                                 latitude={latitude}
                                 longitude={longitude}
@@ -255,8 +255,8 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ data, onChange, onBack, o
 
                     {/* Severity Level */}
                     <div>
-                        <label className="block text-md font-bold text-gray-900 mb-4">Severity Level *</label>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <label className="block text-xs font-bold text-gray-900 mb-2">Severity Level *</label>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                             {severityLevels.map((level) => (
                                 <SeverityOption
                                     key={level.id}
@@ -273,12 +273,12 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ data, onChange, onBack, o
                     {!isSecurityBreach && (
                         <>
                             <div>
-                                <label className="block text-md font-bold text-gray-900 mb-4">Immediate Action Taken</label>
-                                <div className="mb-6">
-                                    <span className="text-gray-500 font-medium">Select any immediate action that have been taken</span>
+                                <label className="block text-xs font-bold text-gray-900 mb-1">Immediate Action Taken</label>
+                                <div className="mb-2">
+                                    <span className="text-xs text-gray-400 font-medium">Select any immediate action that have been taken</span>
                                 </div>
-                                <hr className="border-gray-200 my-4" />
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-12">
+                                <hr className="border-gray-200 my-2" />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-6 text-xs">
                                     {currentCategoryActions.map((action) => (
                                         <Checkbox
                                             key={action.id}
@@ -291,17 +291,17 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ data, onChange, onBack, o
                             </div>
 
                             {/* Other Actions - Always visible, enabled only if 'other' is selected */}
-                            <div className="mt-6 animate-fadeIn">
-                                <label className={`block text-md font-bold text-gray-900 mb-2 ${!selectedActions.includes('other') ? 'text-gray-400' : ''}`}>
+                            <div className="mt-3 animate-fadeIn">
+                                <label className={`block text-xs font-bold text-gray-900 mb-1 ${!selectedActions.includes('other') ? 'text-gray-400' : ''}`}>
                                     Other Actions Description
                                 </label>
                                 <textarea
-                                    rows={3}
+                                    rows={2}
                                     value={otherActions}
                                     onChange={(e) => setOtherActions(e.target.value)}
                                     placeholder="Please describe the other immediate actions taken..."
                                     disabled={!selectedActions.includes('other')}
-                                    className={`w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0D9488] focus:border-transparent outline-none transition-all resize-none ${!selectedActions.includes('other') ? 'opacity-50 cursor-not-allowed bg-gray-100' : ''}`}
+                                    className={`w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0D9488] focus:border-transparent outline-none transition-all resize-none text-xs ${!selectedActions.includes('other') ? 'opacity-50 cursor-not-allowed bg-gray-100' : ''}`}
                                 />
                             </div>
                         </>
@@ -311,39 +311,39 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ data, onChange, onBack, o
                 </div>
 
                 {/* Footer buttons matching the image */}
-                <div className="flex items-center justify-between mt-16 pt-8 border-t border-gray-100">
-                    <div className="flex gap-8">
+                <div className="flex items-center justify-between mt-6 pt-3 border-t border-gray-100">
+                    <div className="flex gap-4">
                         <button
                             onClick={handleSaveDraftClick}
-                            className="text-gray-600 font-bold hover:text-gray-900 transition-colors"
+                            className="text-gray-600 font-bold hover:text-gray-900 transition-colors text-xs"
                         >
                             Save as Draft
                         </button>
                         <button
                             onClick={onDiscard}
-                            className="text-gray-600 font-bold hover:text-gray-900 transition-colors"
+                            className="text-gray-600 font-bold hover:text-gray-900 transition-colors text-xs"
                         >
                             Discard
                         </button>
                     </div>
-                    <div className="flex gap-4">
+                    <div className="flex gap-3">
                         <button
                             onClick={onBack}
-                            className="px-8 py-2.5 bg-light-green rounded-lg font-bold "
+                            className="px-5 py-1.5 bg-light-green rounded-lg font-bold text-xs"
                         >
                             Previous
                         </button>
                         <button
                             onClick={handleNext}
                             disabled={!isFormValid()}
-                            className="px-8 py-2.5 bg-green text-white rounded-lg font-bold shadow-sm  transition-colors disabled:cursor-not-allowed disabled:bg-gray-300"
+                            className="px-6 py-1.5 bg-green text-white rounded-lg font-bold shadow-sm transition-colors disabled:cursor-not-allowed disabled:bg-gray-300 text-xs"
                         >
                             Next
                         </button>
                     </div>
                 </div>
             </div>
-        </div >
+        </div>
     );
 };
 

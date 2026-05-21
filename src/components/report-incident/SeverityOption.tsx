@@ -41,12 +41,12 @@ const SeverityOption: React.FC<SeverityOptionProps> = ({ label, isSelected, onCl
         <button
             type="button"
             onClick={onClick}
-            className={`flex items-center justify-between px-5 py-4 rounded-xl border transition-all duration-200 w-full hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${isSelected
+            className={`flex items-center justify-between px-5 py-2 rounded-xl border transition-all duration-200 w-full hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${isSelected
                 ? `${activeClasses.bg} ${activeClasses.border}`
                 : 'bg-[#F8F9FA] border-transparent hover:bg-gray-100'
                 }`}
         >
-            <span className={`font-bold text-[15px] ${isSelected ? 'text-gray-900' : 'text-gray-600'}`}>{label}</span>
+            <span className={` text-[12px] ${isSelected ? 'text-gray-900' : 'text-gray-600'}`}>{label}</span>
             <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected
                 ? `${activeClasses.dotBorder} ${activeColor === 'red' ? 'bg-red/20' : activeColor === 'orange' ? 'bg-orange-200' : activeColor === 'yellow' ? 'bg-yellow/20' : 'bg-green/20'}`
                 : 'border-gray-200 '

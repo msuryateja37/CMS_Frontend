@@ -139,7 +139,7 @@ const SlaTracking: React.FC = () => {
         >
             <div className="flex flex-col gap-6">
                 {/* Top Actions */}
-                <div className="flex justify-end gap-3 -mt-4 mb-2">
+                <div className="flex justify-end gap-3 mb-1">
                     <button
                         onClick={() => navigate('/supervisor/cases-review')}
                         className="flex items-center gap-2 px-4 py-2 bg-green text-white font-bold rounded-lg hover:bg-[#2aa88f] transition-colors shadow-sm"
@@ -151,7 +151,7 @@ const SlaTracking: React.FC = () => {
                         onClick={() => navigate('/supervisor/submit-case')}
                         className="flex items-center gap-2 px-4 py-2 bg-green text-white font-bold rounded-lg hover:bg-[#2aa88f] transition-colors shadow-sm"
                     >
-                        <FilePlus size={18} />
+                        <FilePlus size={16} />
                         Submit New Case
                     </button>
                 </div>

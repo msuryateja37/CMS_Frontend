@@ -94,10 +94,14 @@ const ReportIncident: React.FC = () => {
             };
 
             // Create case via API
-            await casesService.createCase(caseData);
+            const newCase = await casesService.createCase(caseData);
 
-            alert('Incident reported successfully!');
-            navigate('/admin/dashboard');
+            navigate('/ohs/report-incident/success', {
+                state: {
+                    caseId: newCase?.id,
+                    caseNumber: newCase?.incidentNumber
+                }
+            });
         } catch (error: any) {
             console.error('Error submitting incident:', error);
             alert(error.response?.data?.message || 'Failed to submit incident. Please try again.');
@@ -133,7 +137,7 @@ const ReportIncident: React.FC = () => {
                                     </span>
                                 </div>
                                 {idx < steps.length - 1 && (
-                                    <div className="w-16 lg:w-20 h-[2px] bg-[#E5E7EB] mx-0 mt-[-24px] z-0">
+                                    <div className="w-16 lg:w-20 h-[2px] bg-[#E5E7EB] mx-0 mt-[-2px] z-0">
                                         <div
                                             className="h-full bg-[#0D9488] transition-all duration-500"
                                             style={{ width: step > s.id ? '100%' : '0%' }}

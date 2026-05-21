@@ -70,7 +70,8 @@ const SupervisorDashboard: React.FC = () => {
             sortable: true,
             cell: (item) => {
                 const statusLabel = getStatusLabel(item.status);
-                return <Pill label={statusLabel} variant={item.status.toLowerCase().replace(/_/g, ' ')} />;
+                const cleanStatusLabel = statusLabel.toUpperCase();
+                return <Pill label={cleanStatusLabel} variant={item.status.toLowerCase().replace(/_/g, ' ')} />;
             }
         },
         {
@@ -111,94 +112,94 @@ const SupervisorDashboard: React.FC = () => {
             description="Overview of all cases"
             breadcrumbs={[{ label: "Dashboard", path: "/supervisor/dashboard" }, { label: "Overview" }]}
         >
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4">
 
                 {/* Top Actions */}
-                <div className="flex justify-end gap-3 -mt-4 mb-2">
+                <div className="flex justify-end gap-3 mb-1">
                     <button
                         onClick={() => navigate('/supervisor/cases-review')}
-                        className="flex items-center gap-2 px-4 py-2 bg-green text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm"
+                        className="flex items-center gap-2 px-4 py-2 bg-green text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm text-sm"
                     >
-                        <UserPlus size={18} />
+                        <UserPlus size={16} />
                         Review & Assign
                     </button>
                     <button
                         onClick={() => navigate('/supervisor/submit-case')}
-                        className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm"
+                        className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm text-sm"
                     >
-                        <FilePlus size={18} />
+                        <FilePlus size={16} />
                         Submit New Case
                     </button>
                 </div>
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-                        <div className="flex items-center gap-2 text-gray-400 mb-3">
-                            <Folder size={16} />
-                            <span className="text-xs font-semibold uppercase tracking-wide">Total Cases</span>
+                    <div className="bg-white py-3 px-4 rounded-xl border border-gray-100 shadow-sm">
+                        <div className="flex items-center gap-2 text-gray-400 mb-1.5">
+                            <Folder size={15} />
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Total Cases</span>
                         </div>
-                        <h3 className="text-3xl font-bold text-gray-900">{loading ? '...' : totalCases}</h3>
-                        <p className="text-xs text-gray-400 mt-1">All cases in system</p>
+                        <h3 className="text-2xl font-bold text-gray-900 leading-none">{loading ? '...' : totalCases}</h3>
+                        <p className="text-[10px] text-gray-400 mt-1 leading-tight">All cases in system</p>
                     </div>
 
-                    <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-                        <div className="flex items-center gap-2 text-blue-500 mb-3">
-                            <Clock size={16} />
-                            <span className="text-xs font-semibold uppercase tracking-wide">Open</span>
+                    <div className="bg-white py-3 px-4 rounded-xl border border-gray-100 shadow-sm">
+                        <div className="flex items-center gap-2 text-blue-500 mb-1.5">
+                            <Clock size={15} />
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Open</span>
                         </div>
-                        <h3 className="text-3xl font-bold text-gray-900">{loading ? '...' : openUnassigned}</h3>
-                        <p className="text-xs text-gray-400 mt-1">Awaiting assignment</p>
+                        <h3 className="text-2xl font-bold text-gray-900 leading-none">{loading ? '...' : openUnassigned}</h3>
+                        <p className="text-[10px] text-gray-400 mt-1 leading-tight">Awaiting assignment</p>
                     </div>
 
-                    <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-                        <div className="flex items-center gap-2 text-purple-500 mb-3">
-                            <TrendingUp size={16} />
-                            <span className="text-xs font-semibold uppercase tracking-wide">Assigned</span>
+                    <div className="bg-white py-3 px-4 rounded-xl border border-gray-100 shadow-sm">
+                        <div className="flex items-center gap-2 text-purple-500 mb-1.5">
+                            <TrendingUp size={15} />
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Assigned</span>
                         </div>
-                        <h3 className="text-3xl font-bold text-gray-900">{loading ? '...' : assignedCases}</h3>
-                        <p className="text-xs text-gray-400 mt-1">With practitioners</p>
+                        <h3 className="text-2xl font-bold text-gray-900 leading-none">{loading ? '...' : assignedCases}</h3>
+                        <p className="text-[10px] text-gray-400 mt-1 leading-tight">With practitioners</p>
                     </div>
 
-                    <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-                        <div className="flex items-center gap-2 text-green mb-3">
-                            <CheckCircle2 size={16} />
-                            <span className="text-xs font-semibold uppercase tracking-wide">Closed</span>
+                    <div className="bg-white py-3 px-4 rounded-xl border border-gray-100 shadow-sm">
+                        <div className="flex items-center gap-2 text-green mb-1.5">
+                            <CheckCircle2 size={15} />
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Closed</span>
                         </div>
-                        <h3 className="text-3xl font-bold text-gray-900">{loading ? '...' : closedCases}</h3>
-                        <p className="text-xs text-gray-400 mt-1">Resolved cases</p>
+                        <h3 className="text-2xl font-bold text-gray-900 leading-none">{loading ? '...' : closedCases}</h3>
+                        <p className="text-[10px] text-gray-400 mt-1 leading-tight">Resolved cases</p>
                     </div>
                 </div>
 
                 {/* Secondary Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
-                            <Clock size={18} className="text-amber-600" />
+                    <div className="bg-white py-2.5 px-3.5 rounded-xl border border-gray-100 shadow-sm flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+                            <Clock size={16} className="text-amber-600" />
                         </div>
                         <div>
-                            <p className="text-xs text-gray-400 font-semibold">Under Review</p>
-                            <p className="text-lg font-bold text-gray-900">{loading ? '...' : underReview}</p>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none mb-0.5">Under Review</p>
+                            <p className="text-base font-bold text-gray-900 leading-none">{loading ? '...' : underReview}</p>
                         </div>
                     </div>
 
-                    <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-lg bg-red/40 flex items-center justify-center">
-                            <AlertTriangle size={18} className="text-red-500" />
+                    <div className="bg-white py-2.5 px-3.5 rounded-xl border border-gray-100 shadow-sm flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-red/40 flex items-center justify-center shrink-0">
+                            <AlertTriangle size={16} className="text-red-500" />
                         </div>
                         <div>
-                            <p className="text-xs text-gray-400 font-semibold">Escalated</p>
-                            <p className="text-lg font-bold text-gray-900">{loading ? '...' : escalated}</p>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none mb-0.5">Escalated</p>
+                            <p className="text-base font-bold text-gray-900 leading-none">{loading ? '...' : escalated}</p>
                         </div>
                     </div>
 
-                    <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center">
-                            <AlertTriangle size={18} className="text-orange-500" />
+                    <div className="bg-white py-2.5 px-3.5 rounded-xl border border-gray-100 shadow-sm flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
+                            <AlertTriangle size={16} className="text-orange-500" />
                         </div>
                         <div>
-                            <p className="text-xs text-gray-400 font-semibold">Critical / High</p>
-                            <p className="text-lg font-bold text-gray-900">{loading ? '...' : criticalHigh}</p>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none mb-0.5">Critical / High</p>
+                            <p className="text-base font-bold text-gray-900 leading-none">{loading ? '...' : criticalHigh}</p>
                         </div>
                     </div>
                 </div>

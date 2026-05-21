@@ -84,6 +84,19 @@ export interface Case {
   immediateActions?: string;
   otherActions?: string;
   evidence?: CaseEvidence[]; // Mapped from media
+  correctiveActions?: Array<{
+    id: string;
+    actionText: string;
+    status?: string;
+    dueDate?: string | null;
+    completedAt?: string | null;
+    notes?: string | null;
+    createdAt: string;
+    updatedAt?: string;
+  }>;
+  approvals?: CaseApproval[];
+
+  incidentPlan?: string;
 
   // For Timeline
   statusLogs?: Array<{
@@ -104,6 +117,25 @@ export interface Case {
     user: { id: string; name: string; email?: string };
     createdAt: string;
   }>;
+}
+
+export interface CaseApprovalAttachment {
+  id: string;
+  fileUrl: string;
+  fileName?: string | null;
+  fileType?: string | null;
+  createdAt: string;
+}
+
+export interface CaseApproval {
+  id: string;
+  roleName: string;
+  recommenderName?: string | null;
+  recommendationText?: string | null;
+  createdAt: string;
+  updatedAt?: string;
+  attachments: CaseApprovalAttachment[];
+  uploadedBy?: { id: string; name: string; email?: string };
 }
 
 export interface CaseEvidence {
@@ -245,6 +277,83 @@ class CasesService {
       description,
     });
     return response.data;
+  }
+
+  async addCorrectiveAction(id: string, actionText: string): Promise<any> {
+    const response = await api.post(`/cases/${id}/corrective-actions`, { actionText });
+    return response.data;
+  }
+
+  async updateCorrectiveAction(
+    id: string,
+    actionId: string,
+    data: {
+      actionText?: string;
+      status?: string;
+      dueDate?: string | null;
+      notes?: string | null;
+      completedAt?: string | null;
+    },
+  ): Promise<any> {
+    const response = await api.patch(
+      `/cases/${id}/corrective-actions/${actionId}`,
+      data,
+    );
+    return response.data;
+  }
+
+  /**
+   * Add approval / recommendation record (one or more files per submission).
+   */
+  async addApproval(
+    id: string,
+    approvalData: {
+      roleName: string;
+      recommenderName?: string;
+      recommendationText?: string;
+      files: Array<{ fileUrl: string; fileName?: string; fileType?: string }>;
+    },
+  ): Promise<CaseApproval> {
+    const response = await api.post<CaseApproval>(`/cases/${id}/approvals`, approvalData);
+    return response.data;
+  }
+
+  async updateApproval(
+    id: string,
+    approvalId: string,
+    data: { recommenderName?: string; recommendationText?: string },
+  ): Promise<CaseApproval> {
+    const response = await api.put<CaseApproval>(
+      `/cases/${id}/approvals/${approvalId}`,
+      data,
+    );
+    return response.data;
+  }
+
+  async addApprovalAttachment(
+    id: string,
+    approvalId: string,
+    body: { fileUrl: string; fileName?: string; fileType?: string },
+  ): Promise<CaseApprovalAttachment> {
+    const response = await api.post<CaseApprovalAttachment>(
+      `/cases/${id}/approvals/${approvalId}/attachments`,
+      body,
+    );
+    return response.data;
+  }
+
+  async deleteApprovalAttachment(
+    id: string,
+    approvalId: string,
+    attachmentId: string,
+  ): Promise<void> {
+    await api.delete(
+      `/cases/${id}/approvals/${approvalId}/attachments/${attachmentId}`,
+    );
+  }
+
+  async deleteApproval(id: string, approvalId: string): Promise<void> {
+    await api.delete(`/cases/${id}/approvals/${approvalId}`);
   }
 
   /**

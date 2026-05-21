@@ -84,7 +84,7 @@ const MyCases: React.FC = () => {
             sortable: true,
             cell: (item) => {
                 const statusLabel = getStatusLabel(item.status);
-                return <Pill label={statusLabel} variant={item.status.toLowerCase().replace(/_/g, ' ')} />;
+                return <Pill label={statusLabel.toUpperCase()} variant={item.status.toLowerCase().replace(/_/g, ' ')} />;
             }
         },
         {
@@ -128,12 +128,12 @@ const MyCases: React.FC = () => {
         >
             <div className="flex flex-col gap-6">
                 {/* Top Actions */}
-                <div className="flex justify-end -mt-4 mb-2">
+                <div className="flex justify-end mb-1">
                     <button
                         onClick={() => navigate('/ohs/report-incident')}
                         className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm"
                     >
-                        <FilePlus size={18} />
+                        <FilePlus size={16} />
                         Report New Case
                     </button>
                 </div>

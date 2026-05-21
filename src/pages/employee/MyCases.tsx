@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import EmployeeLayout from './components/EmployeeLayout';
+import DashboardLayout from '../../layouts/DashboardLayout';
 import { DataTable, type Column } from '../../components/common/DataTable';
 import { Pill } from '../../components/common/Pill';
 import { type EmployeeCase } from '../../services/employeeService';
@@ -52,17 +52,14 @@ const MyCases: React.FC = () => {
             accessorKey: 'incidentNumber',
             sortable: true,
             cell: (item) => (
-                <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-green flex-shrink-0"></div>
-                    <span className="text-gray-500 font-medium">{item.incidentNumber}</span>
-                </div>
+                <span className="font-mono text-sm font-medium text-gray-600 whitespace-nowrap">{item.incidentNumber}</span>
             )
         },
         {
             header: 'Category',
             accessorKey: 'category',
             sortable: true,
-            cell: (item) => <span className="text-gray-700 font-medium">{formatCategory(item.category || item.type || 'Incident')}</span>
+            cell: (item) => <span className="text-gray-700 font-medium text-xs whitespace-nowrap">{formatCategory(item.category || item.type || 'Incident')}</span>
         },
         {
             header: 'Priority',
@@ -77,7 +74,7 @@ const MyCases: React.FC = () => {
             sortable: true,
             cell: (item) => {
                 const statusLabel = getStatusLabel(item.status);
-                return <Pill label={statusLabel} variant={item.status.toLowerCase().replace(/_/g, ' ')} />;
+                return <Pill label={statusLabel.toUpperCase()} variant={item.status.toLowerCase().replace(/_/g, ' ')} />;
             }
         },
         {
@@ -97,7 +94,7 @@ const MyCases: React.FC = () => {
 
     if (error && !cases.length) {
         return (
-            <EmployeeLayout
+            <DashboardLayout
                 title="Welcome back, Thabo"
                 description="My Cases"
                 breadcrumbs={[{ label: "Dashboard", path: "/employee/dashboard" }, { label: "My Cases" }]}
@@ -115,12 +112,12 @@ const MyCases: React.FC = () => {
                         </button>
                     </div>
                 </div>
-            </EmployeeLayout>
+            </DashboardLayout>
         );
     }
 
     return (
-        <EmployeeLayout
+        <DashboardLayout
             title="Welcome back, Thabo"
             description="My Cases"
             breadcrumbs={[{ label: "Dashboard", path: "/employee/dashboard" }, { label: "My Cases" }]}
@@ -201,7 +198,7 @@ const MyCases: React.FC = () => {
                         : "No cases found. Submit your first case to get started."}
                 />
             </div>
-        </EmployeeLayout>
+        </DashboardLayout>
     );
 };
 

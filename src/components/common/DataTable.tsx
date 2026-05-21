@@ -181,11 +181,11 @@ export function DataTable<T extends Record<string, any>>({
     );
 
     return (
-        <div className="bg-white rounded-3xl shadow-sm border border-semi-subtle-grey overflow-hidden mb-8">
+        <div className="bg-white rounded-2xl shadow-sm border border-semi-subtle-grey overflow-hidden mb-5">
             {/* Header */}
             {(title || searchable || filterable) && (
-                <div className="p-6 flex flex-col md:flex-row items-center justify-between border-b border-semi-subtle-grey gap-4">
-                    {title && <h3 className="text-lg font-bold text-dark-green">{title}</h3>}
+                <div className="py-4 px-5 flex flex-col md:flex-row items-center justify-between border-b border-semi-subtle-grey gap-3">
+                    {title && <h3 className="text-base font-bold text-dark-green">{title}</h3>}
 
                     <div className="flex items-center gap-4 w-full md:w-auto">
                         {searchable && (
@@ -223,7 +223,7 @@ export function DataTable<T extends Record<string, any>>({
                         <tr className="bg-subtle-grey/50 border-b border-semi-subtle-grey">
                             {selectable && (
                                 <th
-                                    className="px-6 py-4 w-16 text-center sticky left-0 z-20 bg-[#F9FAFB]"
+                                    className="px-4 py-3 w-14 text-center sticky left-0 z-20 bg-[#F9FAFB]"
                                     style={{ borderBottomWidth: '1px' }}
                                 >
                                     <Checkbox
@@ -246,7 +246,7 @@ export function DataTable<T extends Record<string, any>>({
                                         key={idx}
                                         onClick={() => col.sortable && handleSort(col.accessorKey)}
                                         className={clsx(
-                                            "px-6 py-4 text-xs font-bold text-light-grey uppercase tracking-wider bg-[#F9FAFB]", // Added bg color for sticky
+                                            "px-4 py-3 text-xs font-bold text-light-grey uppercase tracking-wider bg-[#F9FAFB]", // Added bg color for sticky
                                             col.sortable && "cursor-pointer hover:text-dark-green transition-colors",
                                             col.accessorKey && effectiveSortBy === col.accessorKey && "text-dark-green",
                                             col.className,
@@ -313,7 +313,7 @@ export function DataTable<T extends Record<string, any>>({
                                         {selectable && (
                                             <td
                                                 className={clsx(
-                                                    "px-6 py-4 text-center sticky left-0 z-10",
+                                                    "px-4 py-2.5 text-center sticky left-0 z-10",
                                                     isSelected ? "bg-[#F3FDF9]" : "bg-white group-hover:bg-[#F9FAFB]" // Match row bg or sticky bg
                                                 )}
                                                 onClick={(e) => e.stopPropagation()}
@@ -333,7 +333,7 @@ export function DataTable<T extends Record<string, any>>({
                                                 <td
                                                     key={colIdx}
                                                     className={clsx(
-                                                        "px-6 py-4 text-sm text-dark-grey",
+                                                        "px-4 py-2.5 text-[13px] text-dark-grey",
                                                         isFrozen && "sticky z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]",
                                                         isFrozen ? (isSelected ? "bg-[#F3FDF9]" : "bg-white group-hover:bg-[#F9FAFB]") : ""
                                                     )}
@@ -355,7 +355,7 @@ export function DataTable<T extends Record<string, any>>({
 
             {/* Pagination */}
             {paginatable && (
-                <div className="p-6 flex flex-col sm:flex-row items-center justify-between border-t border-semi-subtle-grey bg-subtle-grey/30 gap-4">
+                <div className="py-4 px-5 flex flex-col sm:flex-row items-center justify-between border-t border-semi-subtle-grey bg-subtle-grey/30 gap-3">
                     <div className="flex items-center gap-2">
                         <span className="text-sm text-light-grey">Show</span>
                         <div className="w-20">

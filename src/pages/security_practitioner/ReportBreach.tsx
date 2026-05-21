@@ -197,7 +197,7 @@ export function ReportBreach() {
                   </span>
                 </div>
                 {idx < steps.length - 1 && (
-                  <div className="w-16 lg:w-20 h-[2px] bg-[#E5E7EB] mx-0 mt-[-24px] z-0">
+                  <div className="w-16 lg:w-20 h-[2px] bg-[#E5E7EB] mx-0 mt-[-2px] z-0">
                     <div
                       className="h-full bg-[#0D9488] transition-all duration-500"
                       style={{ width: step > s.id ? '100%' : '0%' }}

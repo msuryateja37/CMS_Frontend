@@ -130,7 +130,7 @@ const SubmitCase: React.FC = () => {
         <DashboardLayout title="Submit New Case" description="Submit New Case" breadcrumbs={[{ label: "Dashboard", path: "/supervisor/dashboard" }, { label: "Submit Case" }]}>
             <div className="max-w-[1400px] mx-auto px-4 py-8 relative">
                 {/* Stepper Section with Centered Navigation */}
-                <div className="flex items-center justify-center mb-12 mt-8">
+                <div className="flex items-center justify-center mb-12 ">
                     <div className="flex items-center">
                         {steps.map((s, idx) => (
                             <React.Fragment key={s.id}>
@@ -153,7 +153,7 @@ const SubmitCase: React.FC = () => {
                                     </span>
                                 </div>
                                 {idx < steps.length - 1 && (
-                                    <div className="w-16 lg:w-20 h-[2px] bg-[#E5E7EB] mx-0 mt-[-24px] z-0">
+                                    <div className="w-16 lg:w-20 h-[2px] bg-[#E5E7EB] mx-0 mt-[-2px] z-0">
                                         <div
                                             className="h-full bg-[#0D9488] transition-all duration-500"
                                             style={{ width: step > s.id ? '100%' : '0%' }}

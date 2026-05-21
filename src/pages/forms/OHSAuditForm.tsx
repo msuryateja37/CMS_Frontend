@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { QuestionItem } from '../../components/forms/QuestionItem';
 import type { FormTemplate } from '../../types/forms';
-import { getOhsInspectionForm, submitFormResponse } from '../../services/formsService';
+import { getFormByTitleKeyword, submitFormResponse } from '../../services/formsService';
 import { useAuthStore } from '../../store/auth.store';
 import DashboardLayout from '../../layouts/DashboardLayout';
 
-export const OHSInspectionForm: React.FC = () => {
+const OHSAuditForm: React.FC = () => {
   const { user } = useAuthStore();
   const [form, setForm] = useState<FormTemplate | null>(null);
   const [loading, setLoading] = useState(true);
@@ -20,7 +20,7 @@ export const OHSInspectionForm: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const fullForm = await getOhsInspectionForm();
+        const fullForm = await getFormByTitleKeyword('compliance audit');
         setForm(fullForm);
       } catch (err: unknown) {
         setError('Failed to load the form. Please try again later.');
@@ -78,7 +78,7 @@ export const OHSInspectionForm: React.FC = () => {
           return {
             questionId,
             selectedOptionId: option?.id,
-            answerText: String(value),
+            answerText: comments[questionId] || String(value),
           };
         }
 
@@ -88,7 +88,7 @@ export const OHSInspectionForm: React.FC = () => {
         };
       });
 
-      await submitFormResponse(form.formId, { 
+      await submitFormResponse(form.formId || form.id, { 
         submittedBy: user?.id, 
         answers: answersPayload 
       });
@@ -117,11 +117,11 @@ export const OHSInspectionForm: React.FC = () => {
 
   return (
     <DashboardLayout
-      title="OHS Inspector – OHS Inspection Audit Checklist"
-      description="Check routine workplace safety inspections."
+      title="OHS Inspector – OHS Compliance Audit Checklist"
+      description="Evaluate organizational compliance with OHS regulations."
       breadcrumbs={[
-        { label: 'OHS Forms', path: '/ohs/forms/inspection' },
-        { label: 'OHS Inspection Audit Checklist' }
+        { label: 'OHS Forms', path: '/ohs/forms/audit' },
+        { label: 'Compliance Audit Checklist' }
       ]}
     >
       {/* ── Loading ── */}
@@ -152,8 +152,8 @@ export const OHSInspectionForm: React.FC = () => {
             <svg className="w-12 h-12 mx-auto mb-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <p className="text-lg font-bold mb-1">Assessment Submitted!</p>
-            <p className="text-sm text-emerald-600">Your OHS assessment has been recorded successfully.</p>
+            <p className="text-lg font-bold mb-1">Audit Submitted!</p>
+            <p className="text-sm text-emerald-600">Your OHS compliance record has been saved successfully.</p>
           </div>
           
           <button
@@ -164,7 +164,7 @@ export const OHSInspectionForm: React.FC = () => {
               <path d="M23 4v6h-6" />
               <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
             </svg>
-            Submit Another Assessment
+            Submit Another Audit
           </button>
         </div>
       )}
@@ -173,7 +173,7 @@ export const OHSInspectionForm: React.FC = () => {
       {!loading && !error && !submitted && form && (
         <div className="flex flex-col gap-4">
 
-          {/* Inspection badge row */}
+          {/* Badge row */}
           <div className="flex items-center gap-3">
             <button
               onClick={() => window.history.back()}
@@ -186,7 +186,7 @@ export const OHSInspectionForm: React.FC = () => {
             </button>
             <div>
               <div className="flex items-center gap-3">
-                <span className="font-semibold text-base text-gray-800">INP -2026-023</span>
+                <span className="font-semibold text-base text-gray-800">INP-2026-023</span>
                 <span className="bg-blue-100 text-blue-600 text-xs px-2 py-0.5 rounded-full border border-blue-200 font-medium">
                   in progress
                 </span>
@@ -198,7 +198,7 @@ export const OHSInspectionForm: React.FC = () => {
           {/* Form card */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 sm:p-6 pt-5 w-full">
             <h2 className="text-base font-bold text-gray-800 mb-5 border-b border-gray-100 pb-3">
-              {form.title}
+              {form.title} Form
             </h2>
 
             {form.sections.map((section, index) => (
@@ -212,12 +212,7 @@ export const OHSInspectionForm: React.FC = () => {
                 </div>
 
                 {/* Questions grid */}
-                <div
-                  className={`grid gap-4 ${section.questions.some(q => (q.inputType as string) === 'radio_with_comments')
-                      ? 'grid-cols-1'
-                      : 'grid-cols-2'
-                    }`}
-                >
+                <div className="grid grid-cols-1 gap-4">
                   {section.questions.map(q => (
                     <QuestionItem
                       key={q.id}
@@ -259,4 +254,4 @@ export const OHSInspectionForm: React.FC = () => {
   );
 };
 
-export default OHSInspectionForm;
+export default OHSAuditForm;

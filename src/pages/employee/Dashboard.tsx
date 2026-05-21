@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import EmployeeLayout from './components/EmployeeLayout';
+import DashboardLayout from '../../layouts/DashboardLayout';
 import { DataTable, type Column } from '../../components/common/DataTable';
 import { Pill } from '../../components/common/Pill';
 import { getStatusLabel } from '../../data/constants';
@@ -55,31 +55,28 @@ const EmployeeDashboard: React.FC = () => {
             label: 'My Active Cases',
             value: stats.activeCases.toString(),
             change: stats.activeCasesChange,
-            trend: 'from last month',
             icon: FileText,
-            color: 'text-green',
-            bgColor: 'bg-[#E8F5E9]',
-            trendColor: 'bg-[#E6FFFB] text-[#13C2C2]'
+            color: 'text-teal-600',
+            bgColor: 'bg-teal-50',
+            trendColor: 'bg-teal-100/50 text-teal-700'
         },
         {
             label: 'Pending Actions',
             value: stats.pendingActions.toString(),
             change: stats.pendingActionsChange,
-            trend: 'from last month',
             icon: Clock,
-            color: 'text-green',
-            bgColor: 'bg-[#E8F5E9]',
-            trendColor: 'bg-[#F6FFED] text-[#52C41A]'
+            color: 'text-amber-600',
+            bgColor: 'bg-amber-50',
+            trendColor: 'bg-amber-100/50 text-amber-700'
         },
         {
             label: 'Resolved Cases',
             value: stats.resolvedCases.toString(),
             change: stats.resolvedCasesChange,
-            trend: 'from last month',
             icon: CheckCircle,
-            color: 'text-green',
-            bgColor: 'bg-[#E8F5E9]',
-            trendColor: 'bg-[#F6FFED] text-[#52C41A]'
+            color: 'text-emerald-600',
+            bgColor: 'bg-emerald-50',
+            trendColor: 'bg-emerald-100/50 text-emerald-700'
         }
     ] : [];
 
@@ -90,17 +87,14 @@ const EmployeeDashboard: React.FC = () => {
             accessorKey: 'incidentNumber',
             sortable: true,
             cell: (item) => (
-                <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-green flex-shrink-0"></div>
-                    <span className="text-gray-500 font-medium text-xs">{item.incidentNumber}</span>
-                </div>
+                <span className="font-mono text-sm font-medium text-gray-600 whitespace-nowrap">{item.incidentNumber}</span>
             )
         },
         {
             header: 'Category',
             accessorKey: 'category',
             sortable: true,
-            cell: (item) => <span className="text-gray-700 font-medium">{formatCategory(item.category || item.type || 'N/A')}</span>
+            cell: (item) => <span className="text-gray-700 font-medium text-xs whitespace-nowrap">{formatCategory(item.category || item.type || 'N/A')}</span>
         },
         {
             header: 'Priority',
@@ -115,7 +109,7 @@ const EmployeeDashboard: React.FC = () => {
             sortable: true,
             cell: (item) => {
                 const statusLabel = getStatusLabel(item.status);
-                return <Pill label={statusLabel} variant={item.status.toLowerCase().replace(/_/g, ' ')} />;
+                return <Pill label={statusLabel.toUpperCase()} variant={item.status.toLowerCase().replace(/_/g, ' ')} />;
             }
         },
         /* {
@@ -144,7 +138,7 @@ const EmployeeDashboard: React.FC = () => {
 
     if (loading) {
         return (
-            <EmployeeLayout
+            <DashboardLayout
                 title={`Welcome back, ${firstName}`}
                 description="Dashboard"
                 breadcrumbs={[{ label: "Dashboard", path: "/employee/dashboard" }, { label: "Overview" }]}
@@ -155,13 +149,13 @@ const EmployeeDashboard: React.FC = () => {
                         <p className="text-gray-500">Loading dashboard...</p>
                     </div>
                 </div>
-            </EmployeeLayout>
+            </DashboardLayout>
         );
     }
 
     if (error) {
         return (
-            <EmployeeLayout
+            <DashboardLayout
                 title={`Welcome back, ${firstName}`}
                 description="Dashboard"
                 breadcrumbs={[{ label: "Dashboard", path: "/employee/dashboard" }, { label: "Overview" }]}
@@ -179,22 +173,22 @@ const EmployeeDashboard: React.FC = () => {
                         </button>
                     </div>
                 </div>
-            </EmployeeLayout>
+            </DashboardLayout>
         );
     }
 
     return (
-        <EmployeeLayout
+        <DashboardLayout
             title={`Welcome back, ${firstName}`}
             description="Dashboard"
             breadcrumbs={[{ label: "Dashboard", path: "/employee/dashboard" }, { label: "Overview" }]}
         >
-            <div className="flex flex-col gap-8">
+            <div className="flex flex-col gap-6">
                 {/* Top Actions Button */}
-                <div className="flex justify-end -mt-4 mb-2">
-                    <button
+                <div className="flex justify-end mb-1">
+                   <button
                         onClick={() => navigate('/employee/submit-case')}
-                        className="flex items-center gap-2 px-4 py-2 bg-green text-white font-bold rounded-lg hover:bg-[#2aa88f] transition-colors shadow-sm text-sm"
+                        className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm text-sm"
                     >
                         <FilePlus size={16} />
                         Submit New Case
@@ -202,24 +196,21 @@ const EmployeeDashboard: React.FC = () => {
                 </div>
 
                 {/* Statistics Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                     {statsConfig.map((stat, index) => (
-                        <div key={index} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between h-40">
-                            <div className="flex items-start justify-between">
-                                <div className="flex items-center gap-2">
-                                    <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                                        <stat.icon className={stat.color} size={18} />
-                                    </div>
-                                    <span className="text-sm font-medium text-gray-500">{stat.label}</span>
-                                </div>
+                        <div key={index} className="bg-white py-3.5 px-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
+                            <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${stat.bgColor}`}>
+                                <stat.icon className={stat.color} size={20} />
                             </div>
-                            <div>
-                                <h3 className="text-4xl font-bold text-black mb-2">{stat.value}</h3>
-                                <div className="flex items-center gap-2">
-                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${stat.trendColor}`}>
-                                        {stat.change}
-                                    </span>
-                                    <span className="text-xs text-gray-400">{stat.trend}</span>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5 leading-none">{stat.label}</p>
+                                <div className="flex items-baseline gap-1.5">
+                                    <span className="text-2xl font-bold text-gray-900 leading-none">{stat.value}</span>
+                                    {stat.change !== '0%' && (
+                                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold leading-none ${stat.trendColor}`}>
+                                            {stat.change}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -227,17 +218,17 @@ const EmployeeDashboard: React.FC = () => {
                 </div>
 
                 {/* Main Content Split: Table & Drafts */}
-                <div className="flex flex-col lg:flex-row gap-8">
+                <div className="flex flex-col lg:flex-row gap-6">
                     {/* Left Column: My Cases Table (Approx 2/3 width) */}
-                    <div className="flex-1 lg:w-2/3 flex flex-col gap-4">
+                    <div className="flex-1 lg:w-2/3 flex flex-col gap-3">
                         <div className="flex items-center justify-between">
-                            <h2 className="text-lg font-bold text-black">My Cases</h2>
+                            <h2 className="text-base font-bold text-black">My Cases</h2>
                             <button
                                 onClick={() => navigate('/employee/my-cases')}
-                                className="flex items-center gap-1 px-3 py-1.5 bg-[#E9E9E9] text-gray-600 text-xs font-bold rounded-lg hover:bg-gray-200 transition-colors"
+                                className="flex items-center gap-1 px-2.5 py-1.5 bg-[#E9E9E9] text-gray-600 text-[11px] font-bold rounded-lg hover:bg-gray-200 transition-colors"
                             >
                                 View All
-                                <ChevronDown size={14} />
+                                <ChevronDown size={12} />
                             </button>
                         </div>
 
@@ -254,45 +245,45 @@ const EmployeeDashboard: React.FC = () => {
                     </div>
 
                     {/* Right Column: Saved Drafts (Approx 1/3 width) */}
-                    <div className="flex-1 lg:w-1/3 flex flex-col gap-4">
-                        <h2 className="text-lg font-bold text-black">Saved Drafts</h2>
+                    <div className="flex-1 lg:w-1/3 flex flex-col gap-3">
+                        <h2 className="text-base font-bold text-black">Saved Drafts</h2>
                         {drafts.length > 0 ? (
-                            <div className="flex flex-col gap-4">
+                            <div className="flex flex-col gap-3">
                                 {drafts.map((draft) => (
                                     <div
                                         key={draft.id}
-                                        className="bg-[#F8F9FA] p-4 rounded-xl border border-gray-100 hover:bg-[#F3F4F6] transition-colors cursor-pointer relative group"
+                                        className="bg-[#F8F9FA] p-3 rounded-lg border border-gray-100 hover:bg-[#F3F4F6] transition-colors cursor-pointer relative group"
                                         onClick={() => navigate('/employee/submit-case', { state: { draft } })}
                                     >
-                                        <div className="flex justify-between items-start mb-2">
-                                            <div className="font-bold text-black text-sm">{draft.categoryName || 'New Incident'}</div>
+                                        <div className="flex justify-between items-start mb-1.5">
+                                            <div className="font-bold text-black text-xs">{draft.categoryName || 'New Incident'}</div>
                                             <button
                                                 onClick={(e) => handleDeleteDraft(draft.id, e)}
                                                 className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1"
                                                 title="Delete draft"
                                             >
-                                                <AlertCircle size={14} />
+                                                <AlertCircle size={12} />
                                             </button>
                                         </div>
-                                        <div className="text-xs text-gray-600 mb-1">
-                                            {draft.description ? (draft.description.substring(0, 50) + (draft.description.length > 50 ? '...' : '')) : 'No description'}
+                                        <div className="text-[11px] text-gray-500 mb-1.5 line-clamp-2">
+                                            {draft.description ? draft.description : 'No description'}
                                         </div>
-                                        <div className="text-[10px] text-gray-400 flex items-center gap-1">
-                                            <Clock size={10} />
+                                        <div className="text-[9px] text-gray-400 flex items-center gap-1">
+                                            <Clock size={9} />
                                             Saved {new Date(draft.lastSaved || Date.now()).toLocaleDateString()}
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <div className="bg-[#F8F9FA] p-6 rounded-xl border border-gray-100 text-center">
-                                <p className="text-sm text-gray-500">No saved drafts</p>
+                            <div className="bg-[#F8F9FA] p-4 rounded-xl border border-gray-100 text-center">
+                                <p className="text-xs text-gray-500">No saved drafts</p>
                             </div>
                         )}
                     </div>
                 </div>
             </div>
-        </EmployeeLayout>
+        </DashboardLayout>
     );
 };
 

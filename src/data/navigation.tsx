@@ -181,6 +181,12 @@ export const OHS_SIDEBAR = [
         path: '/ohs/forms/audit',
         icon: CheckCircle,
         isSingle: true
+    },
+    {
+        label: 'Submissions History',
+        path: '/ohs/forms/submissions',
+        icon: Clock,
+        isSingle: true
     }
 ];
 

@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Input } from 'antd';
 import DashboardLayout from '../../layouts/DashboardLayout';
-import casesService, { type Case } from '../../services/cases.service';
+import casesService, { type Case, type CaseApproval } from '../../services/cases.service';
 import { Pill } from '../../components/common/Pill';
 import { getStatusLabel } from '../../data/constants';
 import { formatCategory } from '../../utils/formatters';
@@ -13,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 import EscalationModal from '../../components/incident/EscalationModal';
+import { ApprovalsTab } from '../../components/incident/ApprovalsTab';
 
 const severityConfig: Record<string, { bg: string; text: string; dot: string }> = {
     critical: { bg: 'bg-subtle-red', text: 'text-brand-red', dot: 'bg-brand-red' },
@@ -33,10 +35,53 @@ const provincialNames = [
 ];
 
 interface TimelineActivity {
+    id?: string;
+    category?: string;
     type?: string;
+    oldStatus?: string;
+    newStatus?: string;
     description?: string;
     user?: { name: string };
     timestamp: string;
+}
+
+function timelineEntryTitle(a: TimelineActivity): string {
+    const cat = a.category;
+    if (cat === 'PLAN') return 'Incident plan';
+    if (cat === 'COMMENT' || a.type === 'COMMENT') return 'Comment';
+    if (cat === 'CORRECTIVE_ACTION') {
+        return a.type === 'CORRECTIVE_UPDATED'
+            ? 'Corrective action updated'
+            : 'Corrective action added';
+    }
+    if (cat === 'APPROVAL') {
+        return a.type === 'APPROVAL_UPDATED'
+            ? 'Approval / recommendation updated'
+            : 'Approval / recommendation recorded';
+    }
+    if (cat === 'APPROVAL_FILE') return 'Approval document added';
+    if (cat === 'EVIDENCE') return 'Evidence uploaded';
+    if (cat === 'STATUS') return getStatusLabel(a.type ?? '');
+    if (a.description?.toLowerCase().includes('escalat')) return 'Escalated';
+    return getStatusLabel(a.type ?? '');
+}
+
+function timelineDotClass(a: TimelineActivity): string {
+    const cat = a.category;
+    if (cat === 'PLAN') return 'bg-indigo-500';
+    if (cat === 'COMMENT' || a.type === 'COMMENT') return 'bg-blue-500';
+    if (cat === 'CORRECTIVE_ACTION') return 'bg-teal-500';
+    if (cat === 'APPROVAL' || cat === 'APPROVAL_FILE') return 'bg-violet-500';
+    if (cat === 'EVIDENCE') return 'bg-cyan-500';
+    if (cat === 'STATUS') {
+        const t = (a.type ?? '').toUpperCase();
+        if (t === 'ASSIGNED') return 'bg-purple-500';
+        if (t === 'UNDER_REVIEW') return 'bg-amber-400';
+        if (t === 'CLOSED' || t === 'RESOLVED') return 'bg-gray-400';
+        return 'bg-green';
+    }
+    if (a.description?.toLowerCase().includes('escalat')) return 'bg-amber-500';
+    return 'bg-green';
 }
 
 const CaseAction: React.FC = () => {
@@ -49,6 +94,12 @@ const CaseAction: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    const mergeCase = useCallback((patch: Partial<Case>) => {
+        setCaseData((prev) => (prev ? { ...prev, ...patch } : prev));
+    }, []);
+
+
+
     // Activity timeline
     const [activities, setActivities] = useState<TimelineActivity[]>([]);
 
@@ -59,6 +110,11 @@ const CaseAction: React.FC = () => {
     // Comment form
     const [comment, setComment] = useState('');
     const [submittingComment, setSubmittingComment] = useState(false);
+    const [showCommentForm, setShowCommentForm] = useState(false);
+
+    const [incidentPlan, setIncidentPlan] = useState('');
+    const [editingPlan, setEditingPlan] = useState(false);
+    const [submittingPlan, setSubmittingPlan] = useState(false);
 
     // Evidence upload
     const [uploadingFiles, setUploadingFiles] = useState(false);
@@ -79,25 +135,10 @@ const CaseAction: React.FC = () => {
     // Form toggle states
     const [showActionForm, setShowActionForm] = useState(false);
     const [showEvidenceForm, setShowEvidenceForm] = useState(false);
-    const [showCommentForm, setShowCommentForm] = useState(false);
 
-    // Approvals upload state
-    const approvalFileInputRef = useRef<HTMLInputElement>(null);
-    const [selectedApprovalRole, setSelectedApprovalRole] = useState<string | null>(null);
 
-    const handleApprovalUploadClick = (role: string) => {
-        setSelectedApprovalRole(role);
-        approvalFileInputRef.current?.click();
-    };
 
-    const handleApprovalFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files || []);
-        if (files.length === 0 || !selectedApprovalRole) return;
-        
-        // Mock success for now until backend is connected
-        showSuccess(`Uploaded document for ${selectedApprovalRole} successfully.`);
-        if (approvalFileInputRef.current) approvalFileInputRef.current.value = '';
-    };
+    const [actionPatchingId, setActionPatchingId] = useState<string | null>(null);
 
     const TABS = [
         { id: 'details', label: 'Details of the case' },
@@ -115,16 +156,17 @@ const CaseAction: React.FC = () => {
         }
     }, [id]);
 
-    const fetchCaseDetails = async (caseId: string) => {
+    const fetchCaseDetails = async (caseId: string, showLoader = true) => {
         try {
-            setLoading(true);
+            if (showLoader) setLoading(true);
             const data = await casesService.getCaseById(caseId);
             setCaseData(data);
+            if (data.incidentPlan) setIncidentPlan(data.incidentPlan);
         } catch (err) {
             console.error('Error fetching case details:', err);
             setError('Failed to load case details.');
         } finally {
-            setLoading(false);
+            if (showLoader) setLoading(false);
         }
     };
 
@@ -146,11 +188,19 @@ const CaseAction: React.FC = () => {
         if (!comment.trim() || !id) return;
         try {
             setSubmittingComment(true);
-            await casesService.addComment(id, comment.trim());
+            const created = await casesService.addComment(id, comment.trim());
             setComment('');
+            setShowCommentForm(false);
+            setCaseData((prev) => {
+                if (!prev) return prev;
+                const existing = prev.comments ?? [];
+                return {
+                    ...prev,
+                    comments: [...existing, created],
+                };
+            });
             showSuccess('Comment added successfully.');
-            fetchTimeline(id);
-            fetchCaseDetails(id);
+            void fetchTimeline(id);
         } catch (err) {
             console.error('Error adding comment:', err);
             setError('Failed to add comment.');
@@ -159,26 +209,38 @@ const CaseAction: React.FC = () => {
         }
     };
 
+    const handleSavePlan = async () => {
+        if (!id) return;
+        setSubmittingPlan(true);
+        try {
+            const updated = await casesService.update(id, { incidentPlan });
+            mergeCase({ incidentPlan: updated.incidentPlan ?? incidentPlan });
+            showSuccess('Incident plan updated successfully.');
+            setEditingPlan(false);
+            void fetchTimeline(id);
+        } catch (err) {
+            console.error('Error saving plan:', err);
+            setError('Failed to save incident plan.');
+        } finally {
+            setSubmittingPlan(false);
+        }
+    };
+
     const handleAddCorrectiveAction = async () => {
         if (!newActionText.trim() || !id || !caseData) return;
         try {
             setSubmittingAction(true);
-            let currentActions: string[] = [];
-            if (caseData.otherActions) {
-                try {
-                    currentActions = JSON.parse(caseData.otherActions);
-                } catch {
-                    currentActions = [caseData.otherActions];
-                }
-            }
-            const updatedActions = [...currentActions, newActionText.trim()];
-            const actionsString = JSON.stringify(updatedActions);
-            
-            await casesService.update(id, { otherActions: actionsString });
+            const created = await casesService.addCorrectiveAction(id, newActionText.trim());
+            setCaseData((prev) => {
+                if (!prev) return prev;
+                return {
+                    ...prev,
+                    correctiveActions: [...(prev.correctiveActions ?? []), created],
+                };
+            });
             showSuccess('Corrective action added successfully.');
             setNewActionText('');
             setShowActionForm(false);
-            fetchCaseDetails(id);
         } catch (err) {
             console.error('Error adding corrective action:', err);
             setError('Failed to add corrective action.');
@@ -199,21 +261,46 @@ const CaseAction: React.FC = () => {
 
     const handleUploadEvidence = async () => {
         if (selectedFiles.length === 0 || !id) return;
+        const count = selectedFiles.length;
         try {
             setUploadingFiles(true);
+            const appended: NonNullable<Case['evidence']> = [];
             for (const file of selectedFiles) {
                 const uploaded = await casesService.uploadFile(file, id);
-                await casesService.addEvidence(id, {
+                const isOHS = user?.role?.name?.toLowerCase() === 'ohs practitioner';
+                const isSecurity = user?.role?.name?.toLowerCase() === 'security practitioner';
+                const isAdmin = user?.role?.name?.toLowerCase() === 'admin';
+                
+                const roleName = isSupervisor ? 'Supervisor' : 
+                                 isOHS ? 'OHS Practitioner' : 
+                                 isSecurity ? 'Security Practitioner' : 
+                                 isAdmin ? 'Admin' : 'Employee';
+
+                const row = await casesService.addEvidence(id, {
                     fileUrl: uploaded.url,
                     fileType: file.type,
                     fileName: file.name,
-                    uploaderRole: 'OHS Practitioner',
+                    uploaderRole: roleName,
+                });
+                appended.push({
+                    id: row.id,
+                    fileUrl: row.fileUrl,
+                    fileType: row.fileType,
+                    fileName: file.name,
+                    uploaderRole: roleName,
+                    createdAt: row.uploadedAt,
                 });
             }
             setSelectedFiles([]);
-            showSuccess(`${selectedFiles.length} file(s) uploaded successfully.`);
-            fetchCaseDetails(id);
-            fetchTimeline(id);
+            setCaseData((prev) => {
+                if (!prev) return prev;
+                return {
+                    ...prev,
+                    evidence: [...(prev.evidence ?? []), ...appended],
+                };
+            });
+            showSuccess(`${count} file(s) uploaded successfully.`);
+            void fetchTimeline(id);
         } catch (err) {
             console.error('Error uploading evidence:', err);
             setError('Failed to upload evidence.');
@@ -234,10 +321,10 @@ const CaseAction: React.FC = () => {
 
         try {
             setSendingBack(true);
-            await casesService.updateStatus(id, 'UNDER_REVIEW');
+            const updated = await casesService.updateStatus(id, 'UNDER_REVIEW');
+            mergeCase({ status: updated.status ?? 'UNDER_REVIEW' });
             showSuccess('Case sent back to supervisor for review.');
-            fetchCaseDetails(id);
-            fetchTimeline(id);
+            void fetchTimeline(id);
         } catch (err) {
             console.error('Error updating status:', err);
             setError('Failed to send case back.');
@@ -245,6 +332,33 @@ const CaseAction: React.FC = () => {
             setSendingBack(false);
         }
     };
+
+    const patchCorrectiveActionRow = async (
+        actionId: string,
+        patch: { status?: string; dueDate?: string | null; notes?: string | null; actionText?: string },
+    ) => {
+        if (!id) return;
+        try {
+            setActionPatchingId(actionId);
+            const updated = await casesService.updateCorrectiveAction(id, actionId, patch);
+            setCaseData((prev) => {
+                if (!prev?.correctiveActions) return prev;
+                return {
+                    ...prev,
+                    correctiveActions: prev.correctiveActions.map((a) =>
+                        a.id === actionId ? { ...a, ...updated } : a,
+                    ),
+                };
+            });
+        } catch (err) {
+            console.error('Error updating corrective action:', err);
+            setError('Failed to update corrective action.');
+        } finally {
+            setActionPatchingId(null);
+        }
+    };
+
+
 
     const getSeverityStyle = (severity?: string) => {
         if (!severity) return severityConfig.medium;
@@ -278,10 +392,15 @@ const CaseAction: React.FC = () => {
     const sevStyle = getSeverityStyle(caseData.severity);
     const isClosed = caseData.status === 'CLOSED' || caseData.status === 'RESOLVED';
     const isUnderReview = caseData.status === 'UNDER_REVIEW';
+    const isSupervisor = user?.role?.name?.toLowerCase() === 'supervisor';
+    const isAdmin = user?.role?.name?.toLowerCase() === 'admin';
+    const isOHS = user?.role?.name?.toLowerCase() === 'ohs practitioner';
+    const isSecurity = user?.role?.name?.toLowerCase() === 'security practitioner';
+    const isPractitioner = isOHS || isSecurity;
     const isCurrentAssignee = user?.id === caseData.assignedTo?.id;
+    const canEdit = !isClosed && (isCurrentAssignee || isSupervisor || isAdmin || isPractitioner);
 
-    const provinceName = caseData.building?.province?.name || '';
-    const isProvincial = provincialNames.includes(provinceName);
+
 
     return (
         <DashboardLayout
@@ -593,11 +712,11 @@ const CaseAction: React.FC = () => {
                                     </div>
                                 )}
 
-                                {/* Corrective Actions Placeholder */}
+                                {/* Corrective actions (tracked) + original report */}
                                 <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
                                     <div className="flex justify-between items-center mb-6">
-                                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Long-term Corrective Actions</h3>
-                                        {!isClosed && isCurrentAssignee && (
+                                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Tracked corrective actions</h3>
+                                        {canEdit && (
                                             <button 
                                                 onClick={() => setShowActionForm(!showActionForm)}
                                                 className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all"
@@ -608,12 +727,12 @@ const CaseAction: React.FC = () => {
                                         )}
                                     </div>
 
-                                    {showActionForm && (
+                                    {showActionForm && canEdit && (
                                         <div className="bg-white p-6 rounded-xl border border-gray-200 mb-6 shadow-sm">
-                                            <h4 className="text-sm font-bold text-gray-700 mb-4">Create New Action</h4>
+                                            <h4 className="text-sm font-bold text-gray-700 mb-4">Create new corrective action</h4>
                                             <textarea
                                                 className="w-full p-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green focus:border-transparent min-h-[100px] mb-4"
-                                                placeholder="Describe the long-term corrective action..."
+                                                placeholder="Describe the corrective action, verification, or follow-up required..."
                                                 value={newActionText}
                                                 onChange={(e) => setNewActionText(e.target.value)}
                                             ></textarea>
@@ -630,53 +749,168 @@ const CaseAction: React.FC = () => {
                                                     className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50"
                                                 >
                                                     {submittingAction ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
-                                                    Add Action
+                                                    Add action
                                                 </button>
                                             </div>
                                         </div>
                                     )}
 
+                                    {caseData.correctiveActions && caseData.correctiveActions.length > 0 ? (
+                                        <div className="flex flex-col gap-4">
+                                            {caseData.correctiveActions.map((act) => (
+                                                <div key={act.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3">
+                                                    <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">{act.actionText}</p>
+                                                    <div className="flex flex-wrap gap-3 items-end">
+                                                        <div className="min-w-[140px]">
+                                                            <label className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Status</label>
+                                                            <select
+                                                                disabled={!canEdit || actionPatchingId === act.id}
+                                                                value={act.status ?? 'pending'}
+                                                                onChange={(e) =>
+                                                                    void patchCorrectiveActionRow(act.id, { status: e.target.value })
+                                                                }
+                                                                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white"
+                                                            >
+                                                                <option value="pending">Pending</option>
+                                                                <option value="in_progress">In progress</option>
+                                                                <option value="completed">Completed</option>
+                                                            </select>
+                                                        </div>
+                                                        <div className="min-w-[160px]">
+                                                            <label className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Due date</label>
+                                                            <input
+                                                                type="date"
+                                                                disabled={!canEdit || actionPatchingId === act.id}
+                                                                value={act.dueDate ? act.dueDate.slice(0, 10) : ''}
+                                                                onChange={(e) =>
+                                                                    void patchCorrectiveActionRow(act.id, {
+                                                                        dueDate: e.target.value || null,
+                                                                    })
+                                                                }
+                                                                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5"
+                                                            />
+                                                        </div>
+                                                        {actionPatchingId === act.id && (
+                                                            <Loader2 size={16} className="animate-spin text-green shrink-0" />
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Notes / verification</label>
+                                                        <textarea
+                                                            key={`${act.id}-notes-${act.updatedAt ?? ''}`}
+                                                            disabled={!canEdit || actionPatchingId === act.id}
+                                                            defaultValue={act.notes ?? ''}
+                                                            onBlur={(e) => {
+                                                                const v = e.target.value.trim();
+                                                                if (v !== (act.notes ?? '').trim()) {
+                                                                    void patchCorrectiveActionRow(act.id, { notes: v || null });
+                                                                }
+                                                            }}
+                                                            rows={2}
+                                                            className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5"
+                                                            placeholder="Evidence reference, verification, owner..."
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8 bg-white rounded-xl border-2 border-dashed border-gray-200 mb-4">
+                                            <p className="text-gray-400 font-medium text-sm">No tracked corrective actions yet. Add actions above as the investigation progresses.</p>
+                                        </div>
+                                    )}
+
                                     {caseData.otherActions ? (
-                                        <div>
+                                        <div className="mt-6 pt-6 border-t border-gray-200">
+                                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Original report — additional actions</h4>
                                             {(() => {
                                                 try {
-                                                    const actions = JSON.parse(caseData.otherActions);
+                                                    const actions = JSON.parse(caseData.otherActions!);
                                                     if (Array.isArray(actions)) {
                                                         return (
-                                                            <div className="flex flex-col gap-3">
+                                                            <div className="flex flex-col gap-2">
                                                                 {actions.map((action: string, idx: number) => (
-                                                                    <div key={idx} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-start gap-3">
-                                                                        <div className="w-6 h-6 rounded-full bg-green/10 text-dark-green flex items-center justify-center shrink-0 mt-0.5">
-                                                                            <span className="text-xs font-bold">{idx + 1}</span>
-                                                                        </div>
-                                                                        <p className="text-sm text-gray-700 leading-relaxed">{action}</p>
+                                                                    <div key={idx} className="bg-white/80 p-3 rounded-lg border border-gray-100 text-sm text-gray-600 leading-relaxed">
+                                                                        {action}
                                                                     </div>
                                                                 ))}
                                                             </div>
                                                         );
                                                     }
-                                                    return <p className="text-gray-700 text-sm leading-relaxed">{caseData.otherActions}</p>;
+                                                    return <p className="text-gray-600 text-sm leading-relaxed">{caseData.otherActions}</p>;
                                                 } catch {
-                                                    return <p className="text-gray-700 text-sm leading-relaxed">{caseData.otherActions}</p>;
+                                                    return <p className="text-gray-600 text-sm leading-relaxed">{caseData.otherActions}</p>;
                                                 }
                                             })()}
                                         </div>
-                                    ) : (
-                                        <div className="text-center py-10 bg-white rounded-xl border-2 border-dashed border-gray-200">
-                                            <p className="text-gray-400 font-medium text-sm">No long-term corrective actions recorded yet.</p>
-                                        </div>
-                                    )}
+                                    ) : null}
                                 </div>
                             </div>
                         )}
 
                         {activeTab === 'evidence' && (
                             <div className="space-y-6 max-w-4xl">
+                                {/* Incident Plan Section */}
+                                <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Incident Plan</h3>
+                                        {canEdit && (
+                                            <button 
+                                                onClick={() => setEditingPlan(!editingPlan)}
+                                                className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all"
+                                            >
+                                                {editingPlan ? 'Cancel' : (caseData.incidentPlan ? 'Edit Plan' : 'Add Plan')}
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {editingPlan && canEdit ? (
+                                        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                                            <p className="text-xs text-gray-500 mb-3">Use this editor for the full incident response plan, containment, communication, and follow-up steps.</p>
+                                            <Input.TextArea
+                                                className="!min-h-[280px] !text-sm"
+                                                placeholder="Write the complete plan for this incident (response, roles, timelines, verification)..."
+                                                value={incidentPlan}
+                                                onChange={(e) => setIncidentPlan(e.target.value)}
+                                                rows={16}
+                                                showCount
+                                                maxLength={20000}
+                                            />
+                                            <div className="flex justify-end gap-3 mt-4">
+                                                <button
+                                                    onClick={() => setEditingPlan(false)}
+                                                    className="px-4 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700 transition-colors"
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button
+                                                    onClick={handleSavePlan}
+                                                    disabled={submittingPlan || !incidentPlan.trim()}
+                                                    className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50"
+                                                >
+                                                    {submittingPlan ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                                                    Save Plan
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                                            {caseData.incidentPlan ? (
+                                                <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">{caseData.incidentPlan}</p>
+                                            ) : (
+                                                <div className="text-center py-6">
+                                                    <p className="text-gray-400 font-medium text-sm">No incident plan recorded yet.</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
                                 {/* Evidence Section */}
                                 <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
                                     <div className="flex justify-between items-center mb-6">
                                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Uploaded Attachments</h3>
-                                        {!isClosed && isCurrentAssignee && (
+                                        {canEdit && (
                                             <button 
                                                 onClick={() => setShowEvidenceForm(!showEvidenceForm)}
                                                 className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all"
@@ -688,7 +922,7 @@ const CaseAction: React.FC = () => {
                                     </div>
 
                                     {/* Practitioner Actions — Upload */}
-                                    {showEvidenceForm && !isClosed && isCurrentAssignee && (
+                                    {showEvidenceForm && canEdit && (
                                         <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6 shadow-sm">
                                             <h4 className="text-sm font-bold text-gray-700 mb-4">Upload New Evidence</h4>
                                             <div>
@@ -746,50 +980,75 @@ const CaseAction: React.FC = () => {
 
                                     {caseData.evidence && caseData.evidence.length > 0 ? (
                                         <div className="space-y-6">
-                                            {['Employee', 'Supervisor', 'OHS Practitioner', 'Other'].map(role => {
-                                                const roleDocs = caseData.evidence?.filter(e =>
-                                                    role === 'Other'
-                                                        ? !e.uploaderRole || !['Employee', 'Supervisor', 'OHS Practitioner'].includes(e.uploaderRole)
-                                                        : e.uploaderRole === role
-                                                );
-                                                if (!roleDocs || roleDocs.length === 0) return null;
+                                            {(() => {
+                                                const normalizeRoleName = (role?: string): string => {
+                                                    if (!role) return 'Employee';
+                                                    const lower = role.toLowerCase().trim();
+                                                    if (lower === 'other' || lower === 'employee') return 'Employee';
+                                                    if (lower === 'supervisor') return 'Supervisor';
+                                                    if (lower.includes('ohs')) return 'OHS Practitioner';
+                                                    if (lower.includes('security')) return 'Security Practitioner';
+                                                    if (lower === 'admin') return 'Admin';
+                                                    return role.split(' ')
+                                                        .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+                                                        .join(' ');
+                                                };
 
-                                                return (
-                                                    <div key={role}>
-                                                        <div className="flex items-center gap-2 mb-3">
-                                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${role === 'Employee' ? 'bg-blue-50 text-blue-700' :
-                                                                role === 'Supervisor' ? 'bg-light-green text-dark-green' :
+                                                const roles = Array.from(new Set(caseData.evidence?.map(e => 
+                                                    normalizeRoleName(e.uploaderRole)
+                                                ) || []));
+                                                // Sort roles to have a consistent order
+                                                const sortedRoles = roles.sort((a, b) => {
+                                                    const order: Record<string, number> = { 'Employee': 1, 'Supervisor': 2, 'OHS Practitioner': 3, 'Security Practitioner': 4, 'Admin': 5 };
+                                                    return (order[a] || 99) - (order[b] || 99);
+                                                });
+
+                                                return sortedRoles.map(role => {
+                                                    const roleDocs = caseData.evidence?.filter(e => {
+                                                        return normalizeRoleName(e.uploaderRole) === role;
+                                                    });
+                                                    if (!roleDocs || roleDocs.length === 0) return null;
+
+                                                    return (
+                                                        <div key={role} className="mb-6 last:mb-0">
+                                                            <div className="flex items-center gap-2 mb-3">
+                                                                <span className={`px-2.5 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider ${
+                                                                    role === 'Employee' ? 'bg-blue-50 text-blue-700' :
+                                                                    role === 'Supervisor' ? 'bg-gray-200 text-gray-700' :
                                                                     role === 'OHS Practitioner' ? 'bg-amber-50 text-amber-700' :
-                                                                        'bg-gray-200 text-gray-600'
+                                                                    role === 'Security Practitioner' ? 'bg-indigo-50 text-indigo-700' :
+                                                                    role === 'Admin' ? 'bg-purple-50 text-purple-700' :
+                                                                    'bg-gray-100 text-gray-600'
                                                                 }`}>
-                                                                {role}
-                                                            </span>
-                                                            <div className="h-px flex-1 bg-gray-200" />
+                                                                    {role}
+                                                                </span>
+                                                                <div className="h-px flex-1 bg-gray-200" />
+                                                            </div>
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                                {roleDocs.map((file, idx) => (
+                                                                    <a
+                                                                        key={idx}
+                                                                        href={file.fileUrl}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 hover:border-green/50 hover:shadow-sm transition-all group"
+                                                                    >
+                                                                        <div className="w-9 h-9 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-100 text-gray-400 group-hover:text-green shrink-0">
+                                                                            <FileText size={18} />
+                                                                        </div>
+                                                                        <div className="overflow-hidden">
+                                                                            <p className="text-sm font-medium text-gray-700 truncate group-hover:text-green">
+                                                                                {file.fileName || `Attachment ${idx + 1}`}
+                                                                            </p>
+                                                                            <p className="text-xs text-gray-400 uppercase">{file.fileType?.split('/')[1] || 'FILE'}</p>
+                                                                        </div>
+                                                                    </a>
+                                                                ))}
+                                                            </div>
                                                         </div>
-                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                            {roleDocs.map((file, idx) => (
-                                                                <a
-                                                                    key={idx}
-                                                                    href={file.fileUrl?.match(/^\s*(javascript|data|vbscript):/i) ? '#' : file.fileUrl}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 hover:border-green/50 hover:shadow-sm transition-all group"
-                                                                >
-                                                                    <div className="w-9 h-9 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-100 text-gray-400 group-hover:text-green shrink-0">
-                                                                        <FileText size={18} />
-                                                                    </div>
-                                                                    <div className="overflow-hidden">
-                                                                        <p className="text-sm font-medium text-gray-700 truncate group-hover:text-green">
-                                                                            {file.fileName || `Attachment ${idx + 1}`}
-                                                                        </p>
-                                                                        <p className="text-xs text-gray-400 uppercase">{file.fileType?.split('/')[1] || 'FILE'}</p>
-                                                                    </div>
-                                                                </a>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
+                                                    );
+                                                });
+                                            })()}
                                         </div>
                                     ) : (
                                         <div className="text-center py-10 bg-white rounded-xl border-2 border-dashed border-gray-200">
@@ -802,90 +1061,17 @@ const CaseAction: React.FC = () => {
                         )}
 
                         {activeTab === 'approvals' && (
-                            <div className="space-y-6 max-w-4xl">
-                                <div className="bg-gray-50 rounded-xl border border-gray-100 p-6 text-center">
-                                    <Shield className="mx-auto text-gray-300 mb-3" size={32} />
-                                    <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Director Approvals & Recommendations</h4>
-                                    <p className="text-gray-500 text-sm mb-6">Upload manual approvals and recommendations provided by directors.</p>
-                                    
-                                    <input 
-                                        type="file" 
-                                        ref={approvalFileInputRef} 
-                                        className="hidden" 
-                                        onChange={handleApprovalFileSelect} 
-                                        accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                                    />
-
-                                    {isProvincial && (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-                                            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
-                                                <h5 className="font-bold text-sm text-gray-800 mb-1">Provincial Security Coordinator</h5>
-                                                <p className="text-xs text-gray-500 mb-4">Upload recommendations report</p>
-                                                {!isClosed && isCurrentAssignee && (
-                                                    <button 
-                                                        onClick={() => handleApprovalUploadClick('Provincial Security Coordinator')}
-                                                        className="mt-auto flex items-center gap-2 px-3 py-1.5 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all"
-                                                    >
-                                                        <Upload size={14} /> Upload Document
-                                                    </button>
-                                                )}
-                                            </div>
-                                            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
-                                                <h5 className="font-bold text-sm text-gray-800 mb-1">Chief Director</h5>
-                                                <p className="text-xs text-gray-500 mb-4">Upload final approved report</p>
-                                                {!isClosed && isCurrentAssignee && (
-                                                    <button 
-                                                        onClick={() => handleApprovalUploadClick('Chief Director (Provincial)')}
-                                                        className="mt-auto flex items-center gap-2 px-3 py-1.5 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all"
-                                                    >
-                                                        <Upload size={14} /> Upload Document
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {!isProvincial && (
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
-                                            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
-                                                <h5 className="font-bold text-sm text-gray-800 mb-1">Assistant Director</h5>
-                                                <p className="text-xs text-gray-500 mb-4">Upload recommendations report</p>
-                                                {!isClosed && isCurrentAssignee && (
-                                                    <button 
-                                                        onClick={() => handleApprovalUploadClick('Assistant Director')}
-                                                        className="mt-auto flex items-center gap-2 px-3 py-1.5 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all"
-                                                    >
-                                                        <Upload size={14} /> Upload Document
-                                                    </button>
-                                                )}
-                                            </div>
-                                            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
-                                                <h5 className="font-bold text-sm text-gray-800 mb-1">Director</h5>
-                                                <p className="text-xs text-gray-500 mb-4">Upload recommendations report</p>
-                                                {!isClosed && isCurrentAssignee && (
-                                                    <button 
-                                                        onClick={() => handleApprovalUploadClick('Director')}
-                                                        className="mt-auto flex items-center gap-2 px-3 py-1.5 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all"
-                                                    >
-                                                        <Upload size={14} /> Upload Document
-                                                    </button>
-                                                )}
-                                            </div>
-                                            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start">
-                                                <h5 className="font-bold text-sm text-gray-800 mb-1">Chief Director</h5>
-                                                <p className="text-xs text-gray-500 mb-4">Upload final approved report</p>
-                                                {!isClosed && isCurrentAssignee && (
-                                                    <button 
-                                                        onClick={() => handleApprovalUploadClick('Chief Director (National)')}
-                                                        className="mt-auto flex items-center gap-2 px-3 py-1.5 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all"
-                                                    >
-                                                        <Upload size={14} /> Upload Document
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
+                            <div className="max-w-4xl">
+                                <ApprovalsTab
+                                    caseId={id || ''}
+                                    caseData={caseData}
+                                    canEdit={canEdit}
+                                    user={user}
+                                    onSuccess={() => {
+                                        fetchCaseDetails(id || '', false);
+                                        fetchTimeline(id || '');
+                                    }}
+                                />
                             </div>
                         )}
 
@@ -903,7 +1089,7 @@ const CaseAction: React.FC = () => {
                                                 </span>
                                             )}
                                         </div>
-                                        {!isClosed && isCurrentAssignee && (
+                                        {canEdit && (
                                             <button 
 
                                             onClick={() => setShowCommentForm(!showCommentForm)}
@@ -916,7 +1102,7 @@ const CaseAction: React.FC = () => {
                                     </div>
 
                                     {/* Practitioner Actions — Comment */}
-                                    {showCommentForm && !isClosed && isCurrentAssignee && (
+                                    {showCommentForm && canEdit && (
                                         <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6 shadow-sm">
                                             <h4 className="text-sm font-bold text-gray-700 mb-4">Add Comment / Notes</h4>
                                             <div>
@@ -929,10 +1115,7 @@ const CaseAction: React.FC = () => {
                                                 />
                                                 <div className="flex justify-end mt-3">
                                                     <button
-                                                        onClick={() => {
-                                                            handleAddComment();
-                                                            setShowCommentForm(false);
-                                                        }}
+                                                onClick={() => void handleAddComment()}
                                                         disabled={!comment.trim() || submittingComment}
                                                         className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
@@ -983,25 +1166,18 @@ const CaseAction: React.FC = () => {
                                         <div className="absolute left-[5px] top-2 bottom-2 w-0.5 bg-gray-200"></div>
                                         <div className="space-y-6">
                                             {activities.map((activity, index) => {
-                                                const isComment = activity.type === 'COMMENT';
-                                                const isEscalation = activity.description?.includes('escalated');
-                                                const dotColor = isComment ? 'bg-blue-500' :
-                                                    isEscalation ? 'bg-amber-500' :
-                                                        activity.type === 'ASSIGNED' ? 'bg-purple-500' :
-                                                            activity.type === 'UNDER_REVIEW' ? 'bg-amber-400' :
-                                                                activity.type === 'CLOSED' || activity.type === 'RESOLVED' ? 'bg-gray-400' :
-                                                                    'bg-green';
+                                                const isComment = activity.category === 'COMMENT' || activity.type === 'COMMENT';
+                                                const showBody = isComment || (activity.description && activity.description.trim().length > 0);
+                                                const dotColor = timelineDotClass(activity);
 
                                                 return (
-                                                    <div key={index} className="relative pl-6">
+                                                    <div key={activity.id ?? `act-${index}`} className="relative pl-6">
                                                         <div className={`absolute left-0 top-1 w-3 h-3 rounded-full border-2 border-white shadow-sm ${dotColor}`}></div>
                                                         <div>
                                                             <p className="text-sm font-semibold text-gray-800">
-                                                                {isComment ? 'Comment' :
-                                                                    isEscalation ? 'Escalated' :
-                                                                        getStatusLabel(activity.type ?? '')}
+                                                                {timelineEntryTitle(activity)}
                                                             </p>
-                                                            {(isComment || activity.description) && (
+                                                            {showBody && (
                                                                 <p className={`text-xs mt-1 ${isComment ? 'text-gray-600 bg-white border border-gray-200 px-3 py-2 rounded-lg' : 'text-gray-500'}`}>
                                                                     {activity.description}
                                                                 </p>
@@ -1045,7 +1221,7 @@ const CaseAction: React.FC = () => {
                 onSuccess={() => {
                     showSuccess('Case escalated successfully.');
                     if (id) {
-                        fetchCaseDetails(id);
+                        fetchCaseDetails(id, false);
                         fetchTimeline(id);
                     }
                 }}

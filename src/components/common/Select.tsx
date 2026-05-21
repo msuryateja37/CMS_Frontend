@@ -37,7 +37,7 @@ export const Select: React.FC<SelectProps> = ({
     className,
     error,
     required,
-    bgColor = 'bg-subtle-grey',
+    bgColor = 'bg-gray-50',
     position = 'bottom'
 }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -76,7 +76,7 @@ export const Select: React.FC<SelectProps> = ({
     return (
         <div className={cn("flex flex-col gap-1.5 w-full", className)} ref={containerRef}>
             {label && (
-                <label className="text-sm font-semibold text-gray-900">
+                <label className="text-xs font-bold text-gray-900">
                     {label} {required && <span className="text-red-500">*</span>}
                 </label>
             )}
@@ -85,7 +85,7 @@ export const Select: React.FC<SelectProps> = ({
                 <button
                     type="button"
                     className={cn(
-                        "relative w-full text-left border border-gray-200 rounded-lg py-3 px-4 flex items-center justify-between transition-all duration-200",
+                        "relative w-full text-left border border-gray-200 rounded-xl py-2.5 px-3.5 flex items-center justify-between transition-all duration-200",
                         bgColor,
                         "hover:bg-gray-100 hover:border-gray-300",
                         "focus:outline-none focus:ring-2 focus:ring-green-700/20 focus:border-green-700",
@@ -100,7 +100,7 @@ export const Select: React.FC<SelectProps> = ({
                     aria-haspopup="listbox"
                     aria-expanded={isOpen}
                 >
-                    <span className="block truncate text-sm font-medium">
+                    <span className="block truncate text-xs font-medium">
                         {selectedOption ? selectedOption.label : placeholder}
                     </span>
                     <ChevronDown
@@ -123,7 +123,7 @@ export const Select: React.FC<SelectProps> = ({
                                     role="option"
                                     aria-selected={option.value === value}
                                     className={cn(
-                                        "relative px-4 py-2.5 text-sm cursor-pointer transition-colors duration-150 flex items-center justify-between",
+                                        "relative px-3.5 py-2 text-xs cursor-pointer transition-colors duration-150 flex items-center justify-between",
                                         option.value === value
                                             ? "bg-green-50 text-green-800 font-medium"
                                             : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"

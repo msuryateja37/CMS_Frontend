@@ -4,7 +4,7 @@ import SupervisorDashboard from '../pages/supervisor/Dashboard';
 import SubmitCase from '../pages/supervisor/SubmitCase';
 import CasesReview from '../pages/supervisor/CasesReview';
 import Approvals from '../pages/supervisor/Approvals';
-import CaseSubmissionSuccess from '../pages/supervisor/CaseSubmissionSuccess';
+import CaseSubmissionSuccess from '../pages/common/CaseSubmissionSuccess';
 import CaseDetails from '../pages/common/CaseDetails';
 import ApprovalWorkflow from '../pages/supervisor/ApprovalWorkflow';
 import { SupervisorInvoiceList, SupervisorInvoiceNew, SupervisorInvoiceDetail } from '../pages/supervisor/InvoiceManagement';

@@ -103,7 +103,7 @@ const OHSCasesReview: React.FC = () => {
             sortable: true,
             cell: (item) => {
                 const statusLabel = getStatusLabel(item.status);
-                return <Pill label={statusLabel} variant={item.status.toLowerCase().replace(/_/g, ' ')} />;
+                return <Pill label={statusLabel.toUpperCase()} variant={item.status.toLowerCase().replace(/_/g, ' ')} />;
             }
         },
         {
@@ -154,7 +154,7 @@ const OHSCasesReview: React.FC = () => {
         >
             <div className="flex flex-col gap-6">
                 {/* Top Actions */}
-                <div className="flex justify-end gap-3 -mt-4 mb-2">
+                <div className="flex justify-end gap-3 mb-1">
                     <button className="flex items-center gap-2 px-4 py-2 bg-green text-white font-bold rounded-lg hover:bg-[#2aa88f] transition-colors shadow-sm">
                         <FileSearch size={18} />
                         Review Cases
@@ -162,7 +162,7 @@ const OHSCasesReview: React.FC = () => {
                     <button
                         onClick={() => navigate('/ohs/submit-case')}
                         className="flex items-center gap-2 px-4 py-2 bg-green text-white font-bold rounded-lg hover:bg-[#2aa88f] transition-colors shadow-sm">
-                        <FilePlus size={18} />
+                        <FilePlus size={16} />
                         Submit New Case
                     </button>
                 </div>
