@@ -26,6 +26,8 @@ jobs:
       # 2. Run the build command (creates the 'dist' folder)
       - name: Build React App
         run: npm run build
+        env:
+          VITE_API_URL: ${{secrets.VITE_API_URL}}
 
       # 3. CRITICAL: Clean up dev dependencies to keep the deployment small.
       # This removes Vite, TypeScript, etc., but keeps Express for server.cjs
