@@ -11,6 +11,7 @@ import OHSMyCases from '../pages/ohs/MyCases';
 import OHSCaseAction from '../pages/ohs/CaseAction';
 import OHSCasesReview from '../pages/ohs/CasesReviewOHS';
 import ReportIncident from '../pages/ohs/ReportIncident';
+import OHSSubmitCase from '../pages/ohs/SubmitCase';
 import HazardReports from '../pages/ohs/HazardReports';
 import RiskRegister from '../pages/ohs/RiskRegister';
 import JSADocuments from '../pages/ohs/JSADocuments';
@@ -58,6 +59,7 @@ const AdminRoutes = () => {
             <Route path="/ohs/cases-review" element={<ProtectedRoute><OHSCasesReview /></ProtectedRoute>} />
             <Route path="/ohs/cases/:id" element={<ProtectedRoute><OHSCaseAction /></ProtectedRoute>} />
             <Route path="/ohs/report-incident" element={<ProtectedRoute><ReportIncident /></ProtectedRoute>} />
+            <Route path="/ohs/submit-case" element={<ProtectedRoute><OHSSubmitCase /></ProtectedRoute>} />
             <Route path="/ohs/report-incident/success" element={<ProtectedRoute><CaseSubmissionSuccess /></ProtectedRoute>} />
             <Route path="/ohs/submit-case/success" element={<ProtectedRoute><CaseSubmissionSuccess /></ProtectedRoute>} />
             <Route path="/ohs/hazards" element={<ProtectedRoute><HazardReports /></ProtectedRoute>} />

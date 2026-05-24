@@ -267,9 +267,10 @@ const CaseAction: React.FC = () => {
             const appended: NonNullable<Case['evidence']> = [];
             for (const file of selectedFiles) {
                 const uploaded = await casesService.uploadFile(file, id);
-                const isOHS = user?.role?.name?.toLowerCase() === 'ohs practitioner';
-                const isSecurity = user?.role?.name?.toLowerCase() === 'security practitioner';
-                const isAdmin = user?.role?.name?.toLowerCase() === 'admin';
+                const userRole = user?.role?.name?.toLowerCase()?.replace(/_/g, ' ')?.replace(/\s+/g, ' ')?.trim();
+                const isOHS = userRole === 'ohs practitioner';
+                const isSecurity = userRole === 'security practitioner';
+                const isAdmin = userRole === 'admin' || userRole === 'system administrator';
                 
                 const roleName = isSupervisor ? 'Supervisor' : 
                                  isOHS ? 'OHS Practitioner' : 
@@ -392,13 +393,19 @@ const CaseAction: React.FC = () => {
     const sevStyle = getSeverityStyle(caseData.severity);
     const isClosed = caseData.status === 'CLOSED' || caseData.status === 'RESOLVED';
     const isUnderReview = caseData.status === 'UNDER_REVIEW';
-    const isSupervisor = user?.role?.name?.toLowerCase() === 'supervisor';
-    const isAdmin = user?.role?.name?.toLowerCase() === 'admin';
-    const isOHS = user?.role?.name?.toLowerCase() === 'ohs practitioner';
-    const isSecurity = user?.role?.name?.toLowerCase() === 'security practitioner';
+    const userRole = user?.role?.name?.toLowerCase()?.replace(/_/g, ' ')?.replace(/\s+/g, ' ')?.trim();
+    const isSupervisor = userRole === 'supervisor';
+    const isAdmin = userRole === 'admin' || userRole === 'system administrator';
+    const isOHS = userRole === 'ohs practitioner';
+    const isSecurity = userRole === 'security practitioner';
     const isPractitioner = isOHS || isSecurity;
     const isCurrentAssignee = user?.id === caseData.assignedTo?.id;
     const canEdit = !isClosed && (isCurrentAssignee || isSupervisor || isAdmin || isPractitioner);
+
+    // Practitioner-only actions
+    const canAddAction = !isClosed && isOHS;
+    const canAddEvidence = !isClosed && isOHS;
+    const canAddApproval = !isClosed && isOHS;
 
 
 
@@ -678,7 +685,7 @@ const CaseAction: React.FC = () => {
                         )}
 
                         {activeTab === 'actions' && (
-                            <div className="space-y-6 max-w-4xl">
+                            <div className="space-y-6 max-w-4xl w-full">
                                 {/* Immediate Actions */}
                                 {caseData.immediateActions ? (
                                     <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
@@ -716,7 +723,7 @@ const CaseAction: React.FC = () => {
                                 <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
                                     <div className="flex justify-between items-center mb-6">
                                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Tracked corrective actions</h3>
-                                        {canEdit && (
+                                        {canAddAction && (
                                             <button 
                                                 onClick={() => setShowActionForm(!showActionForm)}
                                                 className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all"
@@ -727,7 +734,7 @@ const CaseAction: React.FC = () => {
                                         )}
                                     </div>
 
-                                    {showActionForm && canEdit && (
+                                    {showActionForm && canAddAction && (
                                         <div className="bg-white p-6 rounded-xl border border-gray-200 mb-6 shadow-sm">
                                             <h4 className="text-sm font-bold text-gray-700 mb-4">Create new corrective action</h4>
                                             <textarea
@@ -764,7 +771,7 @@ const CaseAction: React.FC = () => {
                                                         <div className="min-w-[140px]">
                                                             <label className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Status</label>
                                                             <select
-                                                                disabled={!canEdit || actionPatchingId === act.id}
+                                                                disabled={!canAddAction || actionPatchingId === act.id}
                                                                 value={act.status ?? 'pending'}
                                                                 onChange={(e) =>
                                                                     void patchCorrectiveActionRow(act.id, { status: e.target.value })
@@ -780,7 +787,7 @@ const CaseAction: React.FC = () => {
                                                             <label className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Due date</label>
                                                             <input
                                                                 type="date"
-                                                                disabled={!canEdit || actionPatchingId === act.id}
+                                                                disabled={!canAddAction || actionPatchingId === act.id}
                                                                 value={act.dueDate ? act.dueDate.slice(0, 10) : ''}
                                                                 onChange={(e) =>
                                                                     void patchCorrectiveActionRow(act.id, {
@@ -798,7 +805,7 @@ const CaseAction: React.FC = () => {
                                                         <label className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Notes / verification</label>
                                                         <textarea
                                                             key={`${act.id}-notes-${act.updatedAt ?? ''}`}
-                                                            disabled={!canEdit || actionPatchingId === act.id}
+                                                            disabled={!canAddAction || actionPatchingId === act.id}
                                                             defaultValue={act.notes ?? ''}
                                                             onBlur={(e) => {
                                                                 const v = e.target.value.trim();
@@ -849,7 +856,7 @@ const CaseAction: React.FC = () => {
                         )}
 
                         {activeTab === 'evidence' && (
-                            <div className="space-y-6 max-w-4xl">
+                            <div className="space-y-6 max-w-4xl w-full">
                                 {/* Incident Plan Section */}
                                 <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
                                     <div className="flex justify-between items-center mb-6">
@@ -910,7 +917,7 @@ const CaseAction: React.FC = () => {
                                 <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
                                     <div className="flex justify-between items-center mb-6">
                                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Uploaded Attachments</h3>
-                                        {canEdit && (
+                                        {canAddEvidence && (
                                             <button 
                                                 onClick={() => setShowEvidenceForm(!showEvidenceForm)}
                                                 className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all"
@@ -922,7 +929,7 @@ const CaseAction: React.FC = () => {
                                     </div>
 
                                     {/* Practitioner Actions — Upload */}
-                                    {showEvidenceForm && canEdit && (
+                                    {showEvidenceForm && canAddEvidence && (
                                         <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6 shadow-sm">
                                             <h4 className="text-sm font-bold text-gray-700 mb-4">Upload New Evidence</h4>
                                             <div>
@@ -1061,11 +1068,11 @@ const CaseAction: React.FC = () => {
                         )}
 
                         {activeTab === 'approvals' && (
-                            <div className="max-w-4xl">
+                            <div className="max-w-4xl w-full">
                                 <ApprovalsTab
                                     caseId={id || ''}
                                     caseData={caseData}
-                                    canEdit={canEdit}
+                                    canEdit={canAddApproval}
                                     user={user}
                                     onSuccess={() => {
                                         fetchCaseDetails(id || '', false);
@@ -1076,7 +1083,7 @@ const CaseAction: React.FC = () => {
                         )}
 
                         {activeTab === 'comments' && (
-                            <div className="space-y-6 max-w-4xl">
+                            <div className="space-y-6 max-w-4xl w-full">
                                 {/* Comments Section */}
                                 <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
                                     <div className="flex justify-between items-center mb-6">

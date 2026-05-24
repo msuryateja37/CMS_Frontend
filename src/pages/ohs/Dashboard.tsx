@@ -16,7 +16,8 @@ import {
     Loader2,
     ChevronRight,
     TrendingUp,
-    FileText
+    FileText,
+    FilePlus
 } from 'lucide-react';
 import { formatCategory } from '../../utils/formatters';
 
@@ -174,6 +175,17 @@ const OHSDashboard: React.FC = () => {
         >
 
             <div className="flex flex-col gap-4">
+
+                {/* Top Actions */}
+                <div className="flex justify-end gap-3 mb-1">
+                    <button
+                        onClick={() => navigate('/ohs/submit-case')}
+                        className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm text-sm"
+                    >
+                        <FilePlus size={16} />
+                        Submit New Case
+                    </button>
+                </div>
 
 
                 {/* Stats Cards */}
