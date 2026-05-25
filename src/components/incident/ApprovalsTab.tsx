@@ -4,6 +4,7 @@ import { Shield, Plus, Upload, Loader2, Pencil, Trash2, X, CheckCircle, AlertCir
 
 const provincialNames = [
     "Eastern Cape",
+    "Free State",
     "Gauteng",
     "KwaZulu-Natal",
     "Limpopo",
@@ -14,14 +15,14 @@ const provincialNames = [
 ];
 
 const PROVINCIAL_APPROVAL_ROLES = [
-    { roleName: 'Provincial Security Coordinator', label: 'Provincial Security Coordinator', hint: 'Recommendations report' },
-    { roleName: 'Chief Director (Provincial)', label: 'Chief Director', hint: 'Final approved report' },
+    { roleName: 'Provincial Security Coordinator', label: 'Provincial Security Coordinator / Director PSSC for recommendations', hint: 'Recommendations report' },
+    { roleName: 'Chief Director (Provincial)', label: 'Chief Director for approval', hint: 'Final approved report' },
 ];
 
 const NATIONAL_APPROVAL_ROLES = [
-    { roleName: 'Assistant Director', label: 'Assistant Director', hint: 'Recommendations report' },
-    { roleName: 'Director', label: 'Director', hint: 'Recommendations report' },
-    { roleName: 'Chief Director (National)', label: 'Chief Director', hint: 'Final approved report' },
+    { roleName: 'Assistant Director', label: 'Assistant Director: OHS for Recommendations', hint: 'Recommendations report' },
+    { roleName: 'Director', label: 'Director: Document Security Compliance & OHS for recommendations', hint: 'Recommendations report' },
+    { roleName: 'Chief Director (National)', label: 'Chief Director: Security and Facilities Management Services for approval', hint: 'Final approved report' },
 ];
 
 function normalizeApprovals(raw: unknown): CaseApproval[] {
@@ -287,36 +288,36 @@ export const ApprovalsTab: React.FC<ApprovalsTabProps> = ({
                 onChange={onExtraAttachmentFiles}
             />
 
-            <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
+            <div className="bg-gray-50 rounded-xl border border-gray-100 p-4 sm:p-6">
                 <div className="flex flex-col items-center justify-center gap-2 mb-8 text-center">
                     <Shield className="text-gray-400" size={32} />
                     <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Approvals & recommendations</h4>
                 </div>
 
-                <div className={`grid gap-4 ${isProvincial ? 'md:grid-cols-2' : 'md:grid-cols-3'}`}>
+                <div className={`grid gap-4 items-start ${isProvincial ? 'md:grid-cols-2' : 'md:grid-cols-3'}`}>
                     {rolesList.map((def) => {
                         const approvalsList = normalizeApprovals(caseData.approvals);
                         const forRole = approvalsList.filter((a) => a.roleName === def.roleName);
                         return (
                             <div
                                 key={def.roleName}
-                                className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-3 text-left"
+                                className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-3 text-left min-w-0 w-full overflow-hidden"
                             >
-                                <div>
-                                    <h5 className="font-bold text-sm text-gray-900">{def.label}</h5>
-                                    <p className="text-xs text-gray-500 mt-0.5">{def.hint}</p>
+                                <div className="w-full min-w-0">
+                                    <h5 className="font-bold text-sm text-gray-900 break-words">{def.label}</h5>
+                                    <p className="text-xs text-gray-500 mt-0.5 break-words">{def.hint}</p>
                                 </div>
 
                                 {forRole.length > 0 && (
-                                    <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+                                    <div className="space-y-3 max-h-72 overflow-y-auto pr-1 w-full min-w-0">
                                         {forRole.map((ap) => (
                                             <div
                                                 key={ap.id}
-                                                className="rounded-lg border border-gray-100 bg-gray-50/80 p-3 space-y-2"
+                                                className="rounded-lg border border-gray-100 bg-gray-50/80 p-3 space-y-2 w-full min-w-0 overflow-hidden"
                                             >
-                                                <div className="flex justify-between gap-2 items-start">
-                                                    <div className="min-w-0">
-                                                        <p className="text-xs font-bold text-gray-700">
+                                                <div className="flex justify-between gap-2 items-start w-full min-w-0">
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="text-xs font-bold text-gray-700 break-words">
                                                             {ap.recommenderName?.trim() || 'Name not recorded'}
                                                         </p>
                                                         {ap.recommendationText ? (
@@ -404,11 +405,11 @@ export const ApprovalsTab: React.FC<ApprovalsTabProps> = ({
                                                     </div>
                                                 )}
 
-                                                <div className="space-y-1.5">
+                                                <div className="space-y-1.5 w-full min-w-0">
                                                     {ap.attachments && ap.attachments.map((att) => (
                                                         <div
                                                             key={att.id}
-                                                            className="flex items-center gap-2 bg-white rounded-md border border-gray-100 px-2 py-1.5"
+                                                            className="flex items-center gap-2 bg-white rounded-md border border-gray-100 px-2 py-1.5 w-full min-w-0 overflow-hidden"
                                                         >
                                                             <a
                                                                 href={
@@ -470,6 +471,12 @@ export const ApprovalsTab: React.FC<ApprovalsTabProps> = ({
                                                 </p>
                                             </div>
                                         ))}
+                                    </div>
+                                )}
+
+                                {forRole.length === 0 && !canEdit && (
+                                    <div className="text-xs text-gray-400 italic py-2">
+                                        No recommendation or approval recorded
                                     </div>
                                 )}
 
