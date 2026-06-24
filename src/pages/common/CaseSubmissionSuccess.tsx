@@ -69,8 +69,8 @@ const CaseSubmissionSuccess: React.FC = () => {
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-lg p-8 md:p-10 text-center">
                         {/* Success Icon */}
                         <div className="flex justify-center mb-6">
-                            <div className="w-16 h-16 bg-light-green rounded-full flex items-center justify-center">
-                                <CheckCircle className="text-dark-green" size={32} />
+                            <div className="w-16 h-16 bg-light-gold rounded-full flex items-center justify-center">
+                                <CheckCircle className="text-brown" size={32} />
                             </div>
                         </div>
 
@@ -89,10 +89,10 @@ const CaseSubmissionSuccess: React.FC = () => {
                         {state?.caseNumber && (
                             <div className="bg-subtle-grey rounded-xl p-5 mb-6">
                                 <div className="flex items-center justify-center gap-2 mb-1.5">
-                                    <FileText className="text-green" size={18} />
+                                    <FileText className="text-gold" size={18} />
                                     <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Case Number</span>
                                 </div>
-                                <div className="text-3xl font-bold text-dark-green mb-0.5">
+                                <div className="text-3xl font-bold text-brown mb-0.5">
                                     {state.caseNumber}
                                 </div>
                                 <p className="text-xs text-gray-400">
@@ -107,7 +107,7 @@ const CaseSubmissionSuccess: React.FC = () => {
                             <ul className="text-sm text-gray-600 space-y-1.5">
                                 {nextSteps.map((stepText, idx) => (
                                     <li key={idx} className="flex items-start gap-2">
-                                        <span className="text-green mt-0.5">•</span>
+                                        <span className="text-gold mt-0.5">•</span>
                                         <span>{stepText}</span>
                                     </li>
                                 ))}
@@ -125,7 +125,7 @@ const CaseSubmissionSuccess: React.FC = () => {
                             </button>
                             <button
                                 onClick={() => navigate(viewCasesPath)}
-                                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-green text-white font-bold text-xs rounded-lg hover:bg-[#2aa88f] transition-colors shadow-md shadow-green/10"
+                                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-gold text-white font-bold text-xs rounded-lg hover:bg-[#A1743E] transition-colors shadow-md shadow-gold/10"
                             >
                                 {viewCasesLabel}
                                 <ArrowRight size={15} />
@@ -136,7 +136,7 @@ const CaseSubmissionSuccess: React.FC = () => {
                         <div className="mt-5">
                             <button
                                 onClick={() => navigate(submitAnotherPath)}
-                                className="text-green hover:text-dark-green font-semibold text-xs transition-colors underline"
+                                className="text-gold hover:text-brown font-semibold text-xs transition-colors underline"
                             >
                                 {userRole === 'SUPERVISOR' ? 'Submit Another Case' : 'Report Another Incident'}
                             </button>

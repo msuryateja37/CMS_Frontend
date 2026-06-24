@@ -58,7 +58,7 @@ const Approvals: React.FC = () => {
                 <div className="flex items-center gap-2">
                     <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${item.status === 'UNDER_REVIEW' ? 'bg-amber-400' :
                         item.status === 'CLOSED' ? 'bg-gray-300' :
-                            'bg-green'
+                            'bg-gold'
                         }`}>
                         <CheckCircle size={14} className="text-white" />
                     </div>
@@ -111,7 +111,7 @@ const Approvals: React.FC = () => {
             cell: (item) => (
                 <button
                     onClick={() => navigate(`/supervisor/cases/${item.id}`)}
-                    className="flex items-center gap-1.5 px-4 py-1.5 bg-light-green text-dark-green text-xs font-bold rounded-lg hover:bg-green/10 transition-colors whitespace-nowrap"
+                    className="flex items-center gap-1.5 px-4 py-1.5 bg-light-gold text-brown text-xs font-bold rounded-lg hover:bg-gold/10 transition-colors whitespace-nowrap"
                 >
                     <Eye size={14} />
                     View
@@ -138,7 +138,7 @@ const Approvals: React.FC = () => {
             <div className="flex flex-col gap-6">
                 {loading && (
                     <div className="flex items-center justify-center py-12">
-                        <Loader2 className="w-8 h-8 text-green animate-spin" />
+                        <Loader2 className="w-8 h-8 text-gold animate-spin" />
                         <span className="ml-3 text-gray-600">Loading approvals...</span>
                     </div>
                 )}

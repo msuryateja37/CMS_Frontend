@@ -127,7 +127,7 @@ export const OHSInspectionForm: React.FC = () => {
       {/* ── Loading ── */}
       {loading && (
         <div className="flex flex-col items-center justify-center py-24 text-gray-400 gap-3">
-          <svg className="animate-spin h-8 w-8 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <svg className="animate-spin h-8 w-8 text-gold-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
@@ -148,17 +148,17 @@ export const OHSInspectionForm: React.FC = () => {
       {/* ── Success ── */}
       {!loading && submitted && (
         <div className="flex flex-col items-center justify-center py-16 gap-6">
-          <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg p-8 max-w-md text-center shadow-sm">
-            <svg className="w-12 h-12 mx-auto mb-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="bg-gold-50 border border-gold-200 text-gold-700 rounded-lg p-8 max-w-md text-center shadow-sm">
+            <svg className="w-12 h-12 mx-auto mb-3 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <p className="text-lg font-bold mb-1">Assessment Submitted!</p>
-            <p className="text-sm text-emerald-600">Your OHS assessment has been recorded successfully.</p>
+            <p className="text-sm text-gold-600">Your OHS assessment has been recorded successfully.</p>
           </div>
           
           <button
             onClick={handleReset}
-            className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-emerald-500 text-emerald-600 rounded-xl font-bold hover:bg-emerald-50 transition-all shadow-md active:scale-95"
+            className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-gold-500 text-gold-600 rounded-xl font-bold hover:bg-gold-50 transition-all shadow-md active:scale-95"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M23 4v6h-6" />
@@ -205,7 +205,7 @@ export const OHSInspectionForm: React.FC = () => {
               <div key={section.id} className="mb-6 last:mb-0">
                 {/* Section header */}
                 <div className="flex items-center gap-3 mb-3.5">
-                  <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                  <div className="w-7 h-7 rounded-full bg-gold-100 text-gold-700 flex items-center justify-center font-bold text-xs flex-shrink-0">
                     {index + 1}
                   </div>
                   <h3 className="text-sm font-bold text-gray-800">{section.title}</h3>
@@ -241,7 +241,7 @@ export const OHSInspectionForm: React.FC = () => {
               <button
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="bg-emerald-500 hover:bg-emerald-600 disabled:opacity-60 text-white px-8 py-2.5 rounded-lg font-semibold text-sm transition-colors flex items-center gap-2 shadow-sm"
+                className="bg-gold-500 hover:bg-gold-600 disabled:opacity-60 text-white px-8 py-2.5 rounded-lg font-semibold text-sm transition-colors flex items-center gap-2 shadow-sm"
               >
                 {submitting && (
                   <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

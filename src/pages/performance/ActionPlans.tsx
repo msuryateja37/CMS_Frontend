@@ -130,7 +130,7 @@ const ActionPlans: React.FC = () => {
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
                     {[
-                        { label: 'Total Actions', value: '12', icon: ListTodo, color: 'bg-[#E4F2D3]' },
+                        { label: 'Total Actions', value: '12', icon: ListTodo, color: 'bg-[#F1E3D3]' },
                         { label: 'Completed', value: '18', icon: CheckCircle2, color: 'bg-white' },
                         { label: 'In Progress', value: '8', icon: Target, color: 'bg-white' },
                         { label: 'Not Started', value: '6', icon: TriangleAlert, color: 'bg-white' },
@@ -181,7 +181,7 @@ const ActionPlans: React.FC = () => {
                             <select
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
-                                className="w-full px-4 py-3.5 bg-[#E4F2D3] border border-[#E4F2D3]/50 rounded-[12px] text-[13px] font-bold text-[#1D312E] focus:outline-none appearance-none cursor-pointer"
+                                className="w-full px-4 py-3.5 bg-[#F1E3D3] border border-[#F1E3D3]/50 rounded-[12px] text-[13px] font-bold text-[#1D312E] focus:outline-none appearance-none cursor-pointer"
                             >
                                 <option>All Status</option>
                                 <option>In progress</option>

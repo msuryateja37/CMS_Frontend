@@ -20,22 +20,20 @@ interface SummaryCardProps {
     icon: React.ElementType;
     label: string;
     value: string | number;
-    color: 'green' | 'red' | 'blue' | 'teal';
+    color: 'gold' | 'red' | 'blue';
 }
 
 const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, label, value, color }) => {
     const colorClasses = {
-        green: 'text-green-600 bg-green-50 border-green-200',
+        gold: 'text-gold-600 bg-gold-50 border-gold-200',
         red: 'text-red-600 bg-red-50 border-red-200',
         blue: 'text-blue-600 bg-blue-50 border-blue-200',
-        teal: 'text-teal-600 bg-teal-50 border-teal-200',
     };
 
     const bottomBarClasses = {
-        green: 'bg-green-500',
+        gold: 'bg-gold-500',
         red: 'bg-red-500',
         blue: 'bg-blue-500',
-        teal: 'bg-teal-500',
     };
 
     return (
@@ -78,7 +76,7 @@ const ProgressBar: React.FC<{ steps: TrackingStep[], percentage: number, title: 
                 <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-1.5 bg-gray-100 rounded-full"></div>
                 {/* Progress */}
                 <div
-                    className="absolute top-1/2 -translate-y-1/2 left-0 h-1.5 bg-dark-green rounded-full transition-all duration-700"
+                    className="absolute top-1/2 -translate-y-1/2 left-0 h-1.5 bg-brown rounded-full transition-all duration-700"
                     style={{ width: `${percentage}%` }}
                 ></div>
 
@@ -88,7 +86,7 @@ const ProgressBar: React.FC<{ steps: TrackingStep[], percentage: number, title: 
                         <div key={idx} className="flex flex-col items-center relative group">
                             <div className={clsx(
                                 "w-4 h-4 rounded-full border-2 z-10 transition-colors duration-300",
-                                step.status === 'completed' ? "bg-dark-green border-dark-green" :
+                                step.status === 'completed' ? "bg-brown border-brown" :
                                     step.status === 'current' ? "bg-orange-400 border-white shadow-[0_0_0_2px_#fb923c]" :
                                         "bg-gray-200 border-gray-200"
                             )}></div>
@@ -121,7 +119,7 @@ const TrackingItem: React.FC<{
             {/* Info Section */}
             <div className="w-1/4 space-y-2">
                 <div>
-                    <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">{vendor}</span>
+                    <span className="text-[10px] font-bold text-gold-500 uppercase tracking-wider">{vendor}</span>
                     <div className="flex items-center gap-2 mt-0.5">
                         <span className="text-sm font-bold text-gray-800">{invoiceId}</span>
                         <Pill
@@ -131,7 +129,7 @@ const TrackingItem: React.FC<{
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
-                    <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">{amount}</span>
+                    <span className="text-[11px] font-bold text-gold-600 bg-gold-50 px-2 py-0.5 rounded">{amount}</span>
                     <span className="text-[11px] font-medium text-gray-400 tracking-tight">Due: {dueDate}</span>
                 </div>
             </div>
@@ -305,7 +303,7 @@ const PaymentTracking: React.FC = () => {
                         icon={Clock}
                         label="In Progress"
                         value="12"
-                        color="green"
+                        color="gold"
                     />
                     <SummaryCard
                         icon={AlertCircle}
@@ -323,20 +321,20 @@ const PaymentTracking: React.FC = () => {
                         icon={CheckCircle2}
                         label="Paid This Month"
                         value="45"
-                        color="teal"
+                        color="gold"
                     />
                 </div>
 
                 {/* Search and Filters */}
                 <div className="flex flex-col md:flex-row gap-4 items-center">
                     <div className="relative flex-1 group">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-green transition-colors" size={20} />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gold transition-colors" size={20} />
                         <input
                             type="text"
                             placeholder="Search by invoice or vendor ..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green/20 focus:border-green transition-all shadow-sm"
+                            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold/20 focus:border-gold transition-all shadow-sm"
                         />
                     </div>
                     <div className="flex gap-3 w-44">
@@ -345,7 +343,7 @@ const PaymentTracking: React.FC = () => {
                             onChange={setStatusFilter}
                             options={STATUS_CHOICES}
                             placeholder="All Status"
-                            bgColor="bg-light-green"
+                            bgColor="bg-light-gold"
                         />
                     </div>
                 </div>

@@ -88,8 +88,8 @@ export const Select: React.FC<SelectProps> = ({
                         "relative w-full text-left border border-gray-200 rounded-xl py-2.5 px-3.5 flex items-center justify-between transition-all duration-200",
                         bgColor,
                         "hover:bg-gray-100 hover:border-gray-300",
-                        "focus:outline-none focus:ring-2 focus:ring-green-700/20 focus:border-green-700",
-                        isOpen && "border-green-700 ring-2 ring-green-700/20 bg-white",
+                        "focus:outline-none focus:ring-2 focus:ring-gold-700/20 focus:border-gold-700",
+                        isOpen && "border-gold-700 ring-2 ring-gold-700/20 bg-white",
                         disabled && "opacity-60 cursor-not-allowed hover:bg-gray-50",
                         error && "border-red-300 focus:border-red-500 focus:ring-red-200",
                         !selectedOption && "text-gray-500"
@@ -125,14 +125,14 @@ export const Select: React.FC<SelectProps> = ({
                                     className={cn(
                                         "relative px-3.5 py-2 text-xs cursor-pointer transition-colors duration-150 flex items-center justify-between",
                                         option.value === value
-                                            ? "bg-green-50 text-green-800 font-medium"
+                                            ? "bg-gold-50 text-gold-800 font-medium"
                                             : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
                                     )}
                                     onClick={() => handleSelect(option.value)}
                                 >
                                     <span className="block truncate">{option.label}</span>
                                     {option.value === value && (
-                                        <Check className="w-4 h-4 text-green-700" />
+                                        <Check className="w-4 h-4 text-gold-700" />
                                     )}
                                 </li>
                             ))}

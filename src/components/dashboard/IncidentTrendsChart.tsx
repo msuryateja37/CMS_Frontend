@@ -32,14 +32,14 @@ const IncidentTrendsChart: React.FC = () => {
                     <Bar
                         dataKey="total"
                         name="Total Incident"
-                        fill="#0E4D41"
+                        fill="#884616"
                         radius={[4, 4, 0, 0]}
                         barSize={12}
                     />
                     <Bar
                         dataKey="resolved"
                         name="Resolved"
-                        fill="#35BFA3"
+                        fill="#BB8F53"
                         radius={[4, 4, 0, 0]}
                         barSize={12}
                     />

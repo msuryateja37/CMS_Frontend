@@ -22,8 +22,8 @@ const STATS = [
         label: 'Overdue',
         value: 2,
         icon: AlertCircle,
-        bg: 'bg-[#E4F2D3]',
-        text: 'text-[#0E4D41]',
+        bg: 'bg-[#F1E3D3]',
+        text: 'text-[#884616]',
         iconBg: 'bg-white/60'
     },
     {
@@ -31,7 +31,7 @@ const STATS = [
         value: 18,
         icon: Calendar,
         bg: 'bg-white',
-        text: 'text-[#0E4D41]',
+        text: 'text-[#884616]',
         iconBg: 'bg-[#F2FDF0]'
     },
     {
@@ -39,7 +39,7 @@ const STATS = [
         value: 4,
         icon: PlayCircle,
         bg: 'bg-white',
-        text: 'text-[#0E4D41]',
+        text: 'text-[#884616]',
         iconBg: 'bg-[#F2FDF0]'
     },
     {
@@ -47,7 +47,7 @@ const STATS = [
         value: 45,
         icon: CheckCircle2,
         bg: 'bg-white',
-        text: 'text-[#0E4D41]',
+        text: 'text-[#884616]',
         iconBg: 'bg-[#F2FDF0]'
     }
 ];
@@ -97,7 +97,7 @@ const Inspections: React.FC = () => {
             header: 'Title',
             accessorKey: 'title',
             sortable: true,
-            cell: (item) => <h4 className="text-[#45bfa3] font-bold text-sm">{item.title}</h4>
+            cell: (item) => <h4 className="text-[#BB8F53] font-bold text-sm">{item.title}</h4>
         },
         {
             header: 'Type',
@@ -159,7 +159,7 @@ const Inspections: React.FC = () => {
             header: 'Action',
             cell: () => (
                 <div className="flex items-center gap-2">
-                    <button className="px-4 py-1.5 bg-[#E4F2D3] text-[#0E4D41] rounded-lg text-xs font-bold hover:bg-[#d4eabc] transition-colors">
+                    <button className="px-4 py-1.5 bg-[#F1E3D3] text-[#884616] rounded-lg text-xs font-bold hover:bg-[#d4eabc] transition-colors">
                         Start
                     </button>
                     <button className="p-1 text-gray-400 hover:text-gray-600">

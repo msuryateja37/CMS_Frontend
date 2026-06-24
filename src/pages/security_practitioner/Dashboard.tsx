@@ -33,7 +33,7 @@ const STATS_DATA = [
     { id: 1, label: 'Critical', value: '46', icon: ShieldAlert, color: 'bg-red-200', borderColor: 'bg-[#b91c1c]', textColor: 'text-[#b91c1c]', iconColor: 'text-[#b91c1c]', iconBg: 'bg-white' },
     { id: 2, label: 'High Priority', value: '8', icon: Clock, color: 'bg-white', borderColor: 'bg-orange-500', textColor: 'text-orange-500', iconColor: 'text-orange-500', iconBg: 'bg-orange-50' },
     { id: 3, label: 'Under investigation', value: '12', icon: Clock, color: 'bg-white', borderColor: 'bg-blue-500', textColor: 'text-blue-600', iconColor: 'text-blue-600', iconBg: 'bg-blue-50' },
-    { id: 4, label: 'Resolution Rate', value: '89%', icon: CheckCircle2, color: 'bg-white', borderColor: 'bg-green-500', textColor: 'text-green-600', iconColor: 'text-green-600', iconBg: 'bg-green-50' },
+    { id: 4, label: 'Resolution Rate', value: '89%', icon: CheckCircle2, color: 'bg-white', borderColor: 'bg-gold-500', textColor: 'text-gold-600', iconColor: 'text-gold-600', iconBg: 'bg-gold-50' },
 ];
 
 const BAR_CHART_DATA = [
@@ -49,7 +49,7 @@ const PIE_CHART_DATA = [
     { name: 'Critical', value: 50, color: '#ef4444' },
     { name: 'High', value: 50, color: '#f97316' },
     { name: 'Medium', value: 33.3, color: '#3b82f6' },
-    { name: 'Low', value: 16.7, color: '#22c55e' },
+    { name: 'Low', value: 16.7, color: '#BB8F53' },
 ];
 
 const INCIDENTS_DATA = [
@@ -130,7 +130,7 @@ const SecurityDashboard: React.FC = () => {
             sortable: true,
             cell: (item) => (
                 <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-[#45bfa3]"></div>
+                    <div className="w-8 h-8 rounded-full bg-[#BB8F53]"></div>
                     <span className="text-sm font-medium text-gray-700">{item.incId}</span>
                 </div>
             )
@@ -204,7 +204,7 @@ const SecurityDashboard: React.FC = () => {
                                     <div className="p-5 flex-1 flex flex-col justify-between relative z-10">
                                         <div className="flex items-center gap-3">
                                             <div className={`p-1.5 rounded-full ${stat.id === 1 ? 'bg-transparent' : 'bg-transparent'} ${stat.iconColor === 'text-[#b91c1c]' ? 'text-[#b91c1c]' : 'text-gray-400'}`}>
-                                                {stat.id === 1 ? <stat.icon size={20} className={stat.iconColor} /> : <stat.icon size={18} className={stat.id === 2 ? 'text-orange-500' : stat.id === 3 ? 'text-blue-500' : 'text-green-500'} />}
+                                                {stat.id === 1 ? <stat.icon size={20} className={stat.iconColor} /> : <stat.icon size={18} className={stat.id === 2 ? 'text-orange-500' : stat.id === 3 ? 'text-blue-500' : 'text-gold-500'} />}
                                             </div>
                                             <span className={`text-sm font-semibold ${stat.id === 1 ? 'text-[#b91c1c]' : 'text-gray-500'}`}>{stat.label}</span>
                                         </div>
@@ -250,7 +250,7 @@ const SecurityDashboard: React.FC = () => {
                                         />
                                         <Bar dataKey="count" radius={[6, 6, 6, 6]} barSize={50}>
                                             {chartData.map((_entry: any, index: number) => (
-                                                <Cell key={`cell-${index}`} fill={index === chartData.length - 2 ? '#0f4c3a' : '#45bfa3'} />
+                                                <Cell key={`cell-${index}`} fill={index === chartData.length - 2 ? '#884616' : '#BB8F53'} />
                                             ))}
                                         </Bar>
                                     </BarChart>
@@ -316,7 +316,7 @@ const SecurityDashboard: React.FC = () => {
                         <input
                             type="text"
                             placeholder="Search security incidents ...."
-                            className="w-full pl-12 pr-4 py-3 rounded-xl border border-green focus:ring-1 focus:ring-green focus:border-green outline-none transition-all placeholder:text-gray-400 text-gray-700"
+                            className="w-full pl-12 pr-4 py-3 rounded-xl border border-gold focus:ring-1 focus:ring-gold focus:border-gold outline-none transition-all placeholder:text-gray-400 text-gray-700"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -333,7 +333,7 @@ const SecurityDashboard: React.FC = () => {
                                     ...SEVERITY_OPTIONS
                                 ]}
                                 placeholder="Severity"
-                                bgColor="bg-light-green"
+                                bgColor="bg-light-gold"
                             />
                         </div>
                         <div className="w-[160px]">
@@ -345,7 +345,7 @@ const SecurityDashboard: React.FC = () => {
                                     ...STATUS_OPTIONS
                                 ]}
                                 placeholder="Status"
-                                bgColor="bg-light-green"
+                                bgColor="bg-light-gold"
                             />
                         </div>
                     </div>

@@ -170,7 +170,7 @@ const StepPeopleImpact: React.FC<StepProps> = ({ data, onChange, onBack, onNext,
             cell: (person: Person) => (
                 <button
                     onClick={() => handleAddPerson(person)}
-                    className="flex items-center gap-1 text-green hover:text-dark-green font-bold text-sm"
+                    className="flex items-center gap-1 text-gold hover:text-brown font-bold text-sm"
                 >
                     <Plus size={16} /> Add
                 </button>
@@ -197,7 +197,7 @@ const StepPeopleImpact: React.FC<StepProps> = ({ data, onChange, onBack, onNext,
 
                         <div className="mb-3 bg-white px-3.5 py-2.5 rounded-xl border border-gray-100 shadow-sm flex items-center gap-2">
                             <span className="text-xs font-semibold text-gray-500">
-                                Impacted persons from: <span className="text-green font-bold">{activeProvinceName || 'selected province'}</span>
+                                Impacted persons from: <span className="text-gold font-bold">{activeProvinceName || 'selected province'}</span>
                             </span>
                         </div>
 
@@ -208,7 +208,7 @@ const StepPeopleImpact: React.FC<StepProps> = ({ data, onChange, onBack, onNext,
                                 placeholder="Search by name or email..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-green focus:border-transparent outline-none text-xs"
+                                className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-gold focus:border-transparent outline-none text-xs"
                             />
                         </div>
 
@@ -234,7 +234,7 @@ const StepPeopleImpact: React.FC<StepProps> = ({ data, onChange, onBack, onNext,
                         <div className="mt-2">
                             <button
                                 onClick={() => setShowManualEntry(!showManualEntry)}
-                                className="flex items-center gap-2 text-dark-green font-bold hover:underline text-xs"
+                                className="flex items-center gap-2 text-brown font-bold hover:underline text-xs"
                             >
                                 <UserPlus size={14} />
                                 {showManualEntry ? 'Cancel Manual Entry' : 'Add Person Manually'}
@@ -247,25 +247,25 @@ const StepPeopleImpact: React.FC<StepProps> = ({ data, onChange, onBack, onNext,
                                             placeholder="Name"
                                             value={manualName}
                                             onChange={(e) => setManualName(e.target.value)}
-                                            className="px-3 py-1.5 text-xs border rounded-lg focus:ring-2 focus:ring-green outline-none"
+                                            className="px-3 py-1.5 text-xs border rounded-lg focus:ring-2 focus:ring-gold outline-none"
                                         />
                                         <input
                                             placeholder="Phone"
                                             value={manualPhone}
                                             onChange={(e) => setManualPhone(e.target.value)}
-                                            className="px-3 py-1.5 text-xs border rounded-lg focus:ring-2 focus:ring-green outline-none"
+                                            className="px-3 py-1.5 text-xs border rounded-lg focus:ring-2 focus:ring-gold outline-none"
                                         />
                                         <input
                                             placeholder="Email"
                                             value={manualEmail}
                                             onChange={(e) => setManualEmail(e.target.value)}
-                                            className="px-3 py-1.5 text-xs border rounded-lg focus:ring-2 focus:ring-green outline-none"
+                                            className="px-3 py-1.5 text-xs border rounded-lg focus:ring-2 focus:ring-gold outline-none"
                                         />
                                     </div>
                                     <button
                                         onClick={handleManualAdd}
                                         disabled={!manualName || !manualPhone || !manualEmail}
-                                        className="px-4 py-1.5 bg-green text-white rounded-lg font-bold hover:bg-dark-green disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                                        className="px-4 py-1.5 bg-gold text-white rounded-lg font-bold hover:bg-brown disabled:opacity-50 disabled:cursor-not-allowed text-xs"
                                     >
                                         Add Person
                                     </button>
@@ -310,19 +310,14 @@ const StepPeopleImpact: React.FC<StepProps> = ({ data, onChange, onBack, onNext,
             {/* Impact Description Section */}
             <div className="mt-4">
                 <h4 className="text-xs font-bold text-gray-800 mb-1">Impact Description *</h4>
-                <p className="text-[11px] text-gray-400 mb-1.5">Provide a detailed description of the case and its impact (min 100 characters).</p>
+                <p className="text-[11px] text-gray-400 mb-1.5">Provide a detailed description of the case and its impact.</p>
                 <textarea
                     rows={3}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Describe the incident details and impact..."
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green focus:border-transparent outline-none transition-all resize-none text-xs"
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-gold focus:border-transparent outline-none transition-all resize-none text-xs"
                 />
-                <div className="text-right mt-1 text-[10px] font-bold">
-                    <span className={description.length < 100 ? 'text-red-500' : 'text-green'}>
-                        {description.length} / 100 characters minimum
-                    </span>
-                </div>
             </div>
 
             <div className="flex items-center justify-between mt-6 pt-3 border-t border-gray-100">
@@ -343,14 +338,14 @@ const StepPeopleImpact: React.FC<StepProps> = ({ data, onChange, onBack, onNext,
                 <div className="flex gap-3">
                     <button
                         onClick={onBack}
-                        className="px-5 py-1.5 bg-light-green rounded-lg font-bold text-xs"
+                        className="px-5 py-1.5 bg-light-gold rounded-lg font-bold text-xs"
                     >
                         Previous
                     </button>
                     <button
                         onClick={handleNext}
-                        disabled={description.length < 100}
-                        className="px-6 py-1.5 bg-green text-white rounded-lg font-bold shadow-sm hover:bg-[#0f766e] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed text-xs"
+                        disabled={!description.trim()}
+                        className="px-6 py-1.5 bg-gold text-white rounded-lg font-bold shadow-sm hover:bg-[#A1743E] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed text-xs"
                     >
                         Next
                     </button>

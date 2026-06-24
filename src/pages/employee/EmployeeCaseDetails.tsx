@@ -17,7 +17,7 @@ const severityConfig: Record<string, { bg: string; text: string; dot: string }> 
     critical: { bg: 'bg-subtle-red', text: 'text-brand-red', dot: 'bg-brand-red' },
     high: { bg: 'bg-orange-50', text: 'text-orange-700', dot: 'bg-orange-500' },
     medium: { bg: 'bg-light-yellow', text: 'text-yellow-800', dot: 'bg-brand-yellow' },
-    low: { bg: 'bg-light-green', text: 'text-dark-green', dot: 'bg-green' },
+    low: { bg: 'bg-light-gold', text: 'text-brown', dot: 'bg-[#21FC95]' },
 };
 
 const normalizeRoleName = (role?: string): string => {
@@ -75,7 +75,7 @@ const EmployeeCaseDetails: React.FC = () => {
         return (
             <DashboardLayout title="Case Details" description="Loading..." breadcrumbs={[{ label: "Dashboard" }, { label: "Case Details" }]}>
                 <div className="flex items-center justify-center h-96">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div>
                 </div>
             </DashboardLayout>
         );
@@ -269,7 +269,7 @@ const EmployeeCaseDetails: React.FC = () => {
                                             <div key={role}>
                                                 <div className="flex items-center gap-2 mb-3">
                                                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${role === 'Employee' ? 'bg-blue-50 text-blue-700' :
-                                                        role === 'Supervisor' ? 'bg-light-green text-dark-green' :
+                                                        role === 'Supervisor' ? 'bg-light-gold text-brown' :
                                                             'bg-gray-100 text-gray-600'
                                                         }`}>
                                                         {role}
@@ -283,13 +283,13 @@ const EmployeeCaseDetails: React.FC = () => {
                                                             href={file.fileUrl?.match(/^\s*(javascript|data|vbscript):/i) ? '#' : file.fileUrl}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-green/30 hover:shadow-sm transition-all group"
+                                                            className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-gold/30 hover:shadow-sm transition-all group"
                                                         >
-                                                            <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center border border-gray-100 text-gray-400 group-hover:text-green shrink-0">
+                                                            <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center border border-gray-100 text-gray-400 group-hover:text-gold shrink-0">
                                                                 <FileText size={18} />
                                                             </div>
                                                             <div className="overflow-hidden">
-                                                                <p className="text-sm font-medium text-gray-700 truncate group-hover:text-green">
+                                                                <p className="text-sm font-medium text-gray-700 truncate group-hover:text-gold">
                                                                     {file.fileName || `Attachment ${idx + 1}`}
                                                                 </p>
                                                                 <p className="text-xs text-gray-400 uppercase">{file.fileType?.split('/')[1] || 'FILE'}</p>
@@ -382,7 +382,7 @@ const EmployeeCaseDetails: React.FC = () => {
                         {/* Timeline Card */}
                         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
                             <div className="flex items-center gap-2 mb-5">
-                                <Clock size={16} className="text-green" />
+                                <Clock size={16} className="text-gold" />
                                 <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Timeline</h3>
                             </div>
 
@@ -397,7 +397,7 @@ const EmployeeCaseDetails: React.FC = () => {
                                                 activity.type === 'ASSIGNED' ? 'bg-purple-500' :
                                                     activity.type === 'UNDER_REVIEW' ? 'bg-amber-400' :
                                                         activity.type === 'CLOSED' || activity.type === 'RESOLVED' ? 'bg-gray-400' :
-                                                            'bg-green';
+                                                            'bg-gold';
 
                                         return (
                                             <div key={index} className="relative pl-6">
@@ -454,14 +454,14 @@ const EmployeeCaseDetails: React.FC = () => {
                                             value={comment}
                                             onChange={(e) => setComment(e.target.value)}
                                             placeholder="Add a comment or note..."
-                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green/30 focus:border-green resize-none"
+                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold resize-none"
                                             rows={3}
                                         />
                                         <div className="flex justify-end mt-2">
                                             <button
                                                 onClick={handleAddComment}
                                                 disabled={!comment.trim() || submittingComment}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-brown text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 {submittingComment ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
                                                 Add Comment

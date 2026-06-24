@@ -33,8 +33,8 @@ const InvoiceStepper: React.FC<InvoiceStepperProps> = ({ currentStep, steps = DE
                             <div
                                 className={clsx(
                                     'w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300',
-                                    isCompleted && 'bg-dark-green text-white',
-                                    isCurrent && 'bg-dark-green text-white ring-4 ring-dark-green/20',
+                                    isCompleted && 'bg-brown text-white',
+                                    isCurrent && 'bg-brown text-white ring-4 ring-brown/20',
                                     isUpcoming && 'bg-gray-200 text-gray-500'
                                 )}
                             >
@@ -43,7 +43,7 @@ const InvoiceStepper: React.FC<InvoiceStepperProps> = ({ currentStep, steps = DE
                             <span
                                 className={clsx(
                                     'text-xs font-semibold whitespace-nowrap',
-                                    (isCompleted || isCurrent) ? 'text-dark-green' : 'text-gray-400'
+                                    (isCompleted || isCurrent) ? 'text-brown' : 'text-gray-400'
                                 )}
                             >
                                 {step.label}
@@ -55,7 +55,7 @@ const InvoiceStepper: React.FC<InvoiceStepperProps> = ({ currentStep, steps = DE
                                     <div
                                         className={clsx(
                                             'h-full rounded-full transition-all duration-500',
-                                            isCompleted ? 'bg-dark-green w-full' : 'w-0'
+                                            isCompleted ? 'bg-brown w-full' : 'w-0'
                                         )}
                                     />
                                 </div>

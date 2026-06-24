@@ -201,7 +201,7 @@ const EquipmentInventory: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="p-6 rounded-2xl shadow-sm border border-gray-100 bg-white group hover:shadow-md transition-all">
                         <div className="flex justify-between items-start">
-                            <div className="p-2 rounded-lg bg-teal-50 text-teal-600">
+                            <div className="p-2 rounded-lg bg-gold-50 text-gold-600">
                                 <Box size={20} />
                             </div>
                         </div>
@@ -212,7 +212,7 @@ const EquipmentInventory: React.FC = () => {
                     </div>
                     <div className="p-6 rounded-2xl shadow-sm border border-gray-100 bg-white group hover:shadow-md transition-all">
                         <div className="flex justify-between items-start">
-                            <div className="p-2 rounded-lg bg-[#E4F2D3] text-[#0E4D41]">
+                            <div className="p-2 rounded-lg bg-[#F1E3D3] text-[#884616]">
                                 <CheckCircle2 size={20} />
                             </div>
                         </div>
@@ -280,7 +280,7 @@ const EquipmentInventory: React.FC = () => {
                                 onChange={setCategoryFilter}
                                 options={CATEGORY_OPTIONS}
                                 placeholder="Category"
-                                bgColor="bg-light-green"
+                                bgColor="bg-light-gold"
                             />
                         </div>
                         <div className="w-44">
@@ -289,7 +289,7 @@ const EquipmentInventory: React.FC = () => {
                                 onChange={setStatusFilter}
                                 options={STATUS_OPTIONS}
                                 placeholder="Status"
-                                bgColor="bg-light-green"
+                                bgColor="bg-light-gold"
                             />
                         </div>
                     </div>

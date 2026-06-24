@@ -27,15 +27,15 @@ const SeverityOption: React.FC<SeverityOptionProps> = ({ label, isSelected, onCl
             dotBg: 'bg-yellow',
             dotBorder: 'border-yellow/30'
         },
-        green: {
-            bg: 'bg-subtle-green',
-            border: 'border-green/20',
-            dotBg: 'bg-green',
-            dotBorder: 'border-green/30'
+        gold: {
+            bg: 'bg-subtle-gold',
+            border: 'border-gold/20',
+            dotBg: 'bg-gold',
+            dotBorder: 'border-gold/30'
         }
     };
 
-    const activeClasses = colorClasses[activeColor] || colorClasses.green;
+    const activeClasses = colorClasses[activeColor] || colorClasses.gold;
 
     return (
         <button
@@ -48,7 +48,7 @@ const SeverityOption: React.FC<SeverityOptionProps> = ({ label, isSelected, onCl
         >
             <span className={` text-[12px] ${isSelected ? 'text-gray-900' : 'text-gray-600'}`}>{label}</span>
             <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected
-                ? `${activeClasses.dotBorder} ${activeColor === 'red' ? 'bg-red/20' : activeColor === 'orange' ? 'bg-orange-200' : activeColor === 'yellow' ? 'bg-yellow/20' : 'bg-green/20'}`
+                ? `${activeClasses.dotBorder} ${activeColor === 'red' ? 'bg-red/20' : activeColor === 'orange' ? 'bg-orange-200' : activeColor === 'yellow' ? 'bg-yellow/20' : 'bg-gold/20'}`
                 : 'border-gray-200 '
                 }`}>
                 {isSelected && <div className={`w-3 h-3 rounded-full ${activeClasses.dotBg}`} />}

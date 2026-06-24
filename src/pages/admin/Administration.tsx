@@ -22,7 +22,7 @@ const USERS = [
         province: 'Gauteng',
         lastLogin: '2024-01-23 14:33',
         status: 'Active',
-        avatar: 'bg-[#45bfa3]'
+        avatar: 'bg-[#BB8F53]'
     },
     {
         id: 'EMP-0178',
@@ -33,7 +33,7 @@ const USERS = [
         province: 'Gauteng',
         lastLogin: '2024-01-23 17:43',
         status: 'Active',
-        avatar: 'bg-[#45bfa3]'
+        avatar: 'bg-[#BB8F53]'
     },
     {
         id: 'EMP-0312',
@@ -44,7 +44,7 @@ const USERS = [
         province: 'Western Cape',
         lastLogin: '--',
         status: 'Inactive',
-        avatar: 'bg-[#45bfa3]'
+        avatar: 'bg-[#BB8F53]'
     },
     {
         id: 'EMP-0115',
@@ -55,7 +55,7 @@ const USERS = [
         province: 'Eastern Cape',
         lastLogin: '2024-01-23 17:43',
         status: 'Active',
-        avatar: 'bg-[#45bfa3]'
+        avatar: 'bg-[#BB8F53]'
     },
     {
         id: 'EMP-0289',
@@ -66,7 +66,7 @@ const USERS = [
         province: 'Western Cape',
         lastLogin: '2024-01-23 17:43',
         status: 'Active',
-        avatar: 'bg-[#45bfa3]'
+        avatar: 'bg-[#BB8F53]'
     },
     {
         id: 'EMP-0956',
@@ -77,7 +77,7 @@ const USERS = [
         province: 'Limpopo',
         lastLogin: '2024-01-23 17:43',
         status: 'Active',
-        avatar: 'bg-[#45bfa3]'
+        avatar: 'bg-[#BB8F53]'
     },
     {
         id: 'EMP-0291',
@@ -88,7 +88,7 @@ const USERS = [
         province: 'Kwa-Zulu Natal',
         lastLogin: '2024-01-23 17:43',
         status: 'Active',
-        avatar: 'bg-[#45bfa3]'
+        avatar: 'bg-[#BB8F53]'
     },
     {
         id: 'EMP-0275',
@@ -99,7 +99,7 @@ const USERS = [
         province: 'North West',
         lastLogin: '--',
         status: 'Inactive',
-        avatar: 'bg-[#45bfa3]'
+        avatar: 'bg-[#BB8F53]'
     },
     {
         id: 'EMP-0159',
@@ -110,7 +110,7 @@ const USERS = [
         province: 'Mpumalanga',
         lastLogin: '2024-01-23 17:43',
         status: 'Active',
-        avatar: 'bg-[#45bfa3]'
+        avatar: 'bg-[#BB8F53]'
     },
     {
         id: 'EMP-0320',
@@ -121,7 +121,7 @@ const USERS = [
         province: 'Free State',
         lastLogin: '2024-01-23 17:43',
         status: 'Active',
-        avatar: 'bg-[#45bfa3]'
+        avatar: 'bg-[#BB8F53]'
     }
 ];
 
@@ -280,7 +280,7 @@ const Administration: React.FC = () => {
                                 onChange={setRoleFilter}
                                 options={ROLE_OPTIONS}
                                 placeholder="Role"
-                                bgColor="bg-light-green"
+                                bgColor="bg-light-gold"
                             />
                         </div>
                         <button className="flex items-center gap-2 py-3 px-6 bg-[#004D40] text-white rounded-xl text-sm font-bold hover:bg-[#00382e] transition-colors whitespace-nowrap">

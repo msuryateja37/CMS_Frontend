@@ -30,8 +30,8 @@ const STATS = [
         change: '16.7%',
         trend: 'up',
         icon: AlertCircle,
-        bg: 'bg-[#E4F2D3]',
-        text: 'text-[#0E4D41]',
+        bg: 'bg-[#F1E3D3]',
+        text: 'text-[#884616]',
         iconBg: 'bg-white/60'
     },
     {
@@ -41,7 +41,7 @@ const STATS = [
         trend: 'down',
         icon: Calendar,
         bg: 'bg-white',
-        text: 'text-[#0E4D41]',
+        text: 'text-[#884616]',
         iconBg: 'bg-[#F2FDF0]'
     },
     {
@@ -51,7 +51,7 @@ const STATS = [
         trend: 'up',
         icon: FileText,
         bg: 'bg-white',
-        text: 'text-[#0E4D41]',
+        text: 'text-[#884616]',
         iconBg: 'bg-[#F2FDF0]'
     },
     {
@@ -61,7 +61,7 @@ const STATS = [
         trend: 'up',
         icon: CheckCircle2,
         bg: 'bg-white',
-        text: 'text-[#0E4D41]',
+        text: 'text-[#884616]',
         iconBg: 'bg-[#F2FDF0]'
     }
 ];
@@ -168,7 +168,7 @@ const KPIDashboard: React.FC = () => {
             header: '',
             accessorKey: 'id',
             cell: () => (
-                <div className="w-8 h-8 rounded-full bg-[#45bfa3] flex items-center justify-center text-white text-[10px] font-bold">
+                <div className="w-8 h-8 rounded-full bg-[#BB8F53] flex items-center justify-center text-white text-[10px] font-bold">
                 </div>
             ),
             className: "w-10"
@@ -260,7 +260,7 @@ const KPIDashboard: React.FC = () => {
                     {stats.map((stat, idx) => (
                         <div key={idx} className={clsx("p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between h-36 relative overflow-hidden group hover:shadow-md transition-all", stat.bg)}>
                             <div className="flex justify-between items-start z-10">
-                                <div className={clsx("flex items-center gap-2 px-2 py-1 rounded-lg text-xs font-bold text-[#0E4D41]")}>
+                                <div className={clsx("flex items-center gap-2 px-2 py-1 rounded-lg text-xs font-bold text-[#884616]")}>
                                     <div className={clsx("p-1.5 rounded-lg", stat.iconBg)}>
                                         <stat.icon size={16} className={clsx(stat.text)} />
                                     </div>
@@ -273,7 +273,7 @@ const KPIDashboard: React.FC = () => {
                                     {stat.value}
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-[#E4F2D3] text-[#0E4D41] flex items-center gap-0.5">
+                                    <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-[#F1E3D3] text-[#884616] flex items-center gap-0.5">
                                         {stat.change}
                                     </span>
                                     <span className="text-xs text-gray-400">from last month</span>
@@ -310,7 +310,7 @@ const KPIDashboard: React.FC = () => {
                                     <Tooltip
                                         contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                                     />
-                                    <Line type="monotone" dataKey="value1" stroke="#45bfa3" strokeWidth={2} dot={false} activeDot={{ r: 6 }} />
+                                    <Line type="monotone" dataKey="value1" stroke="#BB8F53" strokeWidth={2} dot={false} activeDot={{ r: 6 }} />
                                     <Line type="monotone" dataKey="value2" stroke="#004D40" strokeWidth={2} dot={false} />
                                     <Line type="monotone" dataKey="value3" stroke="#FBBF24" strokeWidth={2} dot={false} />
                                 </LineChart>
@@ -325,7 +325,7 @@ const KPIDashboard: React.FC = () => {
                                 <div key={idx} className="space-y-1.5">
                                     <div className="flex justify-between items-end text-xs">
                                         <span className="font-bold text-gray-700">{prov.name}</span>
-                                        <span className="font-bold text-[#45bfa3]">{prov.score}%</span>
+                                        <span className="font-bold text-[#BB8F53]">{prov.score}%</span>
                                     </div>
                                     <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
                                         <div

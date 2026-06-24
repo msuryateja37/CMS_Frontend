@@ -21,29 +21,29 @@ interface SummaryCardProps {
     label: string;
     value: string | number;
     change: string;
-    color: 'green' | 'red' | 'blue' | 'light-green';
+    color: 'gold' | 'red' | 'blue' | 'light-gold';
 }
 
 const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, label, value, change, color }) => {
     const colorClasses = {
-        green: 'text-green-600 bg-green-50 border-green-200',
+        gold: 'text-gold-600 bg-gold-50 border-gold-200',
         red: 'text-red-600 bg-red-50 border-red-200',
         blue: 'text-blue-600 bg-blue-50 border-blue-200',
-        'light-green': 'text-emerald-600 bg-emerald-50 border-emerald-200',
+        'light-gold': 'text-gold-600 bg-gold-50 border-gold-200',
     };
 
     const bottomBarClasses = {
-        green: 'bg-green-500',
+        gold: 'bg-gold-500',
         red: 'bg-red-500',
         blue: 'bg-blue-500',
-        'light-green': 'bg-emerald-500',
+        'light-gold': 'bg-gold-500',
     };
 
     const valueClasses = {
-        green: 'text-gray-800',
+        gold: 'text-gray-800',
         red: 'text-red-500',
         blue: 'text-gray-800',
-        'light-green': 'text-gray-800',
+        'light-gold': 'text-gray-800',
     };
 
     return (
@@ -57,7 +57,7 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, label, value, cha
                 </div>
                 <div className="flex flex-col">
                     <span className={clsx("text-3xl font-bold", valueClasses[color])}>{value}</span>
-                    <span className="text-xs font-semibold text-green-500 mt-1">{change} <span className="text-gray-400 font-normal">from last month</span></span>
+                    <span className="text-xs font-semibold text-gold-500 mt-1">{change} <span className="text-gray-400 font-normal">from last month</span></span>
                 </div>
             </div>
             <div className={clsx("h-1.5 w-full", bottomBarClasses[color])}></div>
@@ -130,7 +130,7 @@ const InvoiceInbox: React.FC = () => {
             sortable: true,
             cell: (item) => (
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-green flex-shrink-0"></div>
+                    <div className="w-10 h-10 rounded-full bg-gold flex-shrink-0"></div>
                     <span className="text-[13px] font-medium text-gray-700">{item.id}</span>
                 </div>
             )
@@ -173,7 +173,7 @@ const InvoiceInbox: React.FC = () => {
                 <div className="w-32">
                     <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
                         <div
-                            className="h-full bg-dark-green rounded-full transition-all duration-500"
+                            className="h-full bg-brown rounded-full transition-all duration-500"
                             style={{ width: `${item.progress}%` }}
                         ></div>
                     </div>
@@ -217,7 +217,7 @@ const InvoiceInbox: React.FC = () => {
                         label="Pending Approval"
                         value={invoices.filter(i => i.status === 'Pending Approval' || i.status === 'RECEIVED').length}
                         change="-"
-                        color="green"
+                        color="gold"
                     />
                     <SummaryCard
                         icon={Calendar}
@@ -244,20 +244,20 @@ const InvoiceInbox: React.FC = () => {
                         label="Paid / Approved"
                         value={invoices.filter(i => i.status === 'Paid' || i.status === 'Approved').length}
                         change="-"
-                        color="light-green"
+                        color="light-gold"
                     />
                 </div>
 
                 {/* Search and Filters */}
                 <div className="flex flex-col md:flex-row gap-4 items-center">
                     <div className="relative flex-1 group">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-green transition-colors" size={20} />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gold transition-colors" size={20} />
                         <input
                             type="text"
                             placeholder="Search invoices by ID, vendor, or description ...."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green/20 focus:border-green transition-all shadow-sm"
+                            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold/20 focus:border-gold transition-all shadow-sm"
                         />
                     </div>
                     <div className="flex gap-3 w-full md:w-auto">
@@ -267,7 +267,7 @@ const InvoiceInbox: React.FC = () => {
                                 onChange={setStatusFilter}
                                 options={STATUS_CHOICES}
                                 placeholder="All statuses"
-                                bgColor="bg-light-green"
+                                bgColor="bg-light-gold"
                             />
                         </div>
                     </div>

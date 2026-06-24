@@ -40,10 +40,10 @@ const IncidentManagement: React.FC = () => {
     const closedCount = cases.filter(c => c.status === 'CLOSED').length;
 
     const stats = [
-        { label: 'Open', count: openCount, icon: Package, iconBg: 'bg-subtle-green', iconColor: 'text-green', percentage: '4.7%' },
+        { label: 'Open', count: openCount, icon: Package, iconBg: 'bg-subtle-gold', iconColor: 'text-gold', percentage: '4.7%' },
         { label: 'In progress', count: inProgressCount, icon: CheckCircle2, iconBg: 'bg-blue-50', iconColor: 'text-blue-500', showBottomBar: true, barColor: 'bg-blue-500' },
         { label: 'Critical', count: criticalCount, icon: FileText, iconBg: 'bg-subtle-red', iconColor: 'text-brand-red', showBottomBar: true, barColor: 'bg-brand-red' },
-        { label: 'Closed (MTD)', count: closedCount, icon: AlertCircle, iconBg: 'bg-teal-50', iconColor: 'text-teal-500', showBottomBar: true, barColor: 'bg-teal-500' },
+        { label: 'Closed (MTD)', count: closedCount, icon: AlertCircle, iconBg: 'bg-gold-50', iconColor: 'text-gold-500', showBottomBar: true, barColor: 'bg-gold-500' },
     ];
 
     // Map database status to component-expected values
@@ -123,11 +123,11 @@ const IncidentManagement: React.FC = () => {
             sortable: true,
             cell: (item) => (
                 <div className="flex items-center gap-3 w-48">
-                    {/* <div className="w-8 h-8 rounded-full bg-green/20 flex items-center justify-center">
-                        <div className="w-4 h-4 rounded-full bg-green"></div>
+                    {/* <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center">
+                        <div className="w-4 h-4 rounded-full bg-gold"></div>
                     </div> */}
-                    <div className="w-8 h-8 rounded-full bg-[#45bfa3]"></div>
-                    <span className="font-bold text-dark-green text-sm">{item.refId}</span>
+                    <div className="w-8 h-8 rounded-full bg-[#BB8F53]"></div>
+                    <span className="font-bold text-brown text-sm">{item.refId}</span>
                 </div>
             )
         },
@@ -171,7 +171,7 @@ const IncidentManagement: React.FC = () => {
             accessorKey: 'assigned',
             cell: (item) => (
                 <div className="flex items-center gap-2">
-                    <div className=" p-2 rounded w-32 bg-semi-subtle-grey flex items-center justify-center text-xs font-bold text-dark-green shadow-sm">
+                    <div className=" p-2 rounded w-32 bg-semi-subtle-grey flex items-center justify-center text-xs font-bold text-brown shadow-sm">
                         {item.assigned}
                     </div>
 
@@ -197,7 +197,7 @@ const IncidentManagement: React.FC = () => {
                 <div className="flex justify-end -mt-20">
                     <button
                         onClick={() => navigate('/ohs/report-incident')}
-                        className="flex items-center gap-2 px-6 mt-14 py-3 bg-green text-white rounded-xl font-bold shadow-lg shadow-green/20 hover:bg-[#2aa88d] transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+                        className="flex items-center gap-2 px-6 mt-14 py-3 bg-gold text-white rounded-xl font-bold shadow-lg shadow-gold/20 hover:bg-[#2aa88d] transition-all transform hover:-translate-y-0.5 active:translate-y-0"
                     >
                         <Plus size={20} />
                         Report Incident
@@ -223,7 +223,7 @@ const IncidentManagement: React.FC = () => {
                                 setSearchQuery(e.target.value);
                                 setCurrentPage(1); // Reset to first page on search
                             }}
-                            className="w-full pl-12 pr-4 py-3.5 bg-white border border-semi-subtle-grey rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-green/20 transition-all shadow-sm"
+                            className="w-full pl-12 pr-4 py-3.5 bg-white border border-semi-subtle-grey rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-gold/20 transition-all shadow-sm"
                         />
                     </div>
 
@@ -240,7 +240,7 @@ const IncidentManagement: React.FC = () => {
                                     ...PROVINCES.map(p => ({ value: p, label: p }))
                                 ]}
                                 placeholder="All provinces"
-                                bgColor="bg-light-green"
+                                bgColor="bg-light-gold"
                             />
                         </div>
                         <div className="w-[160px]">
@@ -255,7 +255,7 @@ const IncidentManagement: React.FC = () => {
                                     ...STATUS_OPTIONS
                                 ]}
                                 placeholder="All statuses"
-                                bgColor="bg-light-green"
+                                bgColor="bg-light-gold"
                             />
                         </div>
                         <div className="w-[160px]">
@@ -270,7 +270,7 @@ const IncidentManagement: React.FC = () => {
                                     ...SEVERITY_OPTIONS
                                 ]}
                                 placeholder="All severities"
-                                bgColor="bg-light-green"
+                                bgColor="bg-light-gold"
                             />
                         </div>
                     </div>

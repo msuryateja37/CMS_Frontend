@@ -14,7 +14,7 @@ const severityLevels = [
     { id: 'critical', label: 'Critical', color: 'red' },
     { id: 'high', label: 'High', color: 'orange' },
     { id: 'medium', label: 'Medium', color: 'yellow' },
-    { id: 'low', label: 'Low', color: 'green' },
+    { id: 'low', label: 'Low', color: 'gold' },
 ];
 
 const genericImmediateActions = [
@@ -236,7 +236,7 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ data, onChange, onBack, o
                             value={locationDesc}
                             onChange={(e) => setLocationDesc(e.target.value)}
                             placeholder={isSecurityBreach ? "Floor and Area (Optional)" : "Floor, room, number, area description"}
-                            className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0D9488] focus:border-transparent outline-none transition-all mb-3 text-xs font-medium"
+                            className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#BB8F53] focus:border-transparent outline-none transition-all mb-3 text-xs font-medium"
                         />
 
                         {/* Interactive Map */}
@@ -301,7 +301,7 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ data, onChange, onBack, o
                                     onChange={(e) => setOtherActions(e.target.value)}
                                     placeholder="Please describe the other immediate actions taken..."
                                     disabled={!selectedActions.includes('other')}
-                                    className={`w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0D9488] focus:border-transparent outline-none transition-all resize-none text-xs ${!selectedActions.includes('other') ? 'opacity-50 cursor-not-allowed bg-gray-100' : ''}`}
+                                    className={`w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#BB8F53] focus:border-transparent outline-none transition-all resize-none text-xs ${!selectedActions.includes('other') ? 'opacity-50 cursor-not-allowed bg-gray-100' : ''}`}
                                 />
                             </div>
                         </>
@@ -329,14 +329,14 @@ const StepBasicInfo: React.FC<StepBasicInfoProps> = ({ data, onChange, onBack, o
                     <div className="flex gap-3">
                         <button
                             onClick={onBack}
-                            className="px-5 py-1.5 bg-light-green rounded-lg font-bold text-xs"
+                            className="px-5 py-1.5 bg-light-gold rounded-lg font-bold text-xs"
                         >
                             Previous
                         </button>
                         <button
                             onClick={handleNext}
                             disabled={!isFormValid()}
-                            className="px-6 py-1.5 bg-green text-white rounded-lg font-bold shadow-sm transition-colors disabled:cursor-not-allowed disabled:bg-gray-300 text-xs"
+                            className="px-6 py-1.5 bg-gold text-white rounded-lg font-bold shadow-sm transition-colors disabled:cursor-not-allowed disabled:bg-gray-300 text-xs"
                         >
                             Next
                         </button>

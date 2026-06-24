@@ -183,7 +183,7 @@ export function ReportBreach() {
                     className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg transition-all duration-300 z-10 ${step === s.id
                       ? 'bg-[#1F2937] text-white ring-4 ring-gray-100'
                       : step > s.id
-                        ? 'bg-[#0D9488] text-white'
+                        ? 'bg-[#BB8F53] text-white'
                         : 'bg-[#E5E7EB] text-white'
                       }`}
                   >
@@ -199,7 +199,7 @@ export function ReportBreach() {
                 {idx < steps.length - 1 && (
                   <div className="w-16 lg:w-20 h-[2px] bg-[#E5E7EB] mx-0 mt-[-2px] z-0">
                     <div
-                      className="h-full bg-[#0D9488] transition-all duration-500"
+                      className="h-full bg-[#BB8F53] transition-all duration-500"
                       style={{ width: step > s.id ? '100%' : '0%' }}
                     />
                   </div>

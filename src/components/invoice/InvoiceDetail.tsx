@@ -34,7 +34,7 @@ const InvoiceDetail: React.FC<InvoiceDetailProps> = ({ invoice, basePath }) => {
             <div className="flex items-center justify-between">
                 <button
                     onClick={() => navigate(basePath)}
-                    className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-dark-green transition-colors"
+                    className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-brown transition-colors"
                 >
                     <ArrowLeft size={18} />
                     Back to Invoices
@@ -46,8 +46,8 @@ const InvoiceDetail: React.FC<InvoiceDetailProps> = ({ invoice, basePath }) => {
             <div className="bg-white rounded-2xl border border-gray-200 p-6">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-light-green rounded-xl flex items-center justify-center">
-                            <FileText size={22} className="text-dark-green" />
+                        <div className="w-12 h-12 bg-light-gold rounded-xl flex items-center justify-center">
+                            <FileText size={22} className="text-brown" />
                         </div>
                         <div>
                             <h2 className="text-lg font-bold text-gray-900">Invoice #{invoice.invoiceNumber}</h2>
@@ -56,7 +56,7 @@ const InvoiceDetail: React.FC<InvoiceDetailProps> = ({ invoice, basePath }) => {
                     </div>
                     <div className="text-right">
                         <p className="text-xs text-gray-500">Total Amount</p>
-                        <p className="text-2xl font-bold text-dark-green">
+                        <p className="text-2xl font-bold text-brown">
                             R {invoice.totalAmount.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}
                         </p>
                     </div>
@@ -85,7 +85,7 @@ const InvoiceDetail: React.FC<InvoiceDetailProps> = ({ invoice, basePath }) => {
                         </button>
                         <button
                             onClick={() => setActiveStep(Math.min(4, activeStep + 1))}
-                            className="flex items-center gap-2 px-6 py-3 bg-dark-green text-white text-sm font-bold rounded-xl hover:bg-dark-green/90 transition-all shadow-sm"
+                            className="flex items-center gap-2 px-6 py-3 bg-brown text-white text-sm font-bold rounded-xl hover:bg-brown/90 transition-all shadow-sm"
                         >
                             {activeStep === 3 ? 'Next: Sign-Offs' : activeStep === 2 ? 'Next: BAS Allocation' : 'Next: Utilities'}
                             <span>→</span>

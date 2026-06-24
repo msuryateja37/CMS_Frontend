@@ -57,7 +57,7 @@ const Login: React.FC = () => {
     return (
         <div className="flex h-screen w-full overflow-hidden">
             {/* Left Side */}
-            <div className="hidden lg:flex w-1/2 bg-[#0f4c3a] flex-col items-center justify-center text-white p-8 relative overflow-hidden">
+            <div className="hidden lg:flex w-1/2 bg-[#884616] flex-col items-center justify-center text-white p-8 relative overflow-hidden">
                 {/* Background Pattern elements could go here */}
                 <div className=" bottom-0 right-0 opacity-10">
                     <img src="/sidebar_logo.png" alt="" className="w-96 h-96 bottom-[-10%] right-[-10%] absolute" />
@@ -108,7 +108,7 @@ const Login: React.FC = () => {
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
                                 disabled={loading}
-                                className="w-full px-3.5 py-2 rounded-lg bg-gray-50 border border-gray-200 focus:border-green-700 focus:ring-1 focus:ring-green-700 outline-none text-xs transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full px-3.5 py-2 rounded-lg bg-gray-50 border border-gray-200 focus:border-gold-700 focus:ring-1 focus:ring-gold-700 outline-none text-xs transition disabled:opacity-50 disabled:cursor-not-allowed"
                                 placeholder="Enter your email"
                             />
                         </div>
@@ -121,14 +121,14 @@ const Login: React.FC = () => {
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
                                 disabled={loading}
-                                className="w-full px-3.5 py-2 rounded-lg bg-gray-50 border border-gray-200 focus:border-green-700 focus:ring-1 focus:ring-green-700 outline-none text-xs transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full px-3.5 py-2 rounded-lg bg-gray-50 border border-gray-200 focus:border-gold-700 focus:ring-1 focus:ring-gold-700 outline-none text-xs transition disabled:opacity-50 disabled:cursor-not-allowed"
                                 placeholder="Enter your password"
                             />
                         </div>
 
                         <div className="flex items-center justify-between">
                             <label className="flex items-center">
-                                <input type="checkbox" className="form-checkbox h-3.5 w-3.5 text-green-700 rounded border-gray-300 focus:ring-green-700" />
+                                <input type="checkbox" className="form-checkbox h-3.5 w-3.5 text-gold-700 rounded border-gray-300 focus:ring-gold-700" />
                                 <span className="ml-2 text-xs text-gray-600">Remember Me</span>
                             </label>
                         </div>
@@ -136,7 +136,7 @@ const Login: React.FC = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-[#0f4c3a] text-white font-bold py-2.5 px-4 rounded-lg text-xs hover:bg-green-800 transition duration-300 shadow-md transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                            className="w-full bg-[#884616] text-white font-bold py-2.5 px-4 rounded-lg text-xs hover:bg-gold-800 transition duration-300 shadow-md transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                         >
                             {loading ? 'Signing In...' : 'Log In'}
                         </button>
@@ -144,7 +144,7 @@ const Login: React.FC = () => {
 
                     <div className="mt-4 text-center">
                         <p className="text-xs text-gray-500">
-                            Having trouble signing in? <a href="#" className="text-[#0f4c3a] font-semibold hover:underline">Contact IT Support</a>
+                            Having trouble signing in? <a href="#" className="text-[#884616] font-semibold hover:underline">Contact IT Support</a>
                         </p>
                     </div>
 

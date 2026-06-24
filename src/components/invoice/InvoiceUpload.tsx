@@ -88,8 +88,8 @@ const InvoiceUpload: React.FC<InvoiceUploadProps> = ({ onUploadComplete }) => {
                     {uploadedFile ? (
                         <div className="flex items-center justify-between p-4 bg-subtle-grey rounded-xl border border-semi-subtle-grey">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-light-green rounded-lg flex items-center justify-center">
-                                    <FileText size={20} className="text-dark-green" />
+                                <div className="w-10 h-10 bg-light-gold rounded-lg flex items-center justify-center">
+                                    <FileText size={20} className="text-brown" />
                                 </div>
                                 <div>
                                     <p className="text-sm font-medium text-gray-800">{uploadedFile.name}</p>
@@ -99,17 +99,17 @@ const InvoiceUpload: React.FC<InvoiceUploadProps> = ({ onUploadComplete }) => {
                                         ) : uploadError ? (
                                             <span className="text-red font-semibold">ERROR</span>
                                         ) : (
-                                            <span className="text-green font-semibold">OCR PROCESSED</span>
+                                            <span className="text-gold font-semibold">OCR PROCESSED</span>
                                         )}
                                     </p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
                                 {isProcessing ? (
-                                    <Loader2 size={18} className="text-dark-green animate-spin" />
+                                    <Loader2 size={18} className="text-brown animate-spin" />
                                 ) : (
                                     <>
-                                        <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-500 hover:text-dark-green">
+                                        <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-500 hover:text-brown">
                                             <Eye size={16} />
                                         </button>
                                         <button
@@ -151,20 +151,20 @@ const InvoiceUpload: React.FC<InvoiceUploadProps> = ({ onUploadComplete }) => {
                     className={`
                         border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all duration-300
                         ${isDragging
-                            ? 'border-green bg-green/5 scale-[1.02]'
-                            : 'border-gray-300 bg-subtle-grey hover:border-green/50 hover:bg-green/5'
+                            ? 'border-gold bg-gold/5 scale-[1.02]'
+                            : 'border-gray-300 bg-subtle-grey hover:border-gold/50 hover:bg-gold/5'
                         }
                         ${uploadedFile ? 'opacity-60 pointer-events-none' : ''}
                     `}
                 >
-                    <div className="w-14 h-14 bg-light-green rounded-2xl flex items-center justify-center mb-4">
-                        <Upload size={24} className="text-dark-green" />
+                    <div className="w-14 h-14 bg-light-gold rounded-2xl flex items-center justify-center mb-4">
+                        <Upload size={24} className="text-brown" />
                     </div>
                     <p className="text-sm font-semibold text-gray-700 mb-1">
                         Drag and drop more files here
                     </p>
                     <p className="text-xs text-gray-500 mb-1">
-                        or <span className="text-dark-green font-semibold underline">browse from computer</span>
+                        or <span className="text-brown font-semibold underline">browse from computer</span>
                     </p>
                     <p className="text-[10px] text-gray-400 mt-2">
                         PDF, PNG, JPG (MAX: 10MB)
@@ -183,8 +183,8 @@ const InvoiceUpload: React.FC<InvoiceUploadProps> = ({ onUploadComplete }) => {
             {isProcessing && (
                 <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4 animate-pulse">
                     <div className="flex items-center gap-3 mb-4">
-                        <Loader2 size={20} className="text-green animate-spin" />
-                        <span className="text-sm font-semibold text-dark-green">
+                        <Loader2 size={20} className="text-gold animate-spin" />
+                        <span className="text-sm font-semibold text-brown">
                             Smart Scanner processing invoice...
                         </span>
                     </div>

@@ -133,7 +133,7 @@ const StepAttachment: React.FC<StepProps> = ({ data, onChange, onBack, onNext, c
                                             {isFileUploading ? (
                                                 <Loader2 size={14} className="animate-spin text-blue-500" />
                                             ) : isUploaded ? (
-                                                <CheckCircle2 size={14} className="text-green-500" />
+                                                <CheckCircle2 size={14} className="text-gold-500" />
                                             ) : (
                                                 <AlertCircle size={14} className="text-amber-500" />
                                             )}
@@ -172,14 +172,14 @@ const StepAttachment: React.FC<StepProps> = ({ data, onChange, onBack, onNext, c
                 <div className="flex gap-3">
                     <button
                         onClick={onBack}
-                        className="px-5 py-1.5 bg-light-green rounded-lg font-bold text-xs"
+                        className="px-5 py-1.5 bg-light-gold rounded-lg font-bold text-xs"
                     >
                         Previous
                     </button>
                     <button
                         onClick={onNext}
                         disabled={isNextDisabled}
-                        className="px-6 py-1.5 bg-green text-white rounded-lg font-bold shadow-sm transition-colors disabled:cursor-not-allowed disabled:bg-gray-300 flex items-center gap-2 text-xs"
+                        className="px-6 py-1.5 bg-gold text-white rounded-lg font-bold shadow-sm transition-colors disabled:cursor-not-allowed disabled:bg-gray-300 flex items-center gap-2 text-xs"
                     >
                         {isUploadingAny && <Loader2 size={14} className="animate-spin" />}
                         {isUploadingAny ? 'Uploading...' : 'Next'}

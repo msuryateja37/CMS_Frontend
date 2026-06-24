@@ -92,7 +92,7 @@ const AssignmentModal: React.FC<AssignmentModalProps> = ({ isOpen, onClose, inci
                     <button
                         onClick={handleAssignSubmit}
                         disabled={!selectedUserId || isAssigning}
-                        className="px-6 py-2 bg-[#0D9488] text-white rounded-lg font-bold text-sm hover:bg-[#0F766E] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        className="px-6 py-2 bg-[#BB8F53] text-white rounded-lg font-bold text-sm hover:bg-[#A1743E] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
                         {isAssigning ? 'Assigning...' : 'Confirm Assignment'}
                     </button>
@@ -141,19 +141,19 @@ const AssignmentModal: React.FC<AssignmentModalProps> = ({ isOpen, onClose, inci
                                             type="button"
                                             onClick={() => setSelectedUserId(u.id)}
                                             className={`w-full flex items-center justify-between px-4 py-3 text-left transition-all ${isSelected
-                                                    ? 'bg-teal-50 border-l-4 border-l-teal-500'
+                                                    ? 'bg-gold-50 border-l-4 border-l-gold-500'
                                                     : 'hover:bg-gray-50 border-l-4 border-l-transparent'
                                                 }`}
                                         >
                                             <div className="flex items-center gap-3 min-w-0">
                                                 {/* Radio indicator */}
-                                                <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${isSelected ? 'border-teal-500' : 'border-gray-300'
+                                                <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${isSelected ? 'border-gold-500' : 'border-gray-300'
                                                     }`}>
-                                                    {isSelected && <div className="w-2 h-2 rounded-full bg-teal-500" />}
+                                                    {isSelected && <div className="w-2 h-2 rounded-full bg-gold-500" />}
                                                 </div>
 
                                                 <div className="min-w-0">
-                                                    <p className={`text-sm font-semibold truncate ${isSelected ? 'text-teal-700' : 'text-gray-800'}`}>
+                                                    <p className={`text-sm font-semibold truncate ${isSelected ? 'text-gold-700' : 'text-gray-800'}`}>
                                                         {u.name}
                                                     </p>
                                                     <p className="text-xs text-gray-400 truncate">{u.email}</p>
@@ -162,7 +162,7 @@ const AssignmentModal: React.FC<AssignmentModalProps> = ({ isOpen, onClose, inci
 
                                             {/* Ticket count badge */}
                                             <span className={`flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${count === 0
-                                                    ? 'bg-green-50 text-green-700'
+                                                    ? 'bg-gold-50 text-gold-700'
                                                     : count <= 3
                                                         ? 'bg-yellow-50 text-yellow-700'
                                                         : 'bg-red-50 text-red-700'

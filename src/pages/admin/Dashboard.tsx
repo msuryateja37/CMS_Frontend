@@ -78,7 +78,7 @@ const Dashboard: React.FC = () => {
                     onChange={setSelectedProvince}
                     options={[{ value: 'All provinces', label: 'All provinces' }, ...PROVINCES.map(p => ({ value: p, label: p }))]}
                     placeholder="All provinces"
-                    bgColor="bg-light-green"
+                    bgColor="bg-light-gold"
                 />
             </div>
 
@@ -88,7 +88,7 @@ const Dashboard: React.FC = () => {
                     onChange={setSelectedTimeRange}
                     options={TIME_RANGES.map(range => ({ value: range, label: range }))}
                     placeholder="Select Time Range"
-                    bgColor="bg-light-green"
+                    bgColor="bg-light-gold"
                 />
             </div>
         </div>
@@ -127,7 +127,7 @@ const Dashboard: React.FC = () => {
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#E9ECEF] flex flex-col">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="font-bold text-[#1F2937] text-lg">Incident Trends</h3>
-                            <button className="flex items-center gap-2 px-3 py-1 bg-[#E4F2D3] text-[#0E4D41] rounded-lg text-xs font-bold transition-colors">
+                            <button className="flex items-center gap-2 px-3 py-1 bg-[#F1E3D3] text-[#884616] rounded-lg text-xs font-bold transition-colors">
                                 This Week <ChevronDown size={14} />
                             </button>
                         </div>
@@ -138,11 +138,11 @@ const Dashboard: React.FC = () => {
 
                         <div className="flex justify-center gap-8 mt-6">
                             <div className="flex items-center gap-2">
-                                <span className="w-8 h-3 bg-[#E4F2D3] rounded-sm"></span>
+                                <span className="w-8 h-3 bg-[#F1E3D3] rounded-sm"></span>
                                 <span className="text-sm font-bold text-gray-600">Total Incident</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="w-8 h-3 bg-[#35BFA3] rounded-sm"></span>
+                                <span className="w-8 h-3 bg-[#BB8F53] rounded-sm"></span>
                                 <span className="text-sm font-bold text-gray-600">Resolved</span>
                             </div>
                         </div>

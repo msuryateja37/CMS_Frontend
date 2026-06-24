@@ -91,16 +91,16 @@ const StepUtilities: React.FC<StepUtilitiesProps> = ({ invoice }) => {
                     {/* Lesser-of-two verdict */}
                     <div className={`mt-5 p-4 rounded-xl flex items-start gap-3 ${
                         isRefuseApproved
-                            ? 'bg-green/5 border border-green/20'
+                            ? 'bg-gold/5 border border-gold/20'
                             : 'bg-red/5 border border-red/20'
                     }`}>
                         {isRefuseApproved ? (
-                            <CheckCircle size={20} className="text-green flex-shrink-0 mt-0.5" />
+                            <CheckCircle size={20} className="text-gold flex-shrink-0 mt-0.5" />
                         ) : (
                             <AlertTriangle size={20} className="text-red flex-shrink-0 mt-0.5" />
                         )}
                         <div>
-                            <p className={`text-sm font-bold ${isRefuseApproved ? 'text-dark-green' : 'text-red'}`}>
+                            <p className={`text-sm font-bold ${isRefuseApproved ? 'text-brown' : 'text-red'}`}>
                                 {isRefuseApproved ? 'Lesser-of-Two Verified:' : 'Excess Detected — Amount Capped:'}
                             </p>
                             <p className="text-xs text-gray-600 mt-1">
@@ -108,7 +108,7 @@ const StepUtilities: React.FC<StepUtilitiesProps> = ({ invoice }) => {
                                     <>
                                         Landlord Claimed Amount (<span className="font-bold">R {refuse.landlordClaimed.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}</span>)
                                         is less than the Council Pro Rata Share limit (<span className="font-bold">R {refuse.calculatedShare.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}</span>).
-                                        Claim is <span className="font-bold text-dark-green">APPROVED</span> to process.
+                                        Claim is <span className="font-bold text-brown">APPROVED</span> to process.
                                     </>
                                 ) : (
                                     <>
@@ -123,9 +123,9 @@ const StepUtilities: React.FC<StepUtilitiesProps> = ({ invoice }) => {
                 </div>
 
                 {/* Consolidated Dossier Total */}
-                <div className="bg-dark-green rounded-2xl p-6 text-white flex flex-col justify-between">
+                <div className="bg-brown rounded-2xl p-6 text-white flex flex-col justify-between">
                     <div>
-                        <h3 className="text-xs font-semibold text-green/80 uppercase tracking-wider mb-4">
+                        <h3 className="text-xs font-semibold text-gold/80 uppercase tracking-wider mb-4">
                             Consolidated Dossier Total
                         </h3>
                         <div className="space-y-3">

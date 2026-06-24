@@ -203,7 +203,7 @@ const ResponsePlan: React.FC = () => {
                                 onChange={setStatusFilter}
                                 options={STATUS_OPTIONS}
                                 placeholder="Status"
-                                bgColor="bg-light-green"
+                                bgColor="bg-light-gold"
                             />
                         </div>
                         <div className="w-44">
@@ -212,7 +212,7 @@ const ResponsePlan: React.FC = () => {
                                 onChange={setTypeFilter}
                                 options={TYPE_OPTIONS}
                                 placeholder="Type"
-                                bgColor="bg-light-green"
+                                bgColor="bg-light-gold"
                             />
                         </div>
                     </div>

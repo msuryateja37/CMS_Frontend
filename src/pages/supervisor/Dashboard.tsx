@@ -97,7 +97,7 @@ const SupervisorDashboard: React.FC = () => {
             cell: (item) => (
                 <button
                     onClick={() => navigate(`/supervisor/cases/${item.id}`)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-light-green text-dark-green text-xs font-bold rounded-lg hover:bg-green/10 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-light-gold text-brown text-xs font-bold rounded-lg hover:bg-gold/10 transition-colors"
                 >
                     <Eye size={14} />
                     View
@@ -118,14 +118,14 @@ const SupervisorDashboard: React.FC = () => {
                 <div className="flex justify-end gap-3 mb-1">
                     <button
                         onClick={() => navigate('/supervisor/cases-review')}
-                        className="flex items-center gap-2 px-4 py-2 bg-green text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm text-sm"
+                        className="flex items-center gap-2 px-4 py-2 bg-gold text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm text-sm"
                     >
                         <UserPlus size={16} />
                         Review & Assign
                     </button>
                     <button
                         onClick={() => navigate('/supervisor/submit-case')}
-                        className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm text-sm"
+                        className="flex items-center gap-2 px-4 py-2 bg-brown text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm text-sm"
                     >
                         <FilePlus size={16} />
                         Submit New Case
@@ -162,7 +162,7 @@ const SupervisorDashboard: React.FC = () => {
                     </div>
 
                     <div className="bg-white py-3 px-4 rounded-xl border border-gray-100 shadow-sm">
-                        <div className="flex items-center gap-2 text-green mb-1.5">
+                        <div className="flex items-center gap-2 text-gold mb-1.5">
                             <CheckCircle2 size={15} />
                             <span className="text-[10px] font-bold uppercase tracking-wider">Closed</span>
                         </div>
@@ -210,7 +210,7 @@ const SupervisorDashboard: React.FC = () => {
                         <h3 className="text-lg font-bold text-gray-800">All Cases</h3>
                         <button
                             onClick={() => navigate('/supervisor/cases-review')}
-                            className="flex items-center gap-1 text-sm font-bold text-dark-green hover:underline"
+                            className="flex items-center gap-1 text-sm font-bold text-brown hover:underline"
                         >
                             View All <ChevronRight size={14} />
                         </button>
@@ -218,7 +218,7 @@ const SupervisorDashboard: React.FC = () => {
 
                     {loading && (
                         <div className="flex items-center justify-center py-12">
-                            <Loader2 className="w-8 h-8 text-green animate-spin" />
+                            <Loader2 className="w-8 h-8 text-gold animate-spin" />
                             <span className="ml-3 text-gray-600">Loading cases...</span>
                         </div>
                     )}

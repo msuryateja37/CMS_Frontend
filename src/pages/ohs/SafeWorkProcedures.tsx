@@ -23,8 +23,8 @@ const STATS = [
         label: 'Emergency Response',
         value: 12,
         icon: Siren,
-        bg: 'bg-[#E4F2D3]',
-        text: 'text-[#0E4D41]',
+        bg: 'bg-[#F1E3D3]',
+        text: 'text-[#884616]',
         iconBg: 'bg-white/60'
     },
     {
@@ -32,7 +32,7 @@ const STATS = [
         value: 18,
         icon: Settings,
         bg: 'bg-white',
-        text: 'text-[#0E4D41]',
+        text: 'text-[#884616]',
         iconBg: 'bg-[#F2FDF0]'
     },
     {
@@ -40,7 +40,7 @@ const STATS = [
         value: 8,
         icon: Beaker,
         bg: 'bg-white',
-        text: 'text-[#0E4D41]',
+        text: 'text-[#884616]',
         iconBg: 'bg-[#F2FDF0]'
     },
     {
@@ -48,7 +48,7 @@ const STATS = [
         value: 6,
         icon: HardHat,
         bg: 'bg-white',
-        text: 'text-[#0E4D41]',
+        text: 'text-[#884616]',
         iconBg: 'bg-[#F2FDF0]'
     },
     {
@@ -56,7 +56,7 @@ const STATS = [
         value: 10,
         icon: Zap,
         bg: 'bg-white',
-        text: 'text-[#0E4D41]',
+        text: 'text-[#884616]',
         iconBg: 'bg-[#F2FDF0]'
     },
     {
@@ -64,7 +64,7 @@ const STATS = [
         value: 5,
         icon: ArrowUp,
         bg: 'bg-white',
-        text: 'text-[#0E4D41]',
+        text: 'text-[#884616]',
         iconBg: 'bg-[#F2FDF0]'
     }
 ];
@@ -112,7 +112,7 @@ const SafeWorkProcedures: React.FC = () => {
             sortable: true,
             cell: (item) => (
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[#45bfa3] flex items-center justify-center text-white text-[10px] font-bold">
+                    <div className="w-8 h-8 rounded-full bg-[#BB8F53] flex items-center justify-center text-white text-[10px] font-bold">
                     </div>
                     <span className="text-sm font-medium text-gray-500">{item.swpId}</span>
                 </div>

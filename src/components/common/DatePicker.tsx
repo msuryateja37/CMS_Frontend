@@ -111,9 +111,9 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, placeholder = 
                 type="button"
                 onClick={() => { setOpen(!open); setShowYearGrid(false); }}
                 className={`w-full flex items-center gap-2 px-3.5 py-2.5 bg-gray-50 border rounded-xl outline-none transition-all text-left cursor-pointer
-                    ${open ? 'border-dark-green ring-2 ring-dark-green/20' : 'border-gray-200 hover:border-green/50'}`}
+                    ${open ? 'border-brown ring-2 ring-brown/20' : 'border-gray-200 hover:border-gold/50'}`}
             >
-                <Calendar size={16} className="text-dark-green shrink-0" />
+                <Calendar size={16} className="text-brown shrink-0" />
                 <span className={displayValue ? 'text-gray-700 font-medium text-xs' : 'text-gray-400 text-xs font-medium'}>
                     {displayValue || placeholder}
                 </span>
@@ -129,23 +129,23 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, placeholder = 
                                 <button
                                     type="button"
                                     onClick={prevMonth}
-                                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-light-green transition-colors"
+                                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-light-gold transition-colors"
                                 >
-                                    <ChevronLeft size={18} className="text-dark-green" />
+                                    <ChevronLeft size={18} className="text-brown" />
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setShowYearGrid(true)}
-                                    className="text-sm font-bold text-dark-green hover:bg-light-green px-3 py-1.5 rounded-lg transition-colors"
+                                    className="text-sm font-bold text-brown hover:bg-light-gold px-3 py-1.5 rounded-lg transition-colors"
                                 >
                                     {MONTHS[viewMonth]} {viewYear}
                                 </button>
                                 <button
                                     type="button"
                                     onClick={nextMonth}
-                                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-light-green transition-colors"
+                                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-light-gold transition-colors"
                                 >
-                                    <ChevronRight size={18} className="text-dark-green" />
+                                    <ChevronRight size={18} className="text-brown" />
                                 </button>
                             </div>
 
@@ -177,10 +177,10 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, placeholder = 
                                             onClick={() => handleSelect(cell.day)}
                                             className={`w-full aspect-square flex items-center justify-center rounded-xl text-[13px] font-semibold transition-all duration-150
                                                 ${selected
-                                                    ? 'bg-dark-green text-white shadow-md shadow-dark-green/30 scale-105'
+                                                    ? 'bg-brown text-white shadow-md shadow-brown/30 scale-105'
                                                     : todayMark
-                                                        ? 'ring-2 ring-green text-dark-green font-bold hover:bg-light-green'
-                                                        : 'text-gray-700 hover:bg-subtle-green hover:text-dark-green'
+                                                        ? 'ring-2 ring-gold text-brown font-bold hover:bg-light-gold'
+                                                        : 'text-gray-700 hover:bg-subtle-gold hover:text-brown'
                                                 }`}
                                         >
                                             {cell.day}
@@ -198,7 +198,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, placeholder = 
                                         setViewYear(today.getFullYear());
                                         handleSelect(today.getDate());
                                     }}
-                                    className="text-xs font-bold text-green hover:text-dark-green transition-colors px-4 py-1.5 rounded-lg hover:bg-subtle-green"
+                                    className="text-xs font-bold text-gold hover:text-brown transition-colors px-4 py-1.5 rounded-lg hover:bg-subtle-gold"
                                 >
                                     Today
                                 </button>
@@ -211,19 +211,19 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, placeholder = 
                                 <button
                                     type="button"
                                     onClick={() => setViewYear(viewYear - 12)}
-                                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-light-green transition-colors"
+                                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-light-gold transition-colors"
                                 >
-                                    <ChevronLeft size={18} className="text-dark-green" />
+                                    <ChevronLeft size={18} className="text-brown" />
                                 </button>
-                                <span className="text-sm font-bold text-dark-green">
+                                <span className="text-sm font-bold text-brown">
                                     {yearRangeStart} – {yearRangeStart + 11}
                                 </span>
                                 <button
                                     type="button"
                                     onClick={() => setViewYear(viewYear + 12)}
-                                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-light-green transition-colors"
+                                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-light-gold transition-colors"
                                 >
-                                    <ChevronRight size={18} className="text-dark-green" />
+                                    <ChevronRight size={18} className="text-brown" />
                                 </button>
                             </div>
                             <div className="grid grid-cols-3 gap-2">
@@ -237,10 +237,10 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, placeholder = 
                                         }}
                                         className={`py-3 rounded-xl text-sm font-semibold transition-all duration-150
                                             ${y === viewYear
-                                                ? 'bg-dark-green text-white shadow-md shadow-dark-green/30'
+                                                ? 'bg-brown text-white shadow-md shadow-brown/30'
                                                 : y === today.getFullYear()
-                                                    ? 'ring-2 ring-green text-dark-green hover:bg-light-green'
-                                                    : 'text-gray-600 hover:bg-subtle-green hover:text-dark-green'
+                                                    ? 'ring-2 ring-gold text-brown hover:bg-light-gold'
+                                                    : 'text-gray-600 hover:bg-subtle-gold hover:text-brown'
                                             }`}
                                     >
                                         {y}

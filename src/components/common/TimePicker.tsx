@@ -86,9 +86,9 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, placeholder = 
                 type="button"
                 onClick={() => setOpen(!open)}
                 className={`w-full flex items-center gap-2 px-3.5 py-2.5 bg-gray-50 border rounded-xl outline-none transition-all text-left cursor-pointer
-                    ${open ? 'border-dark-green ring-2 ring-dark-green/20' : 'border-gray-200 hover:border-green/50'}`}
+                    ${open ? 'border-brown ring-2 ring-brown/20' : 'border-gray-200 hover:border-gold/50'}`}
             >
-                <Clock size={16} className="text-dark-green shrink-0" />
+                <Clock size={16} className="text-brown shrink-0" />
                 <span className={displayValue ? 'text-gray-700 font-medium text-xs' : 'text-gray-400 text-xs font-medium'}>
                     {displayValue || placeholder}
                 </span>
@@ -98,10 +98,10 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, placeholder = 
             {open && (
                 <div className="absolute z-50 mt-2 w-[240px] bg-white rounded-2xl shadow-[0_12px_40px_rgba(14,77,65,0.15)] border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                     {/* Header */}
-                    <div className="px-4 py-3 bg-subtle-green border-b border-gray-100">
+                    <div className="px-4 py-3 bg-subtle-gold border-b border-gray-100">
                         <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-dark-green uppercase tracking-wider">Select Time</span>
-                            <span className="text-sm font-bold text-dark-green">
+                            <span className="text-xs font-bold text-brown uppercase tracking-wider">Select Time</span>
+                            <span className="text-sm font-bold text-brown">
                                 {value ? displayValue : '--:--'}
                             </span>
                         </div>
@@ -128,8 +128,8 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, placeholder = 
                                             onClick={() => handleHourSelect(h)}
                                             className={`w-full py-2.5 text-center text-sm font-semibold transition-all duration-150
                                                 ${isActive
-                                                    ? 'bg-dark-green text-white'
-                                                    : 'text-gray-600 hover:bg-subtle-green hover:text-dark-green'
+                                                    ? 'bg-brown text-white'
+                                                    : 'text-gray-600 hover:bg-subtle-gold hover:text-brown'
                                                 }`}
                                         >
                                             {h}
@@ -158,8 +158,8 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, placeholder = 
                                             onClick={() => handleMinuteSelect(m)}
                                             className={`w-full py-2.5 text-center text-sm font-semibold transition-all duration-150
                                                 ${isActive
-                                                    ? 'bg-dark-green text-white'
-                                                    : 'text-gray-600 hover:bg-subtle-green hover:text-dark-green'
+                                                    ? 'bg-brown text-white'
+                                                    : 'text-gray-600 hover:bg-subtle-gold hover:text-brown'
                                                 }`}
                                         >
                                             {m}
@@ -175,14 +175,14 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, placeholder = 
                         <button
                             type="button"
                             onClick={setNow}
-                            className="text-xs font-bold text-green hover:text-dark-green transition-colors px-3 py-1 rounded-lg hover:bg-subtle-green"
+                            className="text-xs font-bold text-gold hover:text-brown transition-colors px-3 py-1 rounded-lg hover:bg-subtle-gold"
                         >
                             Now
                         </button>
                         <button
                             type="button"
                             onClick={() => setOpen(false)}
-                            className="text-xs font-bold text-white bg-dark-green hover:bg-dark-green/90 px-4 py-1.5 rounded-lg transition-colors shadow-sm"
+                            className="text-xs font-bold text-white bg-brown hover:bg-brown/90 px-4 py-1.5 rounded-lg transition-colors shadow-sm"
                         >
                             Done
                         </button>

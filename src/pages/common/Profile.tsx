@@ -108,7 +108,7 @@ const Profile: React.FC = () => {
             <div className="max-w-3xl mx-auto flex flex-col gap-6">
                 {/* Success Banner */}
                 {success && (
-                    <div className="flex items-center gap-3 bg-light-green border border-green/20 text-dark-green px-4 py-3 rounded-xl animate-fadeIn">
+                    <div className="flex items-center gap-3 bg-light-gold border border-gold/20 text-brown px-4 py-3 rounded-xl animate-fadeIn">
                         <CheckCircle2 size={18} />
                         <span className="text-sm font-semibold">Profile updated successfully!</span>
                     </div>
@@ -125,12 +125,12 @@ const Profile: React.FC = () => {
                 {/* Profile Header Card */}
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                     {/* Green banner */}
-                    <div className="h-28 bg-gradient-to-r from-dark-green to-green"></div>
+                    <div className="h-28 bg-gradient-to-r from-brown to-gold"></div>
 
                     <div className="px-8 pb-8">
                         {/* Avatar overlapping banner */}
                         <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 -mt-12">
-                            <div className="w-24 h-24 rounded-full bg-green flex items-center justify-center text-white font-bold text-3xl shadow-lg border-4 border-white">
+                            <div className="w-24 h-24 rounded-full bg-gold flex items-center justify-center text-white font-bold text-3xl shadow-lg border-4 border-white">
                                 {getUserInitials()}
                             </div>
                             <div className="flex-1 text-center sm:text-left pb-1">
@@ -140,7 +140,7 @@ const Profile: React.FC = () => {
                             {!isEditing ? (
                                 <button
                                     onClick={() => setIsEditing(true)}
-                                    className="flex items-center gap-2 px-5 py-2.5 bg-dark-green text-white font-semibold rounded-lg hover:bg-opacity-90 transition-all text-sm shadow-sm"
+                                    className="flex items-center gap-2 px-5 py-2.5 bg-brown text-white font-semibold rounded-lg hover:bg-opacity-90 transition-all text-sm shadow-sm"
                                 >
                                     <Pencil size={16} />
                                     Edit Profile
@@ -157,7 +157,7 @@ const Profile: React.FC = () => {
                                     <button
                                         onClick={handleSave}
                                         disabled={saving}
-                                        className="flex items-center gap-2 px-5 py-2.5 bg-green text-white font-semibold rounded-lg hover:bg-opacity-90 transition-all text-sm shadow-sm disabled:opacity-50"
+                                        className="flex items-center gap-2 px-5 py-2.5 bg-gold text-white font-semibold rounded-lg hover:bg-opacity-90 transition-all text-sm shadow-sm disabled:opacity-50"
                                     >
                                         {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                                         {saving ? 'Saving...' : 'Save Changes'}
@@ -183,7 +183,7 @@ const Profile: React.FC = () => {
                                     type="text"
                                     value={fullName}
                                     onChange={(e) => setFullName(e.target.value)}
-                                    className="px-4 py-2.5 bg-subtle-grey border border-gray-200 rounded-lg text-sm text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-green/20 focus:border-green transition-all"
+                                    className="px-4 py-2.5 bg-subtle-grey border border-gray-200 rounded-lg text-sm text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-gold/20 focus:border-gold transition-all"
                                 />
                             ) : (
                                 <p className="text-sm font-medium text-gray-800 py-2.5">{user.fullName || '-'}</p>
@@ -209,7 +209,7 @@ const Profile: React.FC = () => {
                                     value={phone}
                                     onChange={(e) => setPhone(e.target.value)}
                                     placeholder="+27-XX-XXX-XXXX"
-                                    className="px-4 py-2.5 bg-subtle-grey border border-gray-200 rounded-lg text-sm text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-green/20 focus:border-green transition-all"
+                                    className="px-4 py-2.5 bg-subtle-grey border border-gray-200 rounded-lg text-sm text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-gold/20 focus:border-gold transition-all"
                                 />
                             ) : (
                                 <p className="text-sm font-medium text-gray-800 py-2.5">{user.phone || '-'}</p>
@@ -230,7 +230,7 @@ const Profile: React.FC = () => {
                                 <Shield size={14} /> Role
                             </label>
                             <div className="py-2.5">
-                                <span className="inline-flex items-center px-3 py-1 bg-light-green text-dark-green text-xs font-bold rounded-full">
+                                <span className="inline-flex items-center px-3 py-1 bg-light-gold text-brown text-xs font-bold rounded-full">
                                     {formatRole(user.role?.name)}
                                 </span>
                             </div>

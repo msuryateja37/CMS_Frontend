@@ -18,8 +18,8 @@ const STATS_CARDS = [
     value: '1,247',
     icon: FileText,
     color: 'text-red-600',
-    bgColor: 'bg-[#35BFA3]/20',
-    barColor: 'bg-[#35BFA3]'
+    bgColor: 'bg-[#BB8F53]/20',
+    barColor: 'bg-[#BB8F53]'
   },
   {
     title: 'Denied Today',
@@ -41,9 +41,9 @@ const STATS_CARDS = [
     title: 'Active Cards',
     value: '892',
     icon: AlertCircle,
-    color: 'text-green-500',
-    bgColor: 'bg-green-50',
-    barColor: 'bg-green-500'
+    color: 'text-gold-500',
+    bgColor: 'bg-gold-50',
+    barColor: 'bg-gold-500'
   }
 ];
 
@@ -78,7 +78,7 @@ export function AccessControl() {
       sortable: true,
       cell: (item) => (
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-[#35BFA3] flex items-center justify-center text-white">
+          <div className="w-8 h-8 rounded-full bg-[#BB8F53] flex items-center justify-center text-white">
 
           </div>
           <span className="text-sm font-medium text-gray-400">{item.time}</span>
@@ -193,7 +193,7 @@ export function AccessControl() {
               </button>
             ))}
           </div>
-          <button className="flex items-center gap-2 px-6 py-3 bg-[#0E4D41] text-white rounded-xl font-bold text-sm shadow-lg shadow-teal-900/10 hover:bg-[#0c4238] transition-all">
+          <button className="flex items-center gap-2 px-6 py-3 bg-[#884616] text-white rounded-xl font-bold text-sm shadow-lg shadow-gold-900/10 hover:bg-[#6e3510] transition-all">
             <Plus size={18} />
             Issue New Card
           </button>
@@ -231,7 +231,7 @@ export function AccessControl() {
                     ...locations.map(loc => ({ value: loc, label: loc }))
                   ]}
                   placeholder="Location"
-                  bgColor="bg-light-green"
+                  bgColor="bg-light-gold"
                 />
               </div>
               <div className="w-[160px]">
@@ -243,7 +243,7 @@ export function AccessControl() {
                     ...statuses.map(s => ({ value: s, label: s }))
                   ]}
                   placeholder="Status"
-                  bgColor="bg-light-green"
+                  bgColor="bg-light-gold"
                 />
               </div>
             </div>

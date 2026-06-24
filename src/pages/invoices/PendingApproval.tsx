@@ -18,26 +18,26 @@ interface SummaryCardProps {
     icon: React.ElementType;
     label: string;
     value: string | number;
-    color: 'green' | 'red' | 'blue' | 'orange';
+    color: 'gold' | 'red' | 'blue' | 'orange';
 }
 
 const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, label, value, color }) => {
     const colorClasses = {
-        green: 'text-green-600 bg-green-50 border-green-200',
+        gold: 'text-gold-600 bg-gold-50 border-gold-200',
         red: 'text-red-600 bg-red-50 border-red-200',
         blue: 'text-blue-600 bg-blue-50 border-blue-200',
         orange: 'text-orange-600 bg-orange-50 border-orange-200',
     };
 
     const bottomBarClasses = {
-        green: 'bg-green-500',
+        gold: 'bg-gold-500',
         red: 'bg-red-500',
         blue: 'bg-blue-500',
         orange: 'bg-orange-500',
     };
 
     const valueClasses = {
-        green: 'text-green-600',
+        gold: 'text-gold-600',
         red: 'text-red-600',
         blue: 'text-blue-600',
         orange: 'text-orange-500',
@@ -86,7 +86,7 @@ const PendingApproval: React.FC = () => {
             sortable: true,
             cell: (item) => (
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-emerald-400 flex-shrink-0"></div>
+                    <div className="w-10 h-10 rounded-full bg-gold-400 flex-shrink-0"></div>
                     <span className="text-[13px] font-medium text-gray-700">{item.invoiceId}</span>
                 </div>
             )
@@ -143,10 +143,10 @@ const PendingApproval: React.FC = () => {
             header: 'Actions',
             cell: () => (
                 <div className="flex items-center justify-center gap-2">
-                    <button className="p-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors shadow-sm">
+                    <button className="p-2 bg-gold-50 text-gold-600 rounded-lg hover:bg-gold-100 transition-colors shadow-sm">
                         <Eye size={16} />
                     </button>
-                    <button className="p-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors shadow-sm">
+                    <button className="p-2 bg-gold-500 text-white rounded-lg hover:bg-gold-600 transition-colors shadow-sm">
                         <Check size={16} />
                     </button>
                     <button className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-colors shadow-sm">
@@ -177,7 +177,7 @@ const PendingApproval: React.FC = () => {
             <div className="space-y-8">
                 {/* Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <SummaryCard icon={FileText} label="Pending" value="3" color="green" />
+                    <SummaryCard icon={FileText} label="Pending" value="3" color="gold" />
                     <SummaryCard icon={AlertCircle} label="High Priority" value="2" color="red" />
                     <SummaryCard icon={Wallet} label="Total Value" value="R 35k" color="blue" />
                     <SummaryCard icon={Clock} label="Avg Days Waiting" value="7.8" color="orange" />
@@ -189,7 +189,7 @@ const PendingApproval: React.FC = () => {
                         <input
                             type="text"
                             placeholder="Search Invoices ..."
-                            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green/20 focus:border-green transition-all shadow-sm"
+                            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold/20 focus:border-gold transition-all shadow-sm"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />

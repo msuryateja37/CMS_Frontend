@@ -63,7 +63,7 @@ export const OHSFormSubmissions: React.FC = () => {
             <select 
               value={selectedFormId}
               onChange={(e) => setSelectedFormId(e.target.value)}
-              className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 outline-none focus:ring-2 focus:ring-emerald-500/20"
+              className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 outline-none focus:ring-2 focus:ring-gold-500/20"
             >
               <option value="all">All OHS Forms</option>
               {forms.map(f => (
@@ -93,7 +93,7 @@ export const OHSFormSubmissions: React.FC = () => {
                 <tr>
                   <td colSpan={4} className="px-6 py-12 text-center text-gray-400 text-sm">
                     <div className="flex items-center justify-center gap-2">
-                      <svg className="animate-spin h-4 w-4 text-emerald-500" viewBox="0 0 24 24">
+                      <svg className="animate-spin h-4 w-4 text-gold-500" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                       </svg>
@@ -125,14 +125,14 @@ export const OHSFormSubmissions: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-0.5 rounded-full border border-emerald-200 font-bold uppercase tracking-tight">
+                      <span className="bg-gold-100 text-gold-700 text-[10px] px-2 py-0.5 rounded-full border border-gold-200 font-bold uppercase tracking-tight">
                         Recorded
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button 
                         onClick={() => setSelectedSubmission(sub)}
-                        className="text-xs font-bold text-white bg-emerald-700 hover:bg-green-300 px-4 py-2 rounded-lg border border-green-200 transition-all shadow-sm"
+                        className="text-xs font-bold text-white bg-gold-700 hover:bg-gold-300 px-4 py-2 rounded-lg border border-gold-200 transition-all shadow-sm"
                       >
                         View Details
                       </button>
@@ -174,7 +174,7 @@ export const OHSFormSubmissions: React.FC = () => {
                 {selectedSubmission.formVersion.schema?.sections.map((section, sIdx) => (
                   <div key={section.id}>
                     <div className="flex items-center gap-3 mb-6">
-                      <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs border border-emerald-100">
+                      <div className="w-8 h-8 rounded-xl bg-gold-50 text-gold-600 flex items-center justify-center font-bold text-xs border border-gold-100">
                         {sIdx + 1}
                       </div>
                       <h4 className="text-base font-bold text-gray-800">{section.title}</h4>
@@ -196,8 +196,8 @@ export const OHSFormSubmissions: React.FC = () => {
                               </p>
                               {response?.selectedOptionId && (
                                 <div className="mt-2 flex items-center gap-2">
-                                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                                  <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Selected Option Verified</span>
+                                  <span className="w-2 h-2 rounded-full bg-gold-500"></span>
+                                  <span className="text-[10px] font-bold text-gold-600 uppercase tracking-widest">Selected Option Verified</span>
                                 </div>
                               )}
                             </div>

@@ -90,7 +90,7 @@ const SecurityDashboard: React.FC = () => {
                     UNDER_REVIEW: 'bg-amber-50 text-amber-700',
                     OPEN: 'bg-blue-50 text-blue-700',
                     CLOSED: 'bg-gray-100 text-gray-600',
-                    RESOLVED: 'bg-green-50 text-green-700',
+                    RESOLVED: 'bg-gold-50 text-gold-700',
                 };
                 return (
                     <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${statusColors[item.status] || 'bg-gray-100 text-gray-600'}`}>
@@ -114,7 +114,7 @@ const SecurityDashboard: React.FC = () => {
             cell: (item) => (
                 <button
                     onClick={() => navigate(`/security/cases/${item.id}`)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-light-green text-dark-green text-xs font-bold rounded-lg hover:bg-green/10 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-light-gold text-brown text-xs font-bold rounded-lg hover:bg-gold/10 transition-colors"
                 >
                     <Eye size={14} /> View
                 </button>
@@ -155,7 +155,7 @@ const SecurityDashboard: React.FC = () => {
                     UNDER_REVIEW: 'bg-amber-50 text-amber-700',
                     OPEN: 'bg-blue-50 text-blue-700',
                     CLOSED: 'bg-gray-100 text-gray-600',
-                    RESOLVED: 'bg-green-50 text-green-700',
+                    RESOLVED: 'bg-gold-50 text-gold-700',
                 };
                 return (
                     <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${statusColors[item.status] || 'bg-gray-100 text-gray-600'}`}>
@@ -169,7 +169,7 @@ const SecurityDashboard: React.FC = () => {
             cell: (item) => (
                 <button
                     onClick={() => navigate(`/security/cases/${item.id}`)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-light-green text-dark-green text-xs font-bold rounded-lg hover:bg-green/10 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-light-gold text-brown text-xs font-bold rounded-lg hover:bg-gold/10 transition-colors"
                 >
                     <Eye size={14} /> View
                 </button>
@@ -198,7 +198,7 @@ const SecurityDashboard: React.FC = () => {
                         <p className="text-xs text-gray-400 mt-1">Awaiting your action</p>
                     </div>
                     <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-                        <div className="flex items-center gap-2 text-green mb-3">
+                        <div className="flex items-center gap-2 text-gold mb-3">
                             <CheckCircle2 size={16} />
                             <span className="text-xs font-semibold uppercase tracking-wide">Solved</span>
                         </div>
@@ -247,7 +247,7 @@ const SecurityDashboard: React.FC = () => {
 
                 {loading && (
                     <div className="flex items-center justify-center py-12">
-                        <Loader2 className="w-8 h-8 text-green animate-spin" />
+                        <Loader2 className="w-8 h-8 text-gold animate-spin" />
                         <span className="ml-3 text-gray-600">Loading cases...</span>
                     </div>
                 )}
@@ -260,7 +260,7 @@ const SecurityDashboard: React.FC = () => {
                     <div>
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-bold text-gray-800">My Cases</h3>
-                            <button onClick={() => navigate('/security/my-cases')} className="flex items-center gap-1 text-sm font-bold text-dark-green hover:underline">
+                            <button onClick={() => navigate('/security/my-cases')} className="flex items-center gap-1 text-sm font-bold text-brown hover:underline">
                                 View All <ChevronRight size={14} />
                             </button>
                         </div>
@@ -279,7 +279,7 @@ const SecurityDashboard: React.FC = () => {
                     <div>
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-bold text-gray-800">Assigned Cases</h3>
-                            <button onClick={() => navigate('/security/cases-review')} className="flex items-center gap-1 text-sm font-bold text-dark-green hover:underline">
+                            <button onClick={() => navigate('/security/cases-review')} className="flex items-center gap-1 text-sm font-bold text-brown hover:underline">
                                 View All <ChevronRight size={14} />
                             </button>
                         </div>

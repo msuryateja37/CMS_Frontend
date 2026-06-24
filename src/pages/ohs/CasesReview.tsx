@@ -71,7 +71,7 @@ const OHSCasesReview: React.FC = () => {
             sortable: true,
             cell: (item) => (
                 <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-green flex-shrink-0"></div>
+                    <div className="w-6 h-6 rounded-full bg-gold flex-shrink-0"></div>
                     <span className="font-medium text-gray-500">{item.incidentNumber}</span>
                 </div>
             )
@@ -118,7 +118,7 @@ const OHSCasesReview: React.FC = () => {
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => supervisorService.resolveCase(item.id)}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-light-green text-dark-green text-xs font-bold rounded-lg hover:bg-green/10 transition-colors whitespace-nowrap"
+                        className="flex items-center gap-1 px-3 py-1.5 bg-light-gold text-brown text-xs font-bold rounded-lg hover:bg-gold/10 transition-colors whitespace-nowrap"
                     >
                         <CheckCircle2 size={14} />
                         Resolve
@@ -155,13 +155,13 @@ const OHSCasesReview: React.FC = () => {
             <div className="flex flex-col gap-6">
                 {/* Top Actions */}
                 <div className="flex justify-end gap-3 mb-1">
-                    <button className="flex items-center gap-2 px-4 py-2 bg-green text-white font-bold rounded-lg hover:bg-[#2aa88f] transition-colors shadow-sm">
+                    <button className="flex items-center gap-2 px-4 py-2 bg-gold text-white font-bold rounded-lg hover:bg-[#A1743E] transition-colors shadow-sm">
                         <FileSearch size={18} />
                         Review Cases
                     </button>
                     <button
                         onClick={() => navigate('/ohs/submit-case')}
-                        className="flex items-center gap-2 px-4 py-2 bg-green text-white font-bold rounded-lg hover:bg-[#2aa88f] transition-colors shadow-sm">
+                        className="flex items-center gap-2 px-4 py-2 bg-gold text-white font-bold rounded-lg hover:bg-[#A1743E] transition-colors shadow-sm">
                         <FilePlus size={16} />
                         Submit New Case
                     </button>
@@ -169,7 +169,7 @@ const OHSCasesReview: React.FC = () => {
 
                 {loading && (
                     <div className="flex items-center justify-center py-12">
-                        <Loader2 className="w-8 h-8 text-green animate-spin" />
+                        <Loader2 className="w-8 h-8 text-gold animate-spin" />
                         <span className="ml-3 text-gray-600">Loading cases...</span>
                     </div>
                 )}

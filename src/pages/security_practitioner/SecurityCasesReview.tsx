@@ -88,7 +88,7 @@ const SecurityCasesReview: React.FC = () => {
         {
             header: 'Actions',
             cell: (item) => (
-                <button onClick={() => navigate(`/security/cases/${item.id}`)} className="flex items-center gap-1.5 px-4 py-1.5 bg-light-green text-dark-green text-xs font-bold rounded-lg hover:bg-green/10 transition-colors whitespace-nowrap">
+                <button onClick={() => navigate(`/security/cases/${item.id}`)} className="flex items-center gap-1.5 px-4 py-1.5 bg-light-gold text-brown text-xs font-bold rounded-lg hover:bg-gold/10 transition-colors whitespace-nowrap">
                     <Eye size={14} /> Review
                 </button>
             )
@@ -106,7 +106,7 @@ const SecurityCasesReview: React.FC = () => {
             <div className="flex flex-col gap-6">
                 {loading && (
                     <div className="flex items-center justify-center py-12">
-                        <Loader2 className="w-8 h-8 text-green animate-spin" />
+                        <Loader2 className="w-8 h-8 text-gold animate-spin" />
                         <span className="ml-3 text-gray-600">Loading assigned cases...</span>
                     </div>
                 )}

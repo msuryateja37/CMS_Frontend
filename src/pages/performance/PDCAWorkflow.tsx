@@ -19,8 +19,8 @@ const PDCA_PHASES = [
         phase: 'P',
         title: 'Plan',
         description: 'Define objectives & targets',
-        bg: 'bg-[#E4F2D3]',
-        text: 'text-[#0E4D41]',
+        bg: 'bg-[#F1E3D3]',
+        text: 'text-[#884616]',
         iconBg: 'bg-white/60',
         active: true
     },
@@ -29,7 +29,7 @@ const PDCA_PHASES = [
         title: 'Do',
         description: 'Implement actions',
         bg: 'bg-white',
-        text: 'text-[#0E4D41]',
+        text: 'text-[#884616]',
         iconBg: 'bg-[#F2FDF0]',
         active: false
     },
@@ -38,7 +38,7 @@ const PDCA_PHASES = [
         title: 'Check',
         description: 'Monitor & measure',
         bg: 'bg-white',
-        text: 'text-[#0E4D41]',
+        text: 'text-[#884616]',
         iconBg: 'bg-[#F2FDF0]',
         active: false
     },
@@ -47,7 +47,7 @@ const PDCA_PHASES = [
         title: 'Act',
         description: 'Review & standardize',
         bg: 'bg-white',
-        text: 'text-[#0E4D41]',
+        text: 'text-[#884616]',
         iconBg: 'bg-[#F2FDF0]',
         active: false
     }
@@ -147,7 +147,7 @@ const PDCAWorkflow: React.FC = () => {
                             <div className={clsx("flex-1 w-full p-6 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-all h-32", step.bg)}>
                                 <div className="flex flex-col justify-between h-full relative z-10">
                                     <div className="flex items-center gap-3">
-                                        <div className={clsx("w-8 h-8 rounded-lg flex items-center justify-center font-bold text-lg", step.active ? "bg-white text-[#0E4D41]" : "bg-[#F2FDF0] text-[#0E4D41]")}>
+                                        <div className={clsx("w-8 h-8 rounded-lg flex items-center justify-center font-bold text-lg", step.active ? "bg-white text-[#884616]" : "bg-[#F2FDF0] text-[#884616]")}>
                                             {step.phase}
                                         </div>
                                         <span className="text-xs font-medium text-gray-500">{step.description}</span>
@@ -198,7 +198,7 @@ const PDCAWorkflow: React.FC = () => {
                                 onChange={setStatusFilter}
                                 options={STATUS_OPTIONS}
                                 placeholder="All Statuses"
-                                bgColor="bg-light-green"
+                                bgColor="bg-light-gold"
                             />
                         </div>
                     </div>
@@ -221,7 +221,7 @@ const PDCAWorkflow: React.FC = () => {
                                         </div>
 
                                         {/* Title */}
-                                        <h4 className="text-[#45bfa3] font-bold text-sm">{cycle.title}</h4>
+                                        <h4 className="text-[#BB8F53] font-bold text-sm">{cycle.title}</h4>
 
                                         {/* Meta Data */}
                                         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-gray-500 font-medium">
