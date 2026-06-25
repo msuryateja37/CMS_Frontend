@@ -144,7 +144,7 @@ function Table<T extends { id?: string | number } & Record<string, any>>({
                                 <th className="px-6 py-4 w-4">
                                     <input
                                         type="checkbox"
-                                        className="rounded border-light-grey text-green focus:ring-green"
+                                        className="rounded border-light-grey text-gold focus:ring-gold"
                                         onChange={(e) => handleSelectAll(e.target.checked)}
                                         checked={data.length > 0 && selectedIds.size === data.length}
                                     />
@@ -157,14 +157,14 @@ function Table<T extends { id?: string | number } & Record<string, any>>({
                                 >
                                     <div className="flex flex-col gap-2">
                                         <div
-                                            className={clsx("flex items-center gap-1", col.sortable && "cursor-pointer select-none hover:text-dark-green")}
+                                            className={clsx("flex items-center gap-1", col.sortable && "cursor-pointer select-none hover:text-brown")}
                                             onClick={() => col.sortable && handleSort(String(col.key))}
                                         >
                                             {col.header}
                                             {col.sortable && (
                                                 <div className="flex flex-col">
-                                                    <ChevronUp size={10} className={clsx("text-light-grey", sortConfig?.key === col.key && sortConfig.direction === 'asc' && "text-dark-green")} />
-                                                    <ChevronDown size={10} className={clsx("-mt-1 text-light-grey", sortConfig?.key === col.key && sortConfig.direction === 'desc' && "text-dark-green")} />
+                                                    <ChevronUp size={10} className={clsx("text-light-grey", sortConfig?.key === col.key && sortConfig.direction === 'asc' && "text-brown")} />
+                                                    <ChevronDown size={10} className={clsx("-mt-1 text-light-grey", sortConfig?.key === col.key && sortConfig.direction === 'desc' && "text-brown")} />
                                                 </div>
                                             )}
                                         </div>
@@ -174,7 +174,7 @@ function Table<T extends { id?: string | number } & Record<string, any>>({
                                                 <input
                                                     type="text"
                                                     placeholder="Filter..."
-                                                    className="w-full px-2 py-1 text-xs border border-semi-subtle-grey rounded bg-white focus:outline-none focus:border-green font-normal normal-case"
+                                                    className="w-full px-2 py-1 text-xs border border-semi-subtle-grey rounded bg-white focus:outline-none focus:border-gold font-normal normal-case"
                                                     onChange={(e) => handleFilterChange(String(col.key), e.target.value)}
                                                     onClick={(e) => e.stopPropagation()}
                                                 />
@@ -205,12 +205,12 @@ function Table<T extends { id?: string | number } & Record<string, any>>({
                             </tr>
                         ) : (
                             displayData.map((item, rowIdx) => (
-                                <tr key={item.id || rowIdx} className="hover:bg-subtle-green/30 transition-colors">
+                                <tr key={item.id || rowIdx} className="hover:bg-subtle-gold/30 transition-colors">
                                     {selectable && (
                                         <td className="px-6 py-4">
                                             <input
                                                 type="checkbox"
-                                                className="rounded border-light-grey text-green focus:ring-green"
+                                                className="rounded border-light-grey text-gold focus:ring-gold"
                                                 checked={selectedIds.has(item.id!)}
                                                 onChange={(e) => handleSelectRow(item.id!, e.target.checked)}
                                             />
@@ -256,7 +256,7 @@ function Table<T extends { id?: string | number } & Record<string, any>>({
                                     className={clsx(
                                         "w-8 h-8 flex items-center justify-center rounded text-xs font-bold transition-colors",
                                         pagination.currentPage === pageNum
-                                            ? "bg-dark-green text-white"
+                                            ? "bg-brown text-white"
                                             : "hover:bg-subtle-grey text-dark-grey"
                                     )}
                                 >

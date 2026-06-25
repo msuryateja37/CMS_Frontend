@@ -20,7 +20,7 @@ const severityConfig: Record<string, { bg: string; text: string; dot: string }> 
     critical: { bg: 'bg-subtle-red', text: 'text-brand-red', dot: 'bg-brand-red' },
     high: { bg: 'bg-orange-50', text: 'text-orange-700', dot: 'bg-orange-500' },
     medium: { bg: 'bg-light-yellow', text: 'text-yellow-800', dot: 'bg-brand-yellow' },
-    low: { bg: 'bg-light-green', text: 'text-dark-green', dot: 'bg-green' },
+    low: { bg: 'bg-light-gold', text: 'text-brown', dot: 'bg-[#21FC95]' },
 };
 
 const provincialNames = [
@@ -70,7 +70,7 @@ function timelineDotClass(a: TimelineActivity): string {
     const cat = a.category;
     if (cat === 'PLAN') return 'bg-indigo-500';
     if (cat === 'COMMENT' || a.type === 'COMMENT') return 'bg-blue-500';
-    if (cat === 'CORRECTIVE_ACTION') return 'bg-teal-500';
+    if (cat === 'CORRECTIVE_ACTION') return 'bg-gold-500';
     if (cat === 'APPROVAL' || cat === 'APPROVAL_FILE') return 'bg-violet-500';
     if (cat === 'EVIDENCE') return 'bg-cyan-500';
     if (cat === 'STATUS') {
@@ -78,10 +78,10 @@ function timelineDotClass(a: TimelineActivity): string {
         if (t === 'ASSIGNED') return 'bg-purple-500';
         if (t === 'UNDER_REVIEW') return 'bg-amber-400';
         if (t === 'CLOSED' || t === 'RESOLVED') return 'bg-gray-400';
-        return 'bg-green';
+        return 'bg-gold';
     }
     if (a.description?.toLowerCase().includes('escalat')) return 'bg-amber-500';
-    return 'bg-green';
+    return 'bg-gold';
 }
 
 const CaseAction: React.FC = () => {
@@ -370,7 +370,7 @@ const CaseAction: React.FC = () => {
         return (
             <DashboardLayout title="Case Details" description="Loading..." breadcrumbs={[{ label: "Dashboard", path: "/ohs/dashboard" }, { label: "Cases Under Review", path: "/ohs/cases-review" }, { label: "Loading..." }]}>
                 <div className="flex items-center justify-center h-96">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div>
                 </div>
             </DashboardLayout>
         );
@@ -418,7 +418,7 @@ const CaseAction: React.FC = () => {
             <div className="max-w-7xl mx-auto">
                 {/* Success Banner */}
                 {successMsg && (
-                    <div className="mb-4 flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm font-medium">
+                    <div className="mb-4 flex items-center gap-2 bg-gold-50 border border-gold-200 text-gold-700 px-4 py-3 rounded-xl text-sm font-medium">
                         <CheckCircle size={16} />
                         {successMsg}
                     </div>
@@ -455,7 +455,7 @@ const CaseAction: React.FC = () => {
                             <button
                                 onClick={handleSendBackToSupervisor}
                                 disabled={sendingBack}
-                                className="flex items-center gap-2 px-5 py-2.5 bg-dark-green text-white rounded-lg hover:bg-opacity-90 transition-all font-semibold text-sm shadow-sm disabled:opacity-50"
+                                className="flex items-center gap-2 px-5 py-2.5 bg-brown text-white rounded-lg hover:bg-opacity-90 transition-all font-semibold text-sm shadow-sm disabled:opacity-50"
                             >
                                 {sendingBack ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                                 Submit for Review
@@ -543,7 +543,7 @@ const CaseAction: React.FC = () => {
                                     className={`
                                         whitespace-nowrap py-4 px-1 border-b-2 font-semibold text-sm transition-colors
                                         ${activeTab === tab.id
-                                            ? 'border-green text-green'
+                                            ? 'border-gold text-gold'
                                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}
                                     `}
                                 >
@@ -726,7 +726,7 @@ const CaseAction: React.FC = () => {
                                         {canAddAction && (
                                             <button 
                                                 onClick={() => setShowActionForm(!showActionForm)}
-                                                className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all"
+                                                className="flex items-center gap-2 px-4 py-2 bg-brown text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all"
                                             >
                                                 <Plus size={16} />
                                                 {showActionForm ? 'Cancel' : 'New Action'}
@@ -738,7 +738,7 @@ const CaseAction: React.FC = () => {
                                         <div className="bg-white p-6 rounded-xl border border-gray-200 mb-6 shadow-sm">
                                             <h4 className="text-sm font-bold text-gray-700 mb-4">Create new corrective action</h4>
                                             <textarea
-                                                className="w-full p-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green focus:border-transparent min-h-[100px] mb-4"
+                                                className="w-full p-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent min-h-[100px] mb-4"
                                                 placeholder="Describe the corrective action, verification, or follow-up required..."
                                                 value={newActionText}
                                                 onChange={(e) => setNewActionText(e.target.value)}
@@ -753,7 +753,7 @@ const CaseAction: React.FC = () => {
                                                 <button
                                                     onClick={handleAddCorrectiveAction}
                                                     disabled={submittingAction || !newActionText.trim()}
-                                                    className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50"
+                                                    className="flex items-center gap-2 px-4 py-2 bg-brown text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50"
                                                 >
                                                     {submittingAction ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
                                                     Add action
@@ -798,7 +798,7 @@ const CaseAction: React.FC = () => {
                                                             />
                                                         </div>
                                                         {actionPatchingId === act.id && (
-                                                            <Loader2 size={16} className="animate-spin text-green shrink-0" />
+                                                            <Loader2 size={16} className="animate-spin text-gold shrink-0" />
                                                         )}
                                                     </div>
                                                     <div>
@@ -864,7 +864,7 @@ const CaseAction: React.FC = () => {
                                         {canEdit && (
                                             <button 
                                                 onClick={() => setEditingPlan(!editingPlan)}
-                                                className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all"
+                                                className="flex items-center gap-2 px-4 py-2 bg-brown text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all"
                                             >
                                                 {editingPlan ? 'Cancel' : (caseData.incidentPlan ? 'Edit Plan' : 'Add Plan')}
                                             </button>
@@ -893,7 +893,7 @@ const CaseAction: React.FC = () => {
                                                 <button
                                                     onClick={handleSavePlan}
                                                     disabled={submittingPlan || !incidentPlan.trim()}
-                                                    className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50"
+                                                    className="flex items-center gap-2 px-4 py-2 bg-brown text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50"
                                                 >
                                                     {submittingPlan ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                                                     Save Plan
@@ -920,7 +920,7 @@ const CaseAction: React.FC = () => {
                                         {canAddEvidence && (
                                             <button 
                                                 onClick={() => setShowEvidenceForm(!showEvidenceForm)}
-                                                className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all"
+                                                className="flex items-center gap-2 px-4 py-2 bg-brown text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all"
                                             >
                                                 <Plus size={16} />
                                                 {showEvidenceForm ? 'Cancel' : 'Add Evidence'}
@@ -944,7 +944,7 @@ const CaseAction: React.FC = () => {
 
                                                 <div
                                                     onClick={() => fileInputRef.current?.click()}
-                                                    className="border-2 border-dashed border-gray-300 bg-gray-50 rounded-xl p-6 text-center cursor-pointer hover:border-green/40 hover:bg-green/5 transition-all"
+                                                    className="border-2 border-dashed border-gray-300 bg-gray-50 rounded-xl p-6 text-center cursor-pointer hover:border-gold/40 hover:bg-gold/5 transition-all"
                                                 >
                                                     <Upload className="mx-auto text-gray-300 mb-2" size={28} />
                                                     <p className="text-sm text-gray-500 font-medium">Click to select files</p>
@@ -973,7 +973,7 @@ const CaseAction: React.FC = () => {
                                                             <button
                                                                 onClick={handleUploadEvidence}
                                                                 disabled={uploadingFiles}
-                                                                className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50"
+                                                                className="flex items-center gap-2 px-4 py-2 bg-brown text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50"
                                                             >
                                                                 {uploadingFiles ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
                                                                 Upload {selectedFiles.length} File{selectedFiles.length > 1 ? 's' : ''}
@@ -1038,13 +1038,13 @@ const CaseAction: React.FC = () => {
                                                                         href={file.fileUrl}
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
-                                                                        className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 hover:border-green/50 hover:shadow-sm transition-all group"
+                                                                        className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 hover:border-gold/50 hover:shadow-sm transition-all group"
                                                                     >
-                                                                        <div className="w-9 h-9 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-100 text-gray-400 group-hover:text-green shrink-0">
+                                                                        <div className="w-9 h-9 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-100 text-gray-400 group-hover:text-gold shrink-0">
                                                                             <FileText size={18} />
                                                                         </div>
                                                                         <div className="overflow-hidden">
-                                                                            <p className="text-sm font-medium text-gray-700 truncate group-hover:text-green">
+                                                                            <p className="text-sm font-medium text-gray-700 truncate group-hover:text-gold">
                                                                                 {file.fileName || `Attachment ${idx + 1}`}
                                                                             </p>
                                                                             <p className="text-xs text-gray-400 uppercase">{file.fileType?.split('/')[1] || 'FILE'}</p>
@@ -1100,7 +1100,7 @@ const CaseAction: React.FC = () => {
                                             <button 
 
                                             onClick={() => setShowCommentForm(!showCommentForm)}
-                                                className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all"
+                                                className="flex items-center gap-2 px-4 py-2 bg-brown text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all"
                                             >
                                                 <Plus size={16} />
                                                 {showCommentForm ? 'Cancel' : 'Add Comment'}
@@ -1117,14 +1117,14 @@ const CaseAction: React.FC = () => {
                                                     value={comment}
                                                     onChange={(e) => setComment(e.target.value)}
                                                     placeholder="Document your findings, actions taken, or notes about this case..."
-                                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green/30 focus:border-green resize-none bg-gray-50"
+                                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold resize-none bg-gray-50"
                                                     rows={4}
                                                 />
                                                 <div className="flex justify-end mt-3">
                                                     <button
                                                 onClick={() => void handleAddComment()}
                                                         disabled={!comment.trim() || submittingComment}
-                                                        className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        className="flex items-center gap-2 px-4 py-2 bg-brown text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
                                                         {submittingComment ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                                                         Post Comment
@@ -1165,7 +1165,7 @@ const CaseAction: React.FC = () => {
                                 {/* Timeline Card */}
                                 <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
                                     <div className="flex items-center gap-2 mb-6">
-                                        <Clock size={16} className="text-green" />
+                                        <Clock size={16} className="text-gold" />
                                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Activity Timeline</h3>
                                     </div>
 

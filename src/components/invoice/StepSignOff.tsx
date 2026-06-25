@@ -41,7 +41,7 @@ const StepSignOff: React.FC<StepSignOffProps> = ({ invoice, onSubmit, onBack }) 
         const rect = canvas.getBoundingClientRect();
         ctx.lineWidth = 2;
         ctx.lineCap = 'round';
-        ctx.strokeStyle = '#0E4D41';
+        ctx.strokeStyle = '#884616';
         ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
         ctx.stroke();
     };
@@ -61,7 +61,7 @@ const StepSignOff: React.FC<StepSignOffProps> = ({ invoice, onSubmit, onBack }) 
             {/* Validation Checklist */}
             <div className="bg-white rounded-2xl border border-gray-200 p-6">
                 <div className="flex items-center gap-2 mb-5">
-                    <CheckSquare size={18} className="text-dark-green" />
+                    <CheckSquare size={18} className="text-brown" />
                     <h3 className="text-sm font-bold text-gray-900">Validation Checklist</h3>
                 </div>
 
@@ -73,7 +73,7 @@ const StepSignOff: React.FC<StepSignOffProps> = ({ invoice, onSubmit, onBack }) 
                             className="w-full flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:bg-subtle-grey/50 transition-colors text-left"
                         >
                             {item.checked ? (
-                                <div className="w-6 h-6 bg-dark-green rounded flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <div className="w-6 h-6 bg-brown rounded flex items-center justify-center flex-shrink-0 mt-0.5">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
                                         <path d="M5 13l4 4L19 7" />
                                     </svg>
@@ -99,25 +99,25 @@ const StepSignOff: React.FC<StepSignOffProps> = ({ invoice, onSubmit, onBack }) 
                     <div className="flex items-center justify-between mb-3">
                         <span className="text-xs font-semibold text-gray-500">Compiled By</span>
                         <div className="flex items-center gap-1.5">
-                            <div className="w-4 h-4 bg-green rounded-full flex items-center justify-center">
+                            <div className="w-4 h-4 bg-gold rounded-full flex items-center justify-center">
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
                                     <path d="M5 13l4 4L19 7" />
                                 </svg>
                             </div>
-                            <span className="text-[10px] font-bold text-green">Completed</span>
+                            <span className="text-[10px] font-bold text-gold">Completed</span>
                         </div>
                     </div>
                     <p className="text-sm font-bold text-gray-900">{invoice.submittedBy}</p>
                     {invoice.signedBy && (
                         <div className="mt-3 pt-3 border-t border-gray-100">
-                            <p className="text-sm italic text-dark-green font-medium">{invoice.signedBy}</p>
+                            <p className="text-sm italic text-brown font-medium">{invoice.signedBy}</p>
                             <p className="text-xs text-gray-400 mt-1">Date: {invoice.signedDate}</p>
                         </div>
                     )}
                 </div>
 
                 {/* Verified By (Click to Sign) */}
-                <div className="bg-white rounded-2xl border-2 border-dashed border-dark-green/30 p-5">
+                <div className="bg-white rounded-2xl border-2 border-dashed border-brown/30 p-5">
                     <div className="flex items-center justify-between mb-3">
                         <span className="text-xs font-semibold text-gray-500">Verified By</span>
                         <div className="flex items-center gap-1.5">
@@ -140,8 +140,8 @@ const StepSignOff: React.FC<StepSignOffProps> = ({ invoice, onSubmit, onBack }) 
                                 onMouseLeave={stopDrawing}
                             />
                             <div className="flex items-center justify-center gap-2 mt-1">
-                                <Pen size={14} className="text-dark-green" />
-                                <span className="text-xs font-bold text-dark-green">[ CLICK TO SIGN ]</span>
+                                <Pen size={14} className="text-brown" />
+                                <span className="text-xs font-bold text-brown">[ CLICK TO SIGN ]</span>
                             </div>
                         </div>
                     </div>
@@ -176,7 +176,7 @@ const StepSignOff: React.FC<StepSignOffProps> = ({ invoice, onSubmit, onBack }) 
                     disabled={!allChecked || !hasSignature}
                     className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold transition-all ${
                         allChecked && hasSignature
-                            ? 'bg-dark-green text-white hover:bg-dark-green/90 shadow-lg shadow-dark-green/20'
+                            ? 'bg-brown text-white hover:bg-brown/90 shadow-lg shadow-brown/20'
                             : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                     }`}
                 >

@@ -15,7 +15,7 @@ const StepIdentification: React.FC<StepIdentificationProps> = ({ invoice }) => {
                     Search and Select Property
                 </label>
                 <div className="flex items-center gap-3 p-4 bg-subtle-grey rounded-xl border border-semi-subtle-grey">
-                    <MapPin size={20} className="text-dark-green flex-shrink-0" />
+                    <MapPin size={20} className="text-brown flex-shrink-0" />
                     <span className="text-sm font-medium text-gray-800">{invoice.propertyName}</span>
                     <div className="ml-auto">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400">
@@ -24,12 +24,12 @@ const StepIdentification: React.FC<StepIdentificationProps> = ({ invoice }) => {
                     </div>
                 </div>
                 {/* Property info bar */}
-                <div className="flex items-center gap-2 mt-3 px-4 py-2.5 bg-light-green/50 rounded-lg">
-                    <Info size={14} className="text-dark-green flex-shrink-0" />
-                    <span className="text-xs text-dark-green">
+                <div className="flex items-center gap-2 mt-3 px-4 py-2.5 bg-light-gold/50 rounded-lg">
+                    <Info size={14} className="text-brown flex-shrink-0" />
+                    <span className="text-xs text-brown">
                         Building Size: {invoice.buildingSize.toLocaleString()} M² | Leased Area: {invoice.leasedArea} M² | Department Pro-Rata Share: {invoice.proRataShare}%
                     </span>
-                    <span className="ml-auto text-xs font-semibold text-dark-green underline cursor-pointer">
+                    <span className="ml-auto text-xs font-semibold text-brown underline cursor-pointer">
                         View Lease
                     </span>
                 </div>
@@ -86,7 +86,7 @@ const StepIdentification: React.FC<StepIdentificationProps> = ({ invoice }) => {
                             <button
                                 className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${
                                     invoice.paymentMethod === 'EBT'
-                                        ? 'bg-dark-green text-white'
+                                        ? 'bg-brown text-white'
                                         : 'bg-gray-100 text-gray-500 border border-gray-200'
                                 }`}
                             >
@@ -95,7 +95,7 @@ const StepIdentification: React.FC<StepIdentificationProps> = ({ invoice }) => {
                             <button
                                 className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${
                                     invoice.paymentMethod === 'Manual'
-                                        ? 'bg-dark-green text-white'
+                                        ? 'bg-brown text-white'
                                         : 'bg-gray-100 text-gray-500 border border-gray-200'
                                 }`}
                             >
@@ -110,16 +110,16 @@ const StepIdentification: React.FC<StepIdentificationProps> = ({ invoice }) => {
             <div className="bg-white rounded-2xl border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-5">
                     <h3 className="text-sm font-bold text-gray-800">Payee & Banking Details</h3>
-                    <span className="px-3 py-1 bg-dark-green text-white text-[10px] font-bold rounded-full uppercase tracking-wider flex items-center gap-1">
+                    <span className="px-3 py-1 bg-brown text-white text-[10px] font-bold rounded-full uppercase tracking-wider flex items-center gap-1">
                         <ShieldCheck size={12} />
                         Verified Entity
                     </span>
                 </div>
 
-                <div className="flex flex-col md:flex-row items-start md:items-center gap-6 p-5 bg-subtle-green rounded-xl border border-light-green">
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-6 p-5 bg-subtle-gold rounded-xl border border-light-gold">
                     <div className="flex items-center gap-4 flex-1">
-                        <div className="w-12 h-12 bg-light-green rounded-xl flex items-center justify-center">
-                            <Building2 size={22} className="text-dark-green" />
+                        <div className="w-12 h-12 bg-light-gold rounded-xl flex items-center justify-center">
+                            <Building2 size={22} className="text-brown" />
                         </div>
                         <div>
                             <p className="text-sm font-bold text-gray-900">{invoice.landlordName}</p>
@@ -135,7 +135,7 @@ const StepIdentification: React.FC<StepIdentificationProps> = ({ invoice }) => {
                             <p className="text-xs text-gray-500">ACCOUNT</p>
                             <p className="text-sm font-bold text-gray-800">{invoice.bankAccount}</p>
                         </div>
-                        <div className="w-6 h-6 bg-green rounded-full flex items-center justify-center ml-2">
+                        <div className="w-6 h-6 bg-gold rounded-full flex items-center justify-center ml-2">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
                                 <path d="M5 13l4 4L19 7" />
                             </svg>

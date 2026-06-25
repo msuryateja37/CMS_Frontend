@@ -36,11 +36,11 @@ const IncidentStatusCard: React.FC<IncidentStatusCardProps> = ({
         </div>
         
         <div className="flex flex-col">
-            <div className="text-4xl font-bold text-dark-green mb-1">{count}</div>
+            <div className="text-4xl font-bold text-brown mb-1">{count}</div>
             
             {percentage && (
                 <div className="flex items-center gap-1">
-                    <span className="text-xs font-bold text-green">{percentage}</span>
+                    <span className="text-xs font-bold text-gold">{percentage}</span>
                     <span className="text-xs text-light-grey">from last month</span>
                 </div>
             )}

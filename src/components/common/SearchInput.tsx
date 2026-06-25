@@ -200,7 +200,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
         return (
             <>
                 {text.substring(0, index)}
-                <span className="font-bold text-green bg-green/10 px-0.5 rounded">
+                <span className="font-bold text-gold bg-gold/10 px-0.5 rounded">
                     {text.substring(index, index + query.length)}
                 </span>
                 {text.substring(index + query.length)}
@@ -214,7 +214,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
     const variantStyles = {
         default: 'bg-subtle-grey border-none',
         compact: 'bg-white border border-semi-subtle-grey',
-        bordered: 'bg-white border-2 border-gray-200 focus-within:border-green',
+        bordered: 'bg-white border-2 border-gray-200 focus-within:border-gold',
     };
 
     return (
@@ -223,7 +223,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
                 className={clsx(
                     'relative flex items-center rounded-lg transition-all',
                     variantStyles[variant],
-                    isFocused && variant === 'default' && 'ring-1 ring-green',
+                    isFocused && variant === 'default' && 'ring-1 ring-gold',
                     disabled && 'opacity-50 cursor-not-allowed'
                 )}
             >
@@ -232,7 +232,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
                     <Search
                         className={clsx(
                             'absolute left-3 text-light-grey transition-colors',
-                            isFocused && 'text-green'
+                            isFocused && 'text-gold'
                         )}
                         size={16}
                     />
@@ -260,7 +260,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
                 {/* Loading Spinner */}
                 {loading && (
                     <div className="absolute right-3">
-                        <div className="w-4 h-4 border-2 border-green border-t-transparent rounded-full animate-spin" />
+                        <div className="w-4 h-4 border-2 border-gold border-t-transparent rounded-full animate-spin" />
                     </div>
                 )}
 
@@ -268,7 +268,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
                 {clearable && inputValue && !loading && (
                     <button
                         onClick={handleClear}
-                        className="absolute right-3 p-1 text-light-grey hover:text-dark-green transition-colors rounded-full hover:bg-semi-subtle-grey"
+                        className="absolute right-3 p-1 text-light-grey hover:text-brown transition-colors rounded-full hover:bg-semi-subtle-grey"
                         type="button"
                         tabIndex={-1}
                     >
@@ -281,7 +281,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
                     <Search
                         className={clsx(
                             'absolute right-3 text-light-grey transition-colors',
-                            isFocused && 'text-green'
+                            isFocused && 'text-gold'
                         )}
                         size={16}
                     />
@@ -301,7 +301,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
                             className={clsx(
                                 'w-full px-4 py-3 text-left transition-colors flex flex-col',
                                 index === highlightedIndex
-                                    ? 'bg-green/10 text-dark-green'
+                                    ? 'bg-gold/10 text-brown'
                                     : 'hover:bg-subtle-grey text-dark-grey',
                                 index === 0 && 'rounded-t-xl',
                                 index === filteredSuggestions.length - 1 && 'rounded-b-xl'

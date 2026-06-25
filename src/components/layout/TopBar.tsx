@@ -205,11 +205,11 @@ const TopBar: React.FC<TopBarProps> = ({
                                         <React.Fragment key={idx}>
                                             {idx > 0 && <ChevronRight size={10} className="text-gray-300 mx-0.5" />}
                                             {crumb.path && !isLast ? (
-                                                <Link to={crumb.path} className="text-green hover:text-dark-green hover:underline transition-colors">
+                                                <Link to={crumb.path} className="text-gold hover:text-brown hover:underline transition-colors">
                                                     {crumb.label}
                                                 </Link>
                                             ) : (
-                                                <span className={isLast ? 'text-gray-500' : 'text-green'}>{crumb.label}</span>
+                                                <span className={isLast ? 'text-gray-500' : 'text-gold'}>{crumb.label}</span>
                                             )}
                                         </React.Fragment>
                                     );
@@ -217,7 +217,7 @@ const TopBar: React.FC<TopBarProps> = ({
                             </nav>
                         ) : description ? (
                             <p className="text-[11px] font-semibold mt-0">
-                                <span className="text-green">Dashboard </span>
+                                <span className="text-gold">Dashboard </span>
                                 <span className="text-black">/ {description}</span>
                             </p>
                         ) : null}
@@ -226,7 +226,7 @@ const TopBar: React.FC<TopBarProps> = ({
                     {actionButton && (
                         <button
                             onClick={actionButton.onClick}
-                            className="flex items-center justify-center gap-1.5 bg-dark-green text-white px-3 py-1 rounded-lg text-[11px] font-bold hover:bg-opacity-90 transition-all shadow-md sm:mt-0.5 w-full sm:w-auto"
+                            className="flex items-center justify-center gap-1.5 bg-brown text-white px-3 py-1 rounded-lg text-[11px] font-bold hover:bg-opacity-90 transition-all shadow-md sm:mt-0.5 w-full sm:w-auto"
                         >
                             {actionButton.icon && <actionButton.icon size={12} />}
                             {actionButton.label}
@@ -259,13 +259,13 @@ const TopBar: React.FC<TopBarProps> = ({
                 <div className="flex items-center justify-between md:justify-end w-full md:w-auto gap-2">
                     {/* Icons */}
                     <div className="flex items-center gap-1">
-                        <button className="p-1.5 text-gray-400 bg-light-green hover:bg-gray-50 rounded-xl transition-all border border-transparent hover:border-gray-100">
+                        <button className="p-1.5 text-gray-400 bg-light-gold hover:bg-gray-50 rounded-xl transition-all border border-transparent hover:border-gray-100">
                             <Settings size={14} />
                         </button>
                         <div className="relative" ref={notifRef}>
                             <button
                                 onClick={handleBellClick}
-                                className="p-1.5 text-gray-400 bg-light-green hover:bg-gray-50 rounded-xl transition-all relative border border-transparent hover:border-gray-100"
+                                className="p-1.5 text-gray-400 bg-light-gold hover:bg-gray-50 rounded-xl transition-all relative border border-transparent hover:border-gray-100"
                             >
                                 <Bell size={14} />
                                 {unreadCount > 0 && (
@@ -283,7 +283,7 @@ const TopBar: React.FC<TopBarProps> = ({
                                         {unreadCount > 0 && (
                                             <button
                                                 onClick={handleMarkAllRead}
-                                                className="text-xs text-green font-semibold hover:underline flex items-center gap-1"
+                                                className="text-xs text-gold font-semibold hover:underline flex items-center gap-1"
                                             >
                                                 <Check size={12} /> Mark all read
                                             </button>
@@ -334,7 +334,7 @@ const TopBar: React.FC<TopBarProps> = ({
                                 <p className="text-[11px] font-bold text-gray-800 leading-none">{getFullName()}</p>
                                 <p className="text-[9px] font-semibold text-gray-400 mt-0">{getUserRole()}</p>
                             </div>
-                            <div className="w-[28px] h-[28px] rounded-full bg-green flex items-center justify-center text-white font-bold text-[11px] shadow-inner border-2 border-white">
+                            <div className="w-[28px] h-[28px] rounded-full bg-gold flex items-center justify-center text-white font-bold text-[11px] shadow-inner border-2 border-white">
                                 {getUserInitials()}
                             </div>
                             {/* <ChevronDown size={16} className="text-gray-400" /> */}

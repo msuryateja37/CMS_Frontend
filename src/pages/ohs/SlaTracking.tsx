@@ -26,14 +26,14 @@ const OHSSlaTracking: React.FC = () => {
                 <div className="flex justify-end gap-3 mb-1">
                     <button
                         onClick={() => navigate('/ohs/cases-review')}
-                        className="flex items-center gap-2 px-4 py-2 bg-green text-white font-bold rounded-lg hover:bg-[#2aa88f] transition-colors shadow-sm"
+                        className="flex items-center gap-2 px-4 py-2 bg-gold text-white font-bold rounded-lg hover:bg-[#A1743E] transition-colors shadow-sm"
                     >
                         <FileSearch size={18} />
                         Review Cases
                     </button>
                     <button
                         onClick={() => navigate('/ohs/submit-case')}
-                        className="flex items-center gap-2 px-4 py-2 bg-green text-white font-bold rounded-lg hover:bg-[#2aa88f] transition-colors shadow-sm"
+                        className="flex items-center gap-2 px-4 py-2 bg-gold text-white font-bold rounded-lg hover:bg-[#A1743E] transition-colors shadow-sm"
                     >
                         <FilePlus size={16} />
                         Submit New Case
@@ -46,7 +46,7 @@ const OHSSlaTracking: React.FC = () => {
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                         <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center gap-2 text-gray-500">
-                                <FileText size={18} className="text-green" />
+                                <FileText size={18} className="text-gold" />
                                 <span className="text-sm font-medium">Overall Compliance</span>
                             </div>
                         </div>
@@ -54,11 +54,11 @@ const OHSSlaTracking: React.FC = () => {
                             <div className="flex items-center gap-4">
                                 <h3 className="text-4xl font-bold text-black">60%</h3>
                                 <div className="flex-1 bg-gray-200 rounded-full h-2">
-                                    <div className="bg-dark-green h-2 rounded-full" style={{ width: '60%' }}></div>
+                                    <div className="bg-brown h-2 rounded-full" style={{ width: '60%' }}></div>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2 text-xs mt-1">
-                                <span className="px-2 py-0.5 bg-light-green text-dark-green font-bold rounded-md">33.3%</span>
+                                <span className="px-2 py-0.5 bg-light-gold text-brown font-bold rounded-md">33.3%</span>
                                 <span className="text-gray-400">from last month</span>
                             </div>
                         </div>
@@ -68,14 +68,14 @@ const OHSSlaTracking: React.FC = () => {
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                         <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center gap-2 text-gray-500">
-                                <Calendar size={18} className="text-green" />
+                                <Calendar size={18} className="text-gold" />
                                 <span className="text-sm font-medium">At Risk</span>
                             </div>
                         </div>
                         <div className="flex flex-col gap-2">
                             <h3 className="text-4xl font-bold text-black">3</h3>
                             <div className="flex items-center gap-2 text-xs">
-                                <span className="px-2 py-0.5 bg-light-green text-dark-green font-bold rounded-md">4.7%</span>
+                                <span className="px-2 py-0.5 bg-light-gold text-brown font-bold rounded-md">4.7%</span>
                                 <span className="text-gray-400">from last month</span>
                             </div>
                         </div>
@@ -85,14 +85,14 @@ const OHSSlaTracking: React.FC = () => {
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                         <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center gap-2 text-gray-500">
-                                <CheckCircle2 size={18} className="text-green" />
+                                <CheckCircle2 size={18} className="text-gold" />
                                 <span className="text-sm font-medium">On Track</span>
                             </div>
                         </div>
                         <div className="flex flex-col gap-2">
                             <h3 className="text-4xl font-bold text-black">3</h3>
                             <div className="flex items-center gap-2 text-xs">
-                                <span className="px-2 py-0.5 bg-light-green text-dark-greenbg-light-green font-bold rounded-md">50%</span>
+                                <span className="px-2 py-0.5 bg-light-gold text-brownbg-light-gold font-bold rounded-md">50%</span>
                                 <span className="text-gray-400">from last month</span>
                             </div>
                         </div>
@@ -109,7 +109,7 @@ const OHSSlaTracking: React.FC = () => {
                         <div className="flex flex-col gap-2">
                             <h3 className="text-4xl font-bold text-red">1</h3>
                             <div className="flex items-center gap-2 text-xs">
-                                <span className="px-2 py-0.5 bg-light-green text-dark-green font-bold rounded-md">50%</span>
+                                <span className="px-2 py-0.5 bg-light-gold text-brown font-bold rounded-md">50%</span>
                                 <span className="text-gray-400">from last month</span>
                             </div>
                         </div>
@@ -135,7 +135,7 @@ const OHSSlaTracking: React.FC = () => {
                                 <p className="text-red font-bold text-sm">Overdue</p>
                                 <p className="text-gray-400 text-xs">Due: 2024-01-25</p>
                             </div>
-                            <button className="flex items-center gap-1 bg-[#E4F2D3] text-[#203430] hover:bg-[#d0e5b8] px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+                            <button className="flex items-center gap-1 bg-[#F1E3D3] text-[#000000] hover:bg-[#d0e5b8] px-4 py-2 rounded-lg text-sm font-bold transition-colors">
                                 View Case <ChevronRight size={14} />
                             </button>
                         </div>
@@ -163,7 +163,7 @@ const OHSSlaTracking: React.FC = () => {
                                     <p className="text-gray-600 font-bold text-sm">At Risk</p>
                                     <p className="text-gray-400 text-xs">Due: 2024-02-15</p>
                                 </div>
-                                <button className="flex items-center gap-1 bg-[#E4F2D3] text-[#203430] hover:bg-[#d0e5b8] px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+                                <button className="flex items-center gap-1 bg-[#F1E3D3] text-[#000000] hover:bg-[#d0e5b8] px-4 py-2 rounded-lg text-sm font-bold transition-colors">
                                     View Case <ChevronRight size={14} />
                                 </button>
                             </div>
@@ -182,7 +182,7 @@ const OHSSlaTracking: React.FC = () => {
                                     <p className="text-gray-600 font-bold text-sm">At Risk</p>
                                     <p className="text-gray-400 text-xs">Due: 2024-01-27</p>
                                 </div>
-                                <button className="flex items-center gap-1 bg-[#E4F2D3] text-[#203430] hover:bg-[#d0e5b8] px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+                                <button className="flex items-center gap-1 bg-[#F1E3D3] text-[#000000] hover:bg-[#d0e5b8] px-4 py-2 rounded-lg text-sm font-bold transition-colors">
                                     View Case <ChevronRight size={14} />
                                 </button>
                             </div>
@@ -211,7 +211,7 @@ const OHSSlaTracking: React.FC = () => {
                                     <p className="text-gray-600 font-bold text-sm">On Track</p>
                                     <p className="text-gray-400 text-xs">Due: 2024-02-15</p>
                                 </div>
-                                <button className="flex items-center gap-1 bg-[#E4F2D3] text-[#203430] hover:bg-[#d0e5b8] px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+                                <button className="flex items-center gap-1 bg-[#F1E3D3] text-[#000000] hover:bg-[#d0e5b8] px-4 py-2 rounded-lg text-sm font-bold transition-colors">
                                     View Case <ChevronRight size={14} />
                                 </button>
                             </div>
@@ -230,7 +230,7 @@ const OHSSlaTracking: React.FC = () => {
                                     <p className="text-gray-600 font-bold text-sm">On Track</p>
                                     <p className="text-gray-400 text-xs">Due: 2024-01-27</p>
                                 </div>
-                                <button className="flex items-center gap-1 bg-[#E4F2D3] text-[#203430] hover:bg-[#d0e5b8] px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+                                <button className="flex items-center gap-1 bg-[#F1E3D3] text-[#000000] hover:bg-[#d0e5b8] px-4 py-2 rounded-lg text-sm font-bold transition-colors">
                                     View Case <ChevronRight size={14} />
                                 </button>
                             </div>
@@ -249,7 +249,7 @@ const OHSSlaTracking: React.FC = () => {
                                     <p className="text-gray-600 font-bold text-sm">On Track</p>
                                     <p className="text-gray-400 text-xs">Due: 2024-02-15</p>
                                 </div>
-                                <button className="flex items-center gap-1 bg-[#E4F2D3] text-[#203430] hover:bg-[#d0e5b8] px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+                                <button className="flex items-center gap-1 bg-[#F1E3D3] text-[#000000] hover:bg-[#d0e5b8] px-4 py-2 rounded-lg text-sm font-bold transition-colors">
                                     View Case <ChevronRight size={14} />
                                 </button>
                             </div>

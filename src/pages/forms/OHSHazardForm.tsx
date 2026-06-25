@@ -5,7 +5,7 @@ import { getFormByTitleKeyword, submitFormResponse } from '../../services/formsS
 import { useAuthStore } from '../../store/auth.store';
 import DashboardLayout from '../../layouts/DashboardLayout';
 
-const OHSAuditForm: React.FC = () => {
+const OHSHazardForm: React.FC = () => {
   const { user } = useAuthStore();
   const [form, setForm] = useState<FormTemplate | null>(null);
   const [loading, setLoading] = useState(true);
@@ -20,7 +20,7 @@ const OHSAuditForm: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const fullForm = await getFormByTitleKeyword('compliance audit');
+        const fullForm = await getFormByTitleKeyword('hazard identification risk assessment');
         setForm(fullForm);
       } catch (err: unknown) {
         setError('Failed to load the form. Please try again later.');
@@ -42,7 +42,7 @@ const OHSAuditForm: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!form) return;
-    
+
     // 1. Basic Validation
     if (Object.keys(answers).length === 0) {
       alert('The form is empty. Please answer the questions before submitting.');
@@ -88,11 +88,11 @@ const OHSAuditForm: React.FC = () => {
         };
       });
 
-      await submitFormResponse(form.formId || form.id, { 
-        submittedBy: user?.id, 
-        answers: answersPayload 
+      await submitFormResponse(form.formId || form.id, {
+        submittedBy: user?.id,
+        answers: answersPayload
       });
-      
+
       setSubmitted(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err: any) {
@@ -117,11 +117,11 @@ const OHSAuditForm: React.FC = () => {
 
   return (
     <DashboardLayout
-      title="OHS Inspector – OHS Compliance Audit Checklist"
-      description="Evaluate organizational compliance with OHS regulations."
+      title="OHS Inspector – OHS Hazard Identification Risk Assessment"
+      description="Conduct Risk Assessments."
       breadcrumbs={[
-        { label: 'OHS Forms', path: '/ohs/forms/audit' },
-        { label: 'Compliance Audit Checklist' }
+        { label: 'OHS Forms', path: '/ohs/forms/hazard' },
+        { label: 'Hazard Identification Risk Assessment' }
       ]}
     >
       {/* ── Loading ── */}
@@ -152,10 +152,10 @@ const OHSAuditForm: React.FC = () => {
             <svg className="w-12 h-12 mx-auto mb-3 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <p className="text-lg font-bold mb-1">Audit Submitted!</p>
-            <p className="text-sm text-gold-600">Your OHS compliance record has been saved successfully.</p>
+            <p className="text-lg font-bold mb-1">Risk Assessment Submitted!</p>
+            <p className="text-sm text-gold-600">Your hazard identification risk assessment has been saved successfully.</p>
           </div>
-          
+
           <button
             onClick={handleReset}
             className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-gold-500 text-gold-600 rounded-xl font-bold hover:bg-gold-50 transition-all shadow-md active:scale-95"
@@ -164,7 +164,7 @@ const OHSAuditForm: React.FC = () => {
               <path d="M23 4v6h-6" />
               <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
             </svg>
-            Submit Another Audit
+            Conduct Another Assessment
           </button>
         </div>
       )}
@@ -186,7 +186,7 @@ const OHSAuditForm: React.FC = () => {
             </button>
             <div>
               <div className="flex items-center gap-3">
-                <span className="font-semibold text-base text-gray-800">INP-2026-023</span>
+                <span className="font-semibold text-base text-gray-800">HIRA-2026-001</span>
                 <span className="bg-blue-100 text-blue-600 text-xs px-2 py-0.5 rounded-full border border-blue-200 font-medium">
                   in progress
                 </span>
@@ -254,4 +254,4 @@ const OHSAuditForm: React.FC = () => {
   );
 };
 
-export default OHSAuditForm;
+export default OHSHazardForm;

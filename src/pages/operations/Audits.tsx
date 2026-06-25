@@ -22,8 +22,8 @@ const STATS = [
         label: 'Active Audits',
         value: 3,
         icon: Calendar,
-        bg: 'bg-[#E4F2D3]',
-        text: 'text-[#0E4D41]',
+        bg: 'bg-[#F1E3D3]',
+        text: 'text-[#884616]',
         iconBg: 'bg-white/60'
     },
     {
@@ -31,7 +31,7 @@ const STATS = [
         value: 28,
         icon: AlertCircle,
         bg: 'bg-white',
-        text: 'text-[#0E4D41]',
+        text: 'text-[#884616]',
         iconBg: 'bg-[#F2FDF0]'
     },
     {
@@ -39,7 +39,7 @@ const STATS = [
         value: '56%',
         icon: FileText,
         bg: 'bg-white',
-        text: 'text-[#0E4D41]',
+        text: 'text-[#884616]',
         iconBg: 'bg-[#F2FDF0]'
     },
     {
@@ -47,7 +47,7 @@ const STATS = [
         value: 12,
         icon: CheckCircle2,
         bg: 'bg-white',
-        text: 'text-[#0E4D41]',
+        text: 'text-[#884616]',
         iconBg: 'bg-[#F2FDF0]'
     }
 ];
@@ -93,7 +93,7 @@ const Audits: React.FC = () => {
             header: 'Title',
             accessorKey: 'title',
             sortable: true,
-            cell: (item) => <h4 className="text-[#45bfa3] font-bold text-sm tracking-tight">{item.title}</h4>
+            cell: (item) => <h4 className="text-[#BB8F53] font-bold text-sm tracking-tight">{item.title}</h4>
         },
         {
             header: 'Type',
@@ -175,7 +175,7 @@ const Audits: React.FC = () => {
         >
             <div className="space-y-8 animate-fadeIn pb-10">
                 <div className="flex justify-end gap-3 mb-4">
-                    <button className="flex items-center gap-2 px-4 py-2 bg-[#E4F2D3] text-[#0E4D41] rounded-lg text-sm font-bold hover:bg-[#d4eabc] transition-colors">
+                    <button className="flex items-center gap-2 px-4 py-2 bg-[#F1E3D3] text-[#884616] rounded-lg text-sm font-bold hover:bg-[#d4eabc] transition-colors">
                         <Plus size={16} /> Export Report <ChevronDown size={14} />
                     </button>
                 </div>

@@ -34,9 +34,9 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
             className={cn(
               "w-5 h-5 rounded border-2 transition-all duration-200 flex items-center justify-center",
               checked 
-                ? "bg-[#0D9488] border-[#0D9488]" 
-                : "bg-white border-gray-300 group-hover:border-[#0D9488]",
-              "peer-focus:ring-2 peer-focus:ring-[#0D9488]/20"
+                ? "bg-[#BB8F53] border-[#BB8F53]" 
+                : "bg-white border-gray-300 group-hover:border-[#BB8F53]",
+              "peer-focus:ring-2 peer-focus:ring-[#BB8F53]/20"
             )}
           >
             <svg 

@@ -183,6 +183,12 @@ export const OHS_SIDEBAR = [
         isSingle: true
     },
     {
+        label: 'Hazard Identification Risk Assessment',
+        path: '/ohs/forms/hazard',
+        icon: AlertCircle,
+        isSingle: true
+    },
+    {
         label: 'Submissions History',
         path: '/ohs/forms/submissions',
         icon: Clock,

@@ -259,7 +259,7 @@ export const ApprovalsTab: React.FC<ApprovalsTabProps> = ({
         <div className="space-y-6">
             {/* Local success / error alerts */}
             {successMsg && (
-                <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm font-medium animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="flex items-center gap-2 bg-gold-50 border border-gold-200 text-gold-700 px-4 py-3 rounded-xl text-sm font-medium animate-in fade-in slide-in-from-top-2 duration-300">
                     <CheckCircle className="shrink-0" size={16} />
                     <span>{successMsg}</span>
                 </div>
@@ -397,7 +397,7 @@ export const ApprovalsTab: React.FC<ApprovalsTabProps> = ({
                                                                 type="button"
                                                                 disabled={savingApprovalMetaId === ap.id}
                                                                 onClick={() => void saveApprovalMeta()}
-                                                                className="text-xs font-semibold text-white bg-dark-green px-3 py-1.5 rounded-lg disabled:opacity-50"
+                                                                className="text-xs font-semibold text-white bg-brown px-3 py-1.5 rounded-lg disabled:opacity-50"
                                                             >
                                                                 {savingApprovalMetaId === ap.id ? 'Saving…' : 'Save'}
                                                             </button>
@@ -419,7 +419,7 @@ export const ApprovalsTab: React.FC<ApprovalsTabProps> = ({
                                                                 }
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
-                                                                className="text-xs text-green font-medium truncate flex-1 min-w-0"
+                                                                className="text-xs text-gold font-medium truncate flex-1 min-w-0"
                                                             >
                                                                 {att.fileName || 'Document'}
                                                             </a>
@@ -449,7 +449,7 @@ export const ApprovalsTab: React.FC<ApprovalsTabProps> = ({
                                                         type="button"
                                                         disabled={uploadingExtraAttachments}
                                                         onClick={() => triggerExtraAttachments(ap.id)}
-                                                        className="w-full mt-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-dark-green border border-green/30 rounded-lg py-1.5 hover:bg-green/5 disabled:opacity-50"
+                                                        className="w-full mt-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-brown border border-gold/30 rounded-lg py-1.5 hover:bg-gold/5 disabled:opacity-50"
                                                     >
                                                         {uploadingExtraAttachments && extraAttachApprovalId === ap.id ? (
                                                             <Loader2 size={14} className="animate-spin" />
@@ -483,7 +483,7 @@ export const ApprovalsTab: React.FC<ApprovalsTabProps> = ({
                                 {canEdit && (
                                     <>
                                         {newApprovalForRole === def.roleName ? (
-                                            <div className="rounded-lg border border-dashed border-green/40 bg-green/5 p-3 space-y-2">
+                                            <div className="rounded-lg border border-dashed border-gold/40 bg-gold/5 p-3 space-y-2">
                                                 <p className="text-xs font-bold text-gray-700">New record</p>
                                                 <input
                                                     className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white"
@@ -505,7 +505,7 @@ export const ApprovalsTab: React.FC<ApprovalsTabProps> = ({
                                                         className="text-xs font-semibold px-2 py-1.5 rounded-md bg-white border border-gray-200 flex items-center gap-1.5 hover:bg-gray-50 disabled:opacity-50"
                                                     >
                                                         {uploadingNewFile ? (
-                                                            <Loader2 size={12} className="animate-spin text-green" />
+                                                            <Loader2 size={12} className="animate-spin text-gold" />
                                                         ) : (
                                                             <Upload size={12} />
                                                         )}
@@ -539,7 +539,7 @@ export const ApprovalsTab: React.FC<ApprovalsTabProps> = ({
                                                         type="button"
                                                         disabled={submittingNewApproval || uploadingNewFile}
                                                         onClick={() => void submitNewApprovalForRole(def.roleName)}
-                                                        className="text-xs font-semibold text-white bg-dark-green px-3 py-1.5 rounded-lg disabled:opacity-50 inline-flex items-center gap-1"
+                                                        className="text-xs font-semibold text-white bg-brown px-3 py-1.5 rounded-lg disabled:opacity-50 inline-flex items-center gap-1"
                                                     >
                                                         {submittingNewApproval ? (
                                                             <Loader2 size={14} className="animate-spin" />
@@ -554,7 +554,7 @@ export const ApprovalsTab: React.FC<ApprovalsTabProps> = ({
                                             <button
                                                 type="button"
                                                 onClick={() => openNewApprovalForm(def.roleName)}
-                                                className="mt-auto w-full flex items-center justify-center gap-2 px-3 py-2 bg-dark-green text-white text-xs font-semibold rounded-lg hover:bg-opacity-90"
+                                                className="mt-auto w-full flex items-center justify-center gap-2 px-3 py-2 bg-brown text-white text-xs font-semibold rounded-lg hover:bg-opacity-90"
                                             >
                                                 <Plus size={14} /> Add recommendation / approval
                                             </button>

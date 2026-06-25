@@ -69,17 +69,17 @@ export const Pill: React.FC<PillProps> = ({ label, variant = 'default', classNam
             case 'investigating':
                 return 'bg-[#002140] text-white border-transparent';
             /*case 'open':
-                return 'bg-[#35BFA3] text-white border-transparent';*/
+                return 'bg-[#BB8F53] text-white border-transparent';*/
             case 'closed':
-                return 'bg-dark-green/85 text-white border-transparent';
+                return 'bg-brown/85 text-white border-transparent';
             case 'active':
-                return 'bg-[#35BFA3] text-white border-transparent';
+                return 'bg-[#BB8F53] text-white border-transparent';
             case 'assigned':
                 return 'bg-semi-subtle-grey text-black border-[#A4ACAB]';
             case 'escalated':
                 return 'bg-red text-white border-[#FECACA]';
             case 'raised':
-                return 'bg-green text-white border-[#B7EB8F]';
+                return 'bg-gold text-white border-[#B7EB8F]';
 
             // New Statuses
             case 'in progress':
@@ -99,7 +99,7 @@ export const Pill: React.FC<PillProps> = ({ label, variant = 'default', classNam
             case 'under review':
                 return 'bg-[#F0F5FF] text-[#2F54EB] border-[#ADC6FF]';
             case 'paid':
-                return 'bg-[#35BFA3] text-white border-transparent';
+                return 'bg-[#BB8F53] text-white border-transparent';
             case 'overdue':
                 return 'bg-[#F1594863] text-[#034C3D] border-[#FC9898]';
             case 'approved':
@@ -112,7 +112,7 @@ export const Pill: React.FC<PillProps> = ({ label, variant = 'default', classNam
             case 'granted':
                 return 'bg-[#CDFBE6] text-[#333333] border-[#21FC95]';
             case 'denied':
-                return 'bg-[#E4F2D3] text-[#333333] border-[#E4F2D3]';
+                return 'bg-[#F1E3D3] text-[#333333] border-[#F1E3D3]';
             case 'alert':
                 return 'bg-[#F19A4863] text-[#333333] border-[#FF9F0A]';
             case 'completed':

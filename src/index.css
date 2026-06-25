@@ -8,7 +8,7 @@ html, body, #root {
   height: 100%;
   font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   background-color: #F7F7F7;
-  color: #203430;
+  color: #000000;
 }
 
 /* Enforce universal font family across all standard elements, UI components, inputs, buttons, and popups */

@@ -96,7 +96,7 @@ const Pagination: React.FC<PaginationProps> = ({
                             onChange={(val) => onItemsPerPageChange?.(Number(val))}
                             options={pageSizeOptions}
                             className="w-full"
-                            bgColor="bg-light-green"
+                            bgColor="bg-light-gold"
                         />
                     </div>
                     <span>of {totalItems} results</span>
@@ -108,7 +108,7 @@ const Pagination: React.FC<PaginationProps> = ({
                 <button
                     onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
-                    className="w-10 h-10 flex items-center justify-center rounded-lg text-dark-green hover:bg-light-green transition-all disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                    className="w-10 h-10 flex items-center justify-center rounded-lg text-brown hover:bg-light-gold transition-all disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                     aria-label="Previous page"
                 >
                     <ChevronLeft size={20} />
@@ -122,8 +122,8 @@ const Pagination: React.FC<PaginationProps> = ({
                             className={clsx(
                                 'w-10 h-10 flex items-center justify-center rounded-lg font-bold transition-colors shrink-0',
                                 currentPage === page
-                                    ? 'bg-green text-white shadow-md shadow-green/20'
-                                    : 'hover:bg-light-green text-dark-green'
+                                    ? 'bg-gold text-white shadow-md shadow-gold/20'
+                                    : 'hover:bg-light-gold text-brown'
                             )}
                             aria-current={currentPage === page ? 'page' : undefined}
                         >
@@ -138,7 +138,7 @@ const Pagination: React.FC<PaginationProps> = ({
                             </span>
                             <button
                                 onClick={() => onPageChange(totalPages)}
-                                className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-light-green text-dark-green font-bold transition-colors"
+                                className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-light-gold text-brown font-bold transition-colors"
                             >
                                 {totalPages}
                             </button>
@@ -149,7 +149,7 @@ const Pagination: React.FC<PaginationProps> = ({
                 <button
                     onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
                     disabled={currentPage >= totalPages || totalPages === 0}
-                    className="w-10 h-10 flex items-center justify-center rounded-lg text-dark-green hover:bg-light-green transition-all disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                    className="w-10 h-10 flex items-center justify-center rounded-lg text-brown hover:bg-light-gold transition-all disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                     aria-label="Next page"
                 >
                     <ChevronRight size={20} />

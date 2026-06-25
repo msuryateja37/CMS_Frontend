@@ -15,12 +15,12 @@ interface SummaryCardProps {
     icon: React.ElementType;
     label: string;
     value: string | number;
-    color: 'green' | 'red' | 'blue' | 'amber';
+    color: 'gold' | 'red' | 'blue' | 'amber';
 }
 
 const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, label, value, color }) => {
     const styles = {
-        green: { icon: 'text-green bg-green/10', bar: 'bg-green', value: 'text-gray-800' },
+        gold: { icon: 'text-gold bg-gold/10', bar: 'bg-gold', value: 'text-gray-800' },
         red: { icon: 'text-red bg-red/10', bar: 'bg-red', value: 'text-red' },
         blue: { icon: 'text-blue-600 bg-blue-50', bar: 'bg-blue-500', value: 'text-gray-800' },
         amber: { icon: 'text-yellow bg-yellow/10', bar: 'bg-yellow', value: 'text-gray-800' },
@@ -75,8 +75,8 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ role }) => {
             sortable: true,
             cell: (item) => (
                 <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-light-green flex items-center justify-center flex-shrink-0">
-                        <FileText size={16} className="text-dark-green" />
+                    <div className="w-9 h-9 rounded-lg bg-light-gold flex items-center justify-center flex-shrink-0">
+                        <FileText size={16} className="text-brown" />
                     </div>
                     <span className="text-sm font-medium text-gray-700">{item.invoiceNumber}</span>
                 </div>
@@ -130,7 +130,7 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ role }) => {
             cell: (item) => (
                 <button
                     onClick={() => navigate(`${basePath}/${item.id}`)}
-                    className="flex items-center gap-1.5 px-4 py-1.5 bg-light-green text-dark-green text-xs font-bold rounded-lg hover:bg-green/10 transition-colors whitespace-nowrap"
+                    className="flex items-center gap-1.5 px-4 py-1.5 bg-light-gold text-brown text-xs font-bold rounded-lg hover:bg-gold/10 transition-colors whitespace-nowrap"
                 >
                     <Eye size={14} />
                     View
@@ -147,10 +147,10 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ role }) => {
         <div className="space-y-6">
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                <SummaryCard icon={FileText} label="Total Invoices" value={MOCK_INVOICES.length} color="green" />
+                <SummaryCard icon={FileText} label="Total Invoices" value={MOCK_INVOICES.length} color="gold" />
                 <SummaryCard icon={Calendar} label="Pending Approval" value={pendingCount} color="amber" />
                 <SummaryCard icon={Info} label="In Review" value={inReviewCount} color="blue" />
-                <SummaryCard icon={CheckCircle} label="Approved / Paid" value={approvedCount} color="green" />
+                <SummaryCard icon={CheckCircle} label="Approved / Paid" value={approvedCount} color="gold" />
             </div>
 
             {/* New Invoice Button (Supervisor only) */}
@@ -158,7 +158,7 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ role }) => {
                 <div className="flex justify-end">
                     <button
                         onClick={() => navigate('/supervisor/invoices/new')}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-dark-green text-white font-bold rounded-xl hover:bg-opacity-90 transition-all shadow-sm text-sm"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-brown text-white font-bold rounded-xl hover:bg-opacity-90 transition-all shadow-sm text-sm"
                     >
                         <Plus size={18} />
                         New Invoice
@@ -185,7 +185,7 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ role }) => {
                             onChange={(val) => { setStatusFilter(val); setCurrentPage(1); }}
                             options={INVOICE_STATUS_OPTIONS}
                             placeholder="All Statuses"
-                            bgColor="bg-light-green"
+                            bgColor="bg-light-gold"
                         />
                     </div>
                 }

@@ -37,7 +37,7 @@ const needsOptions = (t: InputType) => ['RADIO', 'CHECKBOX', 'SELECT'].includes(
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
   const cls =
     status === 'PUBLISHED'
-      ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
+      ? 'bg-gold-100 text-gold-700 border-gold-200'
       : status === 'DRAFT'
       ? 'bg-amber-100 text-amber-700 border-amber-200'
       : 'bg-gray-100 text-gray-500 border-gray-200';
@@ -272,7 +272,7 @@ const FormBuilderSettings: React.FC = () => {
         <div className="w-72 flex-shrink-0 flex flex-col gap-3 overflow-hidden">
           <button
             onClick={() => setShowNewForm(v => !v)}
-            className="w-full py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition shadow-sm"
+            className="w-full py-2 bg-gold-500 hover:bg-gold-600 text-white text-sm font-semibold rounded-lg transition shadow-sm"
           >
             + New Form
           </button>
@@ -293,7 +293,7 @@ const FormBuilderSettings: React.FC = () => {
               />
               <button
                 onClick={handleCreateForm}
-                className="bg-emerald-500 hover:bg-emerald-600 text-white text-sm py-1.5 rounded-md font-medium"
+                className="bg-gold-500 hover:bg-gold-600 text-white text-sm py-1.5 rounded-md font-medium"
               >
                 Create
               </button>
@@ -312,7 +312,7 @@ const FormBuilderSettings: React.FC = () => {
                     key={f.id}
                     onClick={() => selectForm(f.id)}
                     className={`px-4 py-3 cursor-pointer hover:bg-gray-50 transition ${
-                      selectedFormId === f.id ? 'bg-emerald-50 border-l-2 border-emerald-500' : ''
+                      selectedFormId === f.id ? 'bg-gold-50 border-l-2 border-gold-500' : ''
                     }`}
                   >
                     <p className="text-sm font-semibold text-gray-800 truncate">
@@ -347,7 +347,7 @@ const FormBuilderSettings: React.FC = () => {
                   <h2 className="text-sm font-bold text-gray-700">Versions</h2>
                   <button
                     onClick={handleNewVersion}
-                    className="text-xs text-emerald-600 border border-emerald-300 hover:bg-emerald-50 px-3 py-1 rounded-md font-medium"
+                    className="text-xs text-gold-600 border border-gold-300 hover:bg-gold-50 px-3 py-1 rounded-md font-medium"
                   >
                     + New Draft Version
                   </button>
@@ -361,7 +361,7 @@ const FormBuilderSettings: React.FC = () => {
                         key={v.id}
                         className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs cursor-pointer transition ${
                           draftVersion?.id === v.id
-                            ? 'bg-emerald-50 border-emerald-400'
+                            ? 'bg-gold-50 border-gold-400'
                             : 'bg-gray-50 border-gray-200 hover:border-gray-300'
                         }`}
                         onClick={() => v.status === 'DRAFT' && selectedFormId && loadDraft(selectedFormId, v.id)}
@@ -411,7 +411,7 @@ const FormBuilderSettings: React.FC = () => {
                     <div
                       className={`text-sm px-4 py-2 rounded-lg ${
                         feedback.type === 'ok'
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          ? 'bg-gold-50 text-gold-700 border border-gold-200'
                           : 'bg-red-50 text-red-700 border border-red-200'
                       }`}
                     >
@@ -438,7 +438,7 @@ const FormBuilderSettings: React.FC = () => {
 
                   <button
                     onClick={addSection}
-                    className="self-start text-sm text-gray-500 border border-dashed border-gray-300 hover:border-emerald-400 hover:text-emerald-600 px-4 py-2 rounded-lg transition"
+                    className="self-start text-sm text-gray-500 border border-dashed border-gray-300 hover:border-gold-400 hover:text-gold-600 px-4 py-2 rounded-lg transition"
                   >
                     + Add Section
                   </button>
@@ -455,7 +455,7 @@ const FormBuilderSettings: React.FC = () => {
                     <button
                       onClick={handlePublish}
                       disabled={publishing}
-                      className="px-6 py-2 text-sm bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-semibold shadow-sm disabled:opacity-50 transition"
+                      className="px-6 py-2 text-sm bg-gold-500 hover:bg-gold-600 text-white rounded-lg font-semibold shadow-sm disabled:opacity-50 transition"
                     >
                       {publishing ? 'Publishing…' : '🚀 Publish Version'}
                     </button>
@@ -497,7 +497,7 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
   <div className="border border-gray-200 rounded-xl overflow-hidden">
     {/* Section header */}
     <div className="bg-gray-50 border-b border-gray-200 px-4 py-3 flex items-center gap-3">
-      <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
+      <div className="w-7 h-7 rounded-full bg-gold-100 text-gold-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
         {sIdx + 1}
       </div>
       <input
@@ -525,7 +525,7 @@ const SectionEditor: React.FC<SectionEditorProps> = ({
       ))}
       <button
         onClick={onAddQuestion}
-        className="self-start text-xs text-gray-400 hover:text-emerald-600 border border-dashed border-gray-200 hover:border-emerald-300 px-3 py-1.5 rounded-md transition"
+        className="self-start text-xs text-gray-400 hover:text-gold-600 border border-dashed border-gray-200 hover:border-gold-300 px-3 py-1.5 rounded-md transition"
       >
         + Add Question
       </button>
@@ -571,7 +571,7 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({
               type="checkbox"
               checked={question.isRequired}
               onChange={e => onUpdate({ isRequired: e.target.checked })}
-              className="accent-emerald-600"
+              className="accent-gold-600"
             />
             Required
           </label>
@@ -602,7 +602,7 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({
             ))}
             <button
               onClick={onAddOption}
-              className="self-start text-xs text-gray-400 hover:text-emerald-600"
+              className="self-start text-xs text-gray-400 hover:text-gold-600"
             >
               + option
             </button>

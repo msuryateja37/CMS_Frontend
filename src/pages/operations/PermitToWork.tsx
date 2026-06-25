@@ -21,8 +21,8 @@ const STATS = [
         label: 'Active Permits',
         value: 12,
         icon: FileText,
-        bg: 'bg-[#E4F2D3]',
-        text: 'text-[#0E4D41]',
+        bg: 'bg-[#F1E3D3]',
+        text: 'text-[#884616]',
         iconBg: 'bg-white/60'
     },
     {
@@ -30,7 +30,7 @@ const STATS = [
         value: 5,
         icon: Clock,
         bg: 'bg-white',
-        text: 'text-[#0E4D41]',
+        text: 'text-[#884616]',
         iconBg: 'bg-[#F2FDF0]'
     },
     {
@@ -38,7 +38,7 @@ const STATS = [
         value: 2,
         icon: AlertCircle,
         bg: 'bg-white',
-        text: 'text-[#0E4D41]',
+        text: 'text-[#884616]',
         iconBg: 'bg-[#F2FDF0]'
     },
     {
@@ -46,7 +46,7 @@ const STATS = [
         value: 34,
         icon: CheckCircle2,
         bg: 'bg-white',
-        text: 'text-[#0E4D41]',
+        text: 'text-[#884616]',
         iconBg: 'bg-[#F2FDF0]'
     }
 ];
@@ -98,7 +98,7 @@ const PermitToWork: React.FC = () => {
             header: 'Title',
             accessorKey: 'title',
             sortable: true,
-            cell: (item) => <span className="text-sm font-bold text-[#45bfa3] hover:underline cursor-pointer">{item.title}</span>
+            cell: (item) => <span className="text-sm font-bold text-[#BB8F53] hover:underline cursor-pointer">{item.title}</span>
         },
         {
             header: 'Priority',

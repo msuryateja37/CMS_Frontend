@@ -123,7 +123,7 @@ const ReportIncident: React.FC = () => {
                                         className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg transition-all duration-300 z-10 ${step === s.id
                                             ? 'bg-[#1F2937] text-white ring-4 ring-gray-100'
                                             : step > s.id
-                                                ? 'bg-[#0D9488] text-white'
+                                                ? 'bg-[#BB8F53] text-white'
                                                 : 'bg-[#E5E7EB] text-white'
                                             }`}
                                     >
@@ -139,7 +139,7 @@ const ReportIncident: React.FC = () => {
                                 {idx < steps.length - 1 && (
                                     <div className="w-16 lg:w-20 h-[2px] bg-[#E5E7EB] mx-0 mt-[-2px] z-0">
                                         <div
-                                            className="h-full bg-[#0D9488] transition-all duration-500"
+                                            className="h-full bg-[#BB8F53] transition-all duration-500"
                                             style={{ width: step > s.id ? '100%' : '0%' }}
                                         />
                                     </div>
@@ -153,6 +153,7 @@ const ReportIncident: React.FC = () => {
                 <div className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-6 md:p-12 mt-4 min-h-[600px] overflow-hidden">
                     {step === 1 && (
                         <StepIncidentType
+                            excludeCategoryIds={['security']}
                             selected={formData.categoryId}
                             onSelect={(categoryId, type) => {
                                 const cat = INCIDENT_CATEGORIES.find(c => c.id === categoryId);

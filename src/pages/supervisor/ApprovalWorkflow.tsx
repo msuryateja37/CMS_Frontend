@@ -111,7 +111,7 @@ const ApprovalWorkflow: React.FC = () => {
         return (
             <DashboardLayout title="Approval Workflow" description="Loading..." breadcrumbs={[{ label: "Dashboard", path: "/supervisor/dashboard" }, { label: "Approvals", path: "/supervisor/approvals" }, { label: "Loading..." }]}>
                 <div className="flex items-center justify-center h-96">
-                    <Loader2 className="w-10 h-10 text-green animate-spin" />
+                    <Loader2 className="w-10 h-10 text-gold animate-spin" />
                     <span className="ml-3 text-gray-600">Loading case details...</span>
                 </div>
             </DashboardLayout>
@@ -136,7 +136,7 @@ const ApprovalWorkflow: React.FC = () => {
         ? caseData.severity.charAt(0).toUpperCase() + caseData.severity.slice(1)
         : 'N/A';
     const severityColor: Record<string, string> = {
-        low: 'bg-green-100 text-green-700',
+        low: 'bg-gold-100 text-gold-700',
         medium: 'bg-amber-100 text-amber-700',
         high: 'bg-orange-500 text-white',
         critical: 'bg-red-500 text-white',
@@ -152,7 +152,7 @@ const ApprovalWorkflow: React.FC = () => {
             <div className="max-w-6xl mx-auto">
                 {/* Success Banner */}
                 {successMsg && (
-                    <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm font-medium mb-6">
+                    <div className="flex items-center gap-2 bg-gold-50 border border-gold-200 text-gold-700 px-4 py-3 rounded-xl text-sm font-medium mb-6">
                         <CheckCircle size={16} />
                         {successMsg}
                     </div>
@@ -216,7 +216,7 @@ const ApprovalWorkflow: React.FC = () => {
                     {/* Approval Checklist Card */}
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                         <div className="flex items-center justify-between mb-6">
-                            <div className="flex items-center gap-2 text-teal-600 font-bold">
+                            <div className="flex items-center gap-2 text-gold-600 font-bold">
                                 <Shield size={20} />
                                 <span>Approval Checklist</span>
                             </div>
@@ -230,7 +230,7 @@ const ApprovalWorkflow: React.FC = () => {
                                     onClick={() => toggleCheck(item.id)}
                                     className="flex items-center gap-4 p-4 rounded-xl border border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors"
                                 >
-                                    <div className={`w-6 h-6 rounded flex items-center justify-center border-2 transition-all ${item.checked ? 'bg-teal-500 border-teal-500 text-white shadow-sm' : 'border-gray-200 bg-white'}`}>
+                                    <div className={`w-6 h-6 rounded flex items-center justify-center border-2 transition-all ${item.checked ? 'bg-gold-500 border-gold-500 text-white shadow-sm' : 'border-gray-200 bg-white'}`}>
                                         {item.checked && <Check size={16} strokeWidth={4} />}
                                     </div>
                                     <span className={`text-sm font-medium ${item.checked ? 'text-gray-900' : 'text-gray-500'}`}>
@@ -253,7 +253,7 @@ const ApprovalWorkflow: React.FC = () => {
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
                     <h3 className="text-sm font-bold text-gray-900 mb-4">Decision Notes</h3>
                     <textarea
-                        className="w-full h-32 p-4 bg-gray-50 rounded-xl border border-gray-100 focus:ring-2 focus:ring-[#0D9488]/20 focus:outline-none text-sm text-gray-700 placeholder:text-gray-400 resize-none transition-all"
+                        className="w-full h-32 p-4 bg-gray-50 rounded-xl border border-gray-100 focus:ring-2 focus:ring-[#BB8F53]/20 focus:outline-none text-sm text-gray-700 placeholder:text-gray-400 resize-none transition-all"
                         placeholder="Provide rationale for your decision (required for rejection)..."
                         value={decisionNote}
                         onChange={(e) => setDecisionNote(e.target.value)}
@@ -288,7 +288,7 @@ const ApprovalWorkflow: React.FC = () => {
                             onClick={handleApprove}
                             className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-bold text-sm transition-all shadow-sm
                                 ${allRequiredChecked
-                                    ? 'bg-[#0D9488] text-white hover:bg-[#0F766E] scale-[1.02] active:scale-[0.98]'
+                                    ? 'bg-[#BB8F53] text-white hover:bg-[#A1743E] scale-[1.02] active:scale-[0.98]'
                                     : 'bg-gray-100 text-gray-400 cursor-not-allowed'}
                             `}
                         >
@@ -313,7 +313,7 @@ const ApprovalWorkflow: React.FC = () => {
                         {caseData.assignedTo ? (
                             <>
                                 <span
-                                    className="flex items-center gap-2 px-4 py-2.5 bg-green-50 border border-green-200 text-green-700 rounded-lg font-bold text-sm cursor-default select-none"
+                                    className="flex items-center gap-2 px-4 py-2.5 bg-gold-50 border border-gold-200 text-gold-700 rounded-lg font-bold text-sm cursor-default select-none"
                                 >
                                     <CheckCircle size={18} />
                                     Assigned
@@ -329,7 +329,7 @@ const ApprovalWorkflow: React.FC = () => {
                         ) : (
                             <button
                                 onClick={() => setIsAssignModalOpen(true)}
-                                className="flex items-center gap-2 px-4 py-2.5 bg-dark-green text-white rounded-lg hover:bg-opacity-90 transition-all font-bold text-sm shadow-sm"
+                                className="flex items-center gap-2 px-4 py-2.5 bg-brown text-white rounded-lg hover:bg-opacity-90 transition-all font-bold text-sm shadow-sm"
                             >
                                 <UserPlus size={18} />
                                 Assign Practitioner

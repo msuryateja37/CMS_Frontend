@@ -82,7 +82,7 @@ const MyCases: React.FC = () => {
             cell: (item) => (
                 <button
                     onClick={() => navigate(`/employee/my-cases/${item.id}`)}
-                    className="flex items-center gap-1 px-3 py-1 bg-[#E8F5E9] text-dark-green text-xs font-bold rounded-lg hover:bg-green hover:text-white transition-colors border border-green/20"
+                    className="flex items-center gap-1 px-3 py-1 bg-[#E8F5E9] text-brown text-xs font-bold rounded-lg hover:bg-gold hover:text-white transition-colors border border-gold/20"
                 >
                     <Eye size={14} />
                     View
@@ -106,7 +106,7 @@ const MyCases: React.FC = () => {
                         <p className="text-gray-500 text-sm mb-4">{error}</p>
                         <button
                             onClick={() => window.location.reload()}
-                            className="px-4 py-2 bg-green text-white rounded-lg hover:bg-[#2aa88f] transition-colors"
+                            className="px-4 py-2 bg-gold text-white rounded-lg hover:bg-[#A1743E] transition-colors"
                         >
                             Retry
                         </button>

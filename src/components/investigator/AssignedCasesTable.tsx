@@ -70,7 +70,7 @@ export const AssignedCasesTable: React.FC<AssignedCasesTableProps> = ({ cases })
                             <td className="px-6 py-4"><input type="checkbox" className="rounded border-gray-300" /></td>
                             <td className="px-6 py-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-[#2aa88f] flex-shrink-0"></div>
+                                    <div className="w-10 h-10 rounded-full bg-[#A1743E] flex-shrink-0"></div>
                                     <span className="font-medium text-gray-500">{item.caseNumber}</span>
                                 </div>
                             </td>

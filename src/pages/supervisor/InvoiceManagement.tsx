@@ -90,7 +90,7 @@ const SupervisorInvoiceNew: React.FC = () => {
                             </button>
                             <button
                                 onClick={() => setCurrentStep(Math.min(4, currentStep + 1))}
-                                className="flex items-center gap-2 px-6 py-3 bg-dark-green text-white text-sm font-bold rounded-xl hover:bg-dark-green/90 transition-all shadow-sm"
+                                className="flex items-center gap-2 px-6 py-3 bg-brown text-white text-sm font-bold rounded-xl hover:bg-brown/90 transition-all shadow-sm"
                             >
                                 {stepLabels[currentStep] || 'Next'} →
                             </button>

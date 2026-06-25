@@ -72,7 +72,7 @@ const Sidebar: React.FC = () => {
 
     return (
         <aside className={clsx(
-            "bg-dark-green text-white flex flex-col flex-shrink-0 h-screen transition-all duration-300 font-sans shadow-xl",
+            "bg-brown text-white flex flex-col flex-shrink-0 h-screen transition-all duration-300 font-sans shadow-xl",
             "fixed inset-y-0 left-0 z-50 lg:relative",
             sidebarCollapsed ? "-translate-x-full lg:translate-x-0 lg:w-16" : "translate-x-0 lg:w-56"
         )}>
@@ -116,7 +116,7 @@ const Sidebar: React.FC = () => {
                                     clsx(
                                         "flex items-center rounded-lg transition-colors mb-0.5",
                                         sidebarCollapsed ? "justify-center p-2.5" : "px-3.5 py-2 text-[13px] font-medium",
-                                        isActive ? "bg-green text-white" : "text-gray-300 hover:bg-white/10"
+                                        isActive ? "bg-gold text-white" : "text-gray-300 hover:bg-white/10"
                                     )
                                 }
                             >
@@ -137,7 +137,7 @@ const Sidebar: React.FC = () => {
                                 className={clsx(
                                     "w-full flex items-center rounded-lg transition-colors",
                                     sidebarCollapsed ? "justify-center p-2.5" : "justify-between px-3.5 py-2 text-[13px] font-medium",
-                                    isOpen ? "bg-green text-white" : (isParentActive ? "text-white" : "text-gray-300 hover:bg-white/10")
+                                    isOpen ? "bg-gold text-white" : (isParentActive ? "text-white" : "text-gray-300 hover:bg-white/10")
                                 )}
                             >
                                 <div className="flex items-center">
@@ -161,7 +161,7 @@ const Sidebar: React.FC = () => {
                                             className={({ isActive }) =>
                                                 clsx(
                                                     "block py-1.5 px-8.5 text-[11px] font-medium rounded-lg transition-all mb-0.5",
-                                                    isActive ? "bg-green text-white" : "text-white hover:text-white hover:bg-white/10"
+                                                    isActive ? "bg-gold text-white" : "text-white hover:text-white hover:bg-white/10"
                                                 )
                                             }
                                         >
@@ -210,7 +210,7 @@ const Sidebar: React.FC = () => {
                     onClick={handleLogout}
                     title={sidebarCollapsed ? "Logout" : undefined}
                     className={clsx(
-                        "flex items-center justify-center gap-1.5 bg-green hover:bg-[#2aa88f] text-white rounded-xl font-bold transition-all shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] relative z-10 text-xs",
+                        "flex items-center justify-center gap-1.5 bg-gold hover:bg-[#A1743E] text-white rounded-xl font-bold transition-all shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] relative z-10 text-xs",
                         sidebarCollapsed ? "p-2.5 w-10 mx-auto" : "w-full py-2 px-3.5"
                     )}
                 >

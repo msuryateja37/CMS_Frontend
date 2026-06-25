@@ -18,7 +18,7 @@ const severityConfig: Record<string, { bg: string; text: string; dot: string }> 
     critical: { bg: 'bg-subtle-red', text: 'text-brand-red', dot: 'bg-brand-red' },
     high: { bg: 'bg-orange-50', text: 'text-orange-700', dot: 'bg-orange-500' },
     medium: { bg: 'bg-light-yellow', text: 'text-yellow-800', dot: 'bg-brand-yellow' },
-    low: { bg: 'bg-light-green', text: 'text-dark-green', dot: 'bg-green' },
+    low: { bg: 'bg-light-gold', text: 'text-brown', dot: 'bg-[#21FC95]' },
 };
 
 const normalizeRoleName = (role?: string): string => {
@@ -175,7 +175,7 @@ const SecurityCaseAction: React.FC = () => {
         return (
             <DashboardLayout title="Case Details" description="Loading..." breadcrumbs={[{ label: "Dashboard", path: "/security/dashboard" }, { label: "Cases Under Review", path: "/security/cases-review" }, { label: "Loading..." }]}>
                 <div className="flex items-center justify-center h-96">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div>
                 </div>
             </DashboardLayout>
         );
@@ -209,7 +209,7 @@ const SecurityCaseAction: React.FC = () => {
             <div className="max-w-7xl mx-auto">
                 {/* Success Banner */}
                 {successMsg && (
-                    <div className="mb-4 flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm font-medium">
+                    <div className="mb-4 flex items-center gap-2 bg-gold-50 border border-gold-200 text-gold-700 px-4 py-3 rounded-xl text-sm font-medium">
                         <CheckCircle size={16} />
                         {successMsg}
                     </div>
@@ -246,7 +246,7 @@ const SecurityCaseAction: React.FC = () => {
                             <button
                                 onClick={handleSendBackToSupervisor}
                                 disabled={sendingBack}
-                                className="flex items-center gap-2 px-5 py-2.5 bg-dark-green text-white rounded-lg hover:bg-opacity-90 transition-all font-semibold text-sm shadow-sm disabled:opacity-50"
+                                className="flex items-center gap-2 px-5 py-2.5 bg-brown text-white rounded-lg hover:bg-opacity-90 transition-all font-semibold text-sm shadow-sm disabled:opacity-50"
                             >
                                 {sendingBack ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                                 Submit for Review
@@ -424,14 +424,14 @@ const SecurityCaseAction: React.FC = () => {
                                         value={comment}
                                         onChange={(e) => setComment(e.target.value)}
                                         placeholder="Document your findings, actions taken, or notes about this case..."
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green/30 focus:border-green resize-none"
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold resize-none"
                                         rows={4}
                                     />
                                     <div className="flex justify-end mt-2">
                                         <button
                                             onClick={handleAddComment}
                                             disabled={!comment.trim() || submittingComment}
-                                            className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                            className="flex items-center gap-2 px-4 py-2 bg-brown text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
                                             {submittingComment ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                                             Add Comment
@@ -456,7 +456,7 @@ const SecurityCaseAction: React.FC = () => {
 
                                     <div
                                         onClick={() => fileInputRef.current?.click()}
-                                        className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center cursor-pointer hover:border-green/40 hover:bg-green/5 transition-all"
+                                        className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center cursor-pointer hover:border-gold/40 hover:bg-gold/5 transition-all"
                                     >
                                         <Upload className="mx-auto text-gray-300 mb-2" size={28} />
                                         <p className="text-sm text-gray-500 font-medium">Click to select files</p>
@@ -482,7 +482,7 @@ const SecurityCaseAction: React.FC = () => {
                                                 <button
                                                     onClick={handleUploadEvidence}
                                                     disabled={uploadingFiles}
-                                                    className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50"
+                                                    className="flex items-center gap-2 px-4 py-2 bg-brown text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50"
                                                 >
                                                     {uploadingFiles ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
                                                     Upload {selectedFiles.length} File{selectedFiles.length > 1 ? 's' : ''}
@@ -512,7 +512,7 @@ const SecurityCaseAction: React.FC = () => {
                                             <div key={role}>
                                                 <div className="flex items-center gap-2 mb-3">
                                                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${role === 'Employee' ? 'bg-blue-50 text-blue-700' :
-                                                        role === 'Supervisor' ? 'bg-light-green text-dark-green' :
+                                                        role === 'Supervisor' ? 'bg-light-gold text-brown' :
                                                             role === 'Security Practitioner' ? 'bg-purple-50 text-purple-700' :
                                                                 'bg-gray-100 text-gray-600'
                                                         }`}>
@@ -527,13 +527,13 @@ const SecurityCaseAction: React.FC = () => {
                                                             href={file.fileUrl?.match(/^\s*(javascript|data|vbscript):/i) ? '#' : file.fileUrl}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-green/30 hover:shadow-sm transition-all group"
+                                                            className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-gold/30 hover:shadow-sm transition-all group"
                                                         >
-                                                            <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center border border-gray-100 text-gray-400 group-hover:text-green shrink-0">
+                                                            <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center border border-gray-100 text-gray-400 group-hover:text-gold shrink-0">
                                                                 <FileText size={18} />
                                                             </div>
                                                             <div className="overflow-hidden">
-                                                                <p className="text-sm font-medium text-gray-700 truncate group-hover:text-green">
+                                                                <p className="text-sm font-medium text-gray-700 truncate group-hover:text-gold">
                                                                     {file.fileName || `Attachment ${idx + 1}`}
                                                                 </p>
                                                                 <p className="text-xs text-gray-400 uppercase">{file.fileType?.split('/')[1] || 'FILE'}</p>
@@ -626,7 +626,7 @@ const SecurityCaseAction: React.FC = () => {
                         {/* Timeline Card */}
                         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
                             <div className="flex items-center gap-2 mb-5">
-                                <Clock size={16} className="text-green" />
+                                <Clock size={16} className="text-gold" />
                                 <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Timeline</h3>
                             </div>
 
@@ -641,7 +641,7 @@ const SecurityCaseAction: React.FC = () => {
                                                 activity.type === 'ASSIGNED' ? 'bg-purple-500' :
                                                     activity.type === 'UNDER_REVIEW' ? 'bg-amber-400' :
                                                         activity.type === 'CLOSED' || activity.type === 'RESOLVED' ? 'bg-gray-400' :
-                                                            'bg-green';
+                                                            'bg-gold';
 
                                         return (
                                             <div key={index} className="relative pl-6">

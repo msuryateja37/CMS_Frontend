@@ -123,7 +123,7 @@ const DrillSchedule: React.FC = () => {
             sortable: true,
             cell: (item) => (
                 <div className="flex flex-col">
-                    <span className="text-sm font-bold text-[#45bfa3]">{item.name}</span>
+                    <span className="text-sm font-bold text-[#BB8F53]">{item.name}</span>
                     <span className="text-[10px] text-gray-400 font-medium">Coordinator: {item.organizer}</span>
                 </div>
             )
@@ -175,7 +175,7 @@ const DrillSchedule: React.FC = () => {
             header: '',
             cell: () => (
                 <div className="flex items-center gap-2 whitespace-nowrap">
-                    <button className="px-5 py-1.5 bg-[#E4F2D3] text-[#0E4D41] rounded-lg text-xs font-bold hover:bg-[#d4eabc] transition-colors shadow-sm whitespace-nowrap">
+                    <button className="px-5 py-1.5 bg-[#F1E3D3] text-[#884616] rounded-lg text-xs font-bold hover:bg-[#d4eabc] transition-colors shadow-sm whitespace-nowrap">
                         Details
                     </button>
                     <button className="px-5 py-1.5 bg-[#034C3D] text-white rounded-lg text-xs font-bold hover:bg-[#023a2e] transition-colors shadow-sm whitespace-nowrap">
@@ -253,23 +253,23 @@ const DrillSchedule: React.FC = () => {
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {/* Hero Card: Upcoming Drills */}
-                    <div className="bg-[#E4F2D3] p-6 rounded-2xl border border-[#d4eabc] shadow-sm flex flex-col justify-between h-40 relative overflow-hidden group hover:shadow-md transition-shadow">
+                    <div className="bg-[#F1E3D3] p-6 rounded-2xl border border-[#d4eabc] shadow-sm flex flex-col justify-between h-40 relative overflow-hidden group hover:shadow-md transition-shadow">
                         <div className="flex justify-between items-start z-10">
-                            <div className="flex items-center gap-2 px-2 py-1 bg-white/60 rounded-lg text-xs font-bold text-[#0E4D41]">
+                            <div className="flex items-center gap-2 px-2 py-1 bg-white/60 rounded-lg text-xs font-bold text-[#884616]">
                                 <Calendar size={16} />
                                 <span>Upcoming Drills</span>
                             </div>
                         </div>
                         <div className="z-10">
-                            <h3 className="text-4xl font-bold text-[#0E4D41]">3</h3>
+                            <h3 className="text-4xl font-bold text-[#884616]">3</h3>
                         </div>
-                        <Calendar size={100} className="absolute -right-4 -bottom-4 text-[#0E4D41]/5 group-hover:opacity-10 transition-opacity" />
+                        <Calendar size={100} className="absolute -right-4 -bottom-4 text-[#884616]/5 group-hover:opacity-10 transition-opacity" />
                     </div>
 
                     {[
-                        { label: 'Completed This Year', value: '28', icon: Info, color: 'text-emerald-600', iconBg: 'bg-emerald-50' },
+                        { label: 'Completed This Year', value: '28', icon: Info, color: 'text-gold-600', iconBg: 'bg-gold-50' },
                         { label: 'Avg Response Time', value: '56%', icon: Activity, color: 'text-blue-600', iconBg: 'bg-blue-50' },
-                        { label: 'Drill Compliance', value: '12', icon: CheckCircle, color: 'text-emerald-600', iconBg: 'bg-emerald-50' }
+                        { label: 'Drill Compliance', value: '12', icon: CheckCircle, color: 'text-gold-600', iconBg: 'bg-gold-50' }
                     ].map((stat, idx) => (
                         <div key={idx} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between h-40 relative overflow-hidden group hover:shadow-md transition-shadow">
                             <div className="flex justify-between items-start z-10">
@@ -324,7 +324,7 @@ const DrillSchedule: React.FC = () => {
                                 onChange={setStatusFilter}
                                 options={STATUS_OPTIONS}
                                 placeholder="Status"
-                                bgColor="bg-light-green"
+                                bgColor="bg-light-gold"
                             />
                         </div>
                         <div className="w-44">
@@ -333,7 +333,7 @@ const DrillSchedule: React.FC = () => {
                                 onChange={setLocationFilter}
                                 options={LOCATION_OPTIONS}
                                 placeholder="Location"
-                                bgColor="bg-light-green"
+                                bgColor="bg-light-gold"
                             />
                         </div>
                     </div>

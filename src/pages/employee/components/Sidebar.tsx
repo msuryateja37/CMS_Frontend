@@ -20,7 +20,7 @@ const Sidebar: React.FC = () => {
     };
 
     return (
-        <aside className="w-64 bg-dark-green text-white flex flex-col flex-shrink-0 h-screen transition-all duration-300 font-sans">
+        <aside className="w-64 bg-brown text-white flex flex-col flex-shrink-0 h-screen transition-all duration-300 font-sans">
             {/* Logo Area */}
             <div className="px-6 py-8">
                 <div className="flex items-center justify-start">
@@ -43,7 +43,7 @@ const Sidebar: React.FC = () => {
                             className={({ isActive }) =>
                                 clsx(
                                     "flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors mb-1",
-                                    isActive ? "bg-green text-white" : "text-gray-300 hover:bg-white/10"
+                                    isActive ? "bg-gold text-white" : "text-gray-300 hover:bg-white/10"
                                 )
                             }
                         >
@@ -58,7 +58,7 @@ const Sidebar: React.FC = () => {
             <div className="p-4 mt-auto">
                 <button
                     onClick={handleLogout}
-                    className="w-full flex items-center justify-center gap-2 bg-green hover:bg-[#2aa88f] text-white py-3.5 px-4 rounded-xl font-semibold transition-all shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
+                    className="w-full flex items-center justify-center gap-2 bg-gold hover:bg-[#A1743E] text-white py-3.5 px-4 rounded-xl font-semibold transition-all shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
                 >
                     <LogOut size={18} strokeWidth={2.5} />
                     <span>Logout</span>

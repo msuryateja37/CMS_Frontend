@@ -88,7 +88,7 @@ const SecurityMyCases: React.FC = () => {
         {
             header: 'Actions',
             cell: (item) => (
-                <button onClick={() => navigate(`/security/cases/${item.id}`)} className="flex items-center gap-1.5 px-4 py-1.5 bg-light-green text-dark-green text-xs font-bold rounded-lg hover:bg-green/10 transition-colors whitespace-nowrap">
+                <button onClick={() => navigate(`/security/cases/${item.id}`)} className="flex items-center gap-1.5 px-4 py-1.5 bg-light-gold text-brown text-xs font-bold rounded-lg hover:bg-gold/10 transition-colors whitespace-nowrap">
                     <Eye size={14} /> View
                 </button>
             )
@@ -105,14 +105,14 @@ const SecurityMyCases: React.FC = () => {
         <DashboardLayout title="My Cases" description="My Cases" breadcrumbs={[{ label: "Dashboard", path: "/security/dashboard" }, { label: "My Cases" }]}>
             <div className="flex flex-col gap-6">
                 <div className="flex justify-end mb-1">
-                    <button onClick={() => navigate('/security/report-breach')} className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm">
+                    <button onClick={() => navigate('/security/report-breach')} className="flex items-center gap-2 px-4 py-2 bg-brown text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm">
                         <FilePlus size={16} /> Report New Case
                     </button>
                 </div>
 
                 {loading && (
                     <div className="flex items-center justify-center py-12">
-                        <Loader2 className="w-8 h-8 text-green animate-spin" />
+                        <Loader2 className="w-8 h-8 text-gold animate-spin" />
                         <span className="ml-3 text-gray-600">Loading cases...</span>
                     </div>
                 )}

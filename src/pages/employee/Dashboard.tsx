@@ -14,7 +14,8 @@ import {
     Eye,
     ChevronDown,
     Loader2,
-    AlertCircle
+    AlertCircle,
+    Trash2
 } from 'lucide-react';
 import { formatCategory } from '../../utils/formatters';
 import { useAuthStore } from '../../store/auth.store';
@@ -56,9 +57,9 @@ const EmployeeDashboard: React.FC = () => {
             value: stats.activeCases.toString(),
             change: stats.activeCasesChange,
             icon: FileText,
-            color: 'text-teal-600',
-            bgColor: 'bg-teal-50',
-            trendColor: 'bg-teal-100/50 text-teal-700'
+            color: 'text-gold-600',
+            bgColor: 'bg-gold-50',
+            trendColor: 'bg-gold-100/50 text-gold-700'
         },
         {
             label: 'Pending Actions',
@@ -74,9 +75,9 @@ const EmployeeDashboard: React.FC = () => {
             value: stats.resolvedCases.toString(),
             change: stats.resolvedCasesChange,
             icon: CheckCircle,
-            color: 'text-emerald-600',
-            bgColor: 'bg-emerald-50',
-            trendColor: 'bg-emerald-100/50 text-emerald-700'
+            color: 'text-gold-600',
+            bgColor: 'bg-gold-50',
+            trendColor: 'bg-gold-100/50 text-gold-700'
         }
     ] : [];
 
@@ -126,7 +127,7 @@ const EmployeeDashboard: React.FC = () => {
             cell: (item) => (
                 <button
                     onClick={() => navigate(`/employee/my-cases/${item.id}`)}
-                    className="flex items-center gap-1 px-2 py-1 bg-[#E8F5E9] text-dark-green text-[10px] font-bold rounded-lg hover:bg-green hover:text-white transition-colors border border-green/20"
+                    className="flex items-center gap-1 px-2 py-1 bg-[#E8F5E9] text-brown text-[10px] font-bold rounded-lg hover:bg-gold hover:text-white transition-colors border border-gold/20"
                 >
                     <Eye size={12} />
                     View
@@ -145,7 +146,7 @@ const EmployeeDashboard: React.FC = () => {
             >
                 <div className="flex items-center justify-center min-h-[400px]">
                     <div className="text-center">
-                        <Loader2 className="w-12 h-12 text-green animate-spin mx-auto mb-4" />
+                        <Loader2 className="w-12 h-12 text-gold animate-spin mx-auto mb-4" />
                         <p className="text-gray-500">Loading dashboard...</p>
                     </div>
                 </div>
@@ -167,7 +168,7 @@ const EmployeeDashboard: React.FC = () => {
                         <p className="text-gray-500 text-sm mb-4">{(error as any)?.message || 'Unknown error'}</p>
                         <button
                             onClick={() => window.location.reload()}
-                            className="px-4 py-2 bg-green text-white rounded-lg hover:bg-[#2aa88f] transition-colors"
+                            className="px-4 py-2 bg-gold text-white rounded-lg hover:bg-[#A1743E] transition-colors"
                         >
                             Retry
                         </button>
@@ -188,7 +189,7 @@ const EmployeeDashboard: React.FC = () => {
                 <div className="flex justify-end mb-1">
                    <button
                         onClick={() => navigate('/employee/submit-case')}
-                        className="flex items-center gap-2 px-4 py-2 bg-dark-green text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm text-sm"
+                        className="flex items-center gap-2 px-4 py-2 bg-brown text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm text-sm"
                     >
                         <FilePlus size={16} />
                         Submit New Case
@@ -218,9 +219,9 @@ const EmployeeDashboard: React.FC = () => {
                 </div>
 
                 {/* Main Content Split: Table & Drafts */}
-                <div className="flex flex-col lg:flex-row gap-6">
-                    {/* Left Column: My Cases Table (Approx 2/3 width) */}
-                    <div className="flex-1 lg:w-2/3 flex flex-col gap-3">
+                <div className="flex flex-col lg:flex-row gap-6 items-stretch">
+                    {/* Left Column: My Cases Table (Approx 3/4 width) */}
+                    <div className="w-full lg:flex-[3] flex flex-col gap-3">
                         <div className="flex items-center justify-between">
                             <h2 className="text-base font-bold text-black">My Cases</h2>
                             <button
@@ -244,42 +245,46 @@ const EmployeeDashboard: React.FC = () => {
                         />
                     </div>
 
-                    {/* Right Column: Saved Drafts (Approx 1/3 width) */}
-                    <div className="flex-1 lg:w-1/3 flex flex-col gap-3">
+                    {/* Right Column: Saved Drafts (Approx 1/4 width with border box) */}
+                    <div className="w-full lg:flex-[1] flex flex-col gap-3">
                         <h2 className="text-base font-bold text-black">Saved Drafts</h2>
-                        {drafts.length > 0 ? (
-                            <div className="flex flex-col gap-3">
-                                {drafts.map((draft) => (
-                                    <div
-                                        key={draft.id}
-                                        className="bg-[#F8F9FA] p-3 rounded-lg border border-gray-100 hover:bg-[#F3F4F6] transition-colors cursor-pointer relative group"
-                                        onClick={() => navigate('/employee/submit-case', { state: { draft } })}
-                                    >
-                                        <div className="flex justify-between items-start mb-1.5">
-                                            <div className="font-bold text-black text-xs">{draft.categoryName || 'New Incident'}</div>
-                                            <button
-                                                onClick={(e) => handleDeleteDraft(draft.id, e)}
-                                                className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1"
-                                                title="Delete draft"
-                                            >
-                                                <AlertCircle size={12} />
-                                            </button>
+                        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex-1 min-h-[240px] flex flex-col">
+                            {drafts.length > 0 ? (
+                                <div className="flex flex-col gap-3 overflow-y-auto max-h-[360px] pr-0.5 custom-scrollbar">
+                                    {drafts.map((draft) => (
+                                        <div
+                                            key={draft.id}
+                                            className="bg-subtle-grey p-3 rounded-xl border border-gray-100 hover:bg-gray-100 transition-all cursor-pointer relative group flex flex-col"
+                                            onClick={() => navigate('/employee/submit-case', { state: { draft } })}
+                                        >
+                                            <div className="flex justify-between items-start mb-1">
+                                                <div className="font-bold text-black text-xs truncate max-w-[80%]">
+                                                    {draft.categoryName || 'New Incident'}
+                                                </div>
+                                                <button
+                                                    onClick={(e) => handleDeleteDraft(draft.id, e)}
+                                                    className="text-gray-400 hover:text-red transition-all p-1"
+                                                    title="Delete draft"
+                                                >
+                                                    <Trash2 size={12} />
+                                                </button>
+                                            </div>
+                                            <div className="text-[11px] text-gray-500 mb-1.5 line-clamp-2">
+                                                {draft.description ? draft.description : 'No description'}
+                                            </div>
+                                            <div className="text-[9px] text-gray-400 flex items-center gap-1 mt-auto">
+                                                <Clock size={9} />
+                                                Saved {new Date(draft.lastSaved || Date.now()).toLocaleDateString()}
+                                            </div>
                                         </div>
-                                        <div className="text-[11px] text-gray-500 mb-1.5 line-clamp-2">
-                                            {draft.description ? draft.description : 'No description'}
-                                        </div>
-                                        <div className="text-[9px] text-gray-400 flex items-center gap-1">
-                                            <Clock size={9} />
-                                            Saved {new Date(draft.lastSaved || Date.now()).toLocaleDateString()}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="bg-[#F8F9FA] p-4 rounded-xl border border-gray-100 text-center">
-                                <p className="text-xs text-gray-500">No saved drafts</p>
-                            </div>
-                        )}
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-10 my-auto">
+                                    <p className="text-xs text-gray-400 font-medium">No saved drafts</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

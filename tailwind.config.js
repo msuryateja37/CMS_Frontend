@@ -9,11 +9,23 @@ export default {
   theme: {
     extend: {
       colors: {
-        'dark-green': '#0E4D41',
-        'green': '#35BFA3',
-        'light-green': '#E4F2D3',
-        'subtle-green': '#F8FCF3',
-        'black': '#203430',
+        'brown': '#884616',
+        'gold': {
+          DEFAULT: '#BB8F53',
+          50: '#FBF7F2',
+          100: '#F6ECD9',
+          200: '#ECD2AA',
+          300: '#E1B77B',
+          400: '#D49D51',
+          500: '#BB8F53',
+          600: '#A1743E',
+          700: '#865A2E',
+          800: '#6E4321',
+          900: '#552F16',
+        },
+        'light-gold': '#F1E3D3',
+        'subtle-gold': '#FAF6F0',
+        'black': '#000000',
         'dark-grey': '#63716E',
         'light-grey': '#A4ACAB',
         'semi-subtle-grey': '#E5E6E6',

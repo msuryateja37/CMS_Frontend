@@ -67,7 +67,7 @@ const SlaTracking: React.FC = () => {
 
     const renderCaseCard = (item: SlaItem) => {
         const statusColor = item.slaStatus === 'breached' ? 'text-red-600' :
-            item.slaStatus === 'warning' ? 'text-amber-600' : 'text-green-600';
+            item.slaStatus === 'warning' ? 'text-amber-600' : 'text-gold-600';
         const statusLabel = item.slaStatus === 'breached' ? 'Overdue' :
             item.slaStatus === 'warning' ? 'At Risk' : 'On Track';
 
@@ -92,7 +92,7 @@ const SlaTracking: React.FC = () => {
                     <div className="mt-2 w-48">
                         <div className="bg-gray-200 rounded-full h-1.5">
                             <div
-                                className={`h-1.5 rounded-full ${item.slaStatus === 'breached' ? 'bg-red-500' : item.slaStatus === 'warning' ? 'bg-amber-500' : 'bg-green-500'}`}
+                                className={`h-1.5 rounded-full ${item.slaStatus === 'breached' ? 'bg-red-500' : item.slaStatus === 'warning' ? 'bg-amber-500' : 'bg-gold-500'}`}
                                 style={{ width: `${Math.min(100, item.progress)}%` }}
                             ></div>
                         </div>
@@ -112,7 +112,7 @@ const SlaTracking: React.FC = () => {
                     </div>
                     <button
                         onClick={() => navigate(`/supervisor/cases/${item.incidentId}`)}
-                        className="flex items-center gap-1 bg-[#E4F2D3] text-[#203430] hover:bg-[#d0e5b8] px-4 py-2 rounded-lg text-sm font-bold transition-colors"
+                        className="flex items-center gap-1 bg-[#F1E3D3] text-[#000000] hover:bg-[#d0e5b8] px-4 py-2 rounded-lg text-sm font-bold transition-colors"
                     >
                         View Case <ChevronRight size={14} />
                     </button>
@@ -125,7 +125,7 @@ const SlaTracking: React.FC = () => {
         return (
             <DashboardLayout title="SLA Tracking" description="SLA Tracking" breadcrumbs={[{ label: "Dashboard", path: "/supervisor/dashboard" }, { label: "SLA Tracking" }]}>
                 <div className="flex items-center justify-center h-64">
-                    <Loader2 className="w-8 h-8 text-green animate-spin" />
+                    <Loader2 className="w-8 h-8 text-gold animate-spin" />
                 </div>
             </DashboardLayout>
         );
@@ -142,14 +142,14 @@ const SlaTracking: React.FC = () => {
                 <div className="flex justify-end gap-3 mb-1">
                     <button
                         onClick={() => navigate('/supervisor/cases-review')}
-                        className="flex items-center gap-2 px-4 py-2 bg-green text-white font-bold rounded-lg hover:bg-[#2aa88f] transition-colors shadow-sm"
+                        className="flex items-center gap-2 px-4 py-2 bg-gold text-white font-bold rounded-lg hover:bg-[#A1743E] transition-colors shadow-sm"
                     >
                         <FileSearch size={18} />
                         Review Cases
                     </button>
                     <button
                         onClick={() => navigate('/supervisor/submit-case')}
-                        className="flex items-center gap-2 px-4 py-2 bg-green text-white font-bold rounded-lg hover:bg-[#2aa88f] transition-colors shadow-sm"
+                        className="flex items-center gap-2 px-4 py-2 bg-gold text-white font-bold rounded-lg hover:bg-[#A1743E] transition-colors shadow-sm"
                     >
                         <FilePlus size={16} />
                         Submit New Case
@@ -168,7 +168,7 @@ const SlaTracking: React.FC = () => {
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                         <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center gap-2 text-gray-500">
-                                <FileText size={18} className="text-green" />
+                                <FileText size={18} className="text-gold" />
                                 <span className="text-sm font-medium">Overall Compliance</span>
                             </div>
                         </div>
@@ -176,7 +176,7 @@ const SlaTracking: React.FC = () => {
                             <div className="flex items-center gap-4">
                                 <h3 className="text-4xl font-bold text-black">{complianceRate}%</h3>
                                 <div className="flex-1 bg-gray-200 rounded-full h-2">
-                                    <div className="bg-dark-green h-2 rounded-full" style={{ width: `${complianceRate}%` }}></div>
+                                    <div className="bg-brown h-2 rounded-full" style={{ width: `${complianceRate}%` }}></div>
                                 </div>
                             </div>
                             <p className="text-xs text-gray-400">{slaData.length} cases tracked</p>
@@ -201,12 +201,12 @@ const SlaTracking: React.FC = () => {
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                         <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center gap-2 text-gray-500">
-                                <CheckCircle2 size={18} className="text-green" />
+                                <CheckCircle2 size={18} className="text-gold" />
                                 <span className="text-sm font-medium">On Track</span>
                             </div>
                         </div>
                         <div className="flex flex-col gap-2">
-                            <h3 className="text-4xl font-bold text-green-600">{onTrack.length}</h3>
+                            <h3 className="text-4xl font-bold text-gold-600">{onTrack.length}</h3>
                             <p className="text-xs text-gray-400">Within SLA targets</p>
                         </div>
                     </div>
@@ -264,7 +264,7 @@ const SlaTracking: React.FC = () => {
                 {onTrack.length > 0 && (
                     <div>
                         <div className="flex items-center gap-2 mb-4">
-                            <CheckCircle2 className="text-green-500" size={18} />
+                            <CheckCircle2 className="text-gold-500" size={18} />
                             <h3 className="text-gray-800 font-bold text-md">On Track Cases</h3>
                         </div>
                         <div className="space-y-3">

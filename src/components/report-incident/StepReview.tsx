@@ -15,7 +15,7 @@ const StepReview: React.FC<StepProps> = ({ data, onBack, onSubmit, submitting, o
     const category = INCIDENT_CATEGORIES.find(c => c.id === data.categoryId);
 
     const SectionHeader = ({ icon: Icon, title }: { icon: any, title: string }) => (
-        <div className="flex items-center gap-2 mb-2 text-[#0D9488]">
+        <div className="flex items-center gap-2 mb-2 text-[#BB8F53]">
             <Icon size={15} />
             <h4 className="text-sm font-bold">{title}</h4>
         </div>
@@ -55,7 +55,7 @@ const StepReview: React.FC<StepProps> = ({ data, onBack, onSubmit, submitting, o
                                 ${data.severityLevel?.toLowerCase() === 'critical' ? 'bg-subtle-red text-red' :
                                     data.severityLevel?.toLowerCase() === 'high' ? 'bg-orange-50 text-orange-700' :
                                         data.severityLevel?.toLowerCase() === 'medium' ? 'bg-light-yellow text-[#854D0E]' :
-                                            'bg-light-green text-dark-green'}`}>
+                                            'bg-light-gold text-brown'}`}>
                                 {data.severityLevel || 'medium'}
                             </span>
                         } />
@@ -114,7 +114,7 @@ const StepReview: React.FC<StepProps> = ({ data, onBack, onSubmit, submitting, o
                         <ul className="space-y-1">
                             {data.attachments.map((file: File, idx: number) => (
                                 <li key={idx} className="flex items-center gap-2 text-xs text-gray-700 bg-white p-1.5 rounded border border-gray-200">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-green flex-shrink-0"></span>
+                                    <span className="w-1.5 h-1.5 rounded-full bg-gold flex-shrink-0"></span>
                                     {file.name}
                                 </li>
                             ))}
@@ -144,14 +144,14 @@ const StepReview: React.FC<StepProps> = ({ data, onBack, onSubmit, submitting, o
                     <button
                         onClick={onBack}
                         disabled={submitting}
-                        className="px-5 py-1.5 bg-light-green rounded-lg font-bold hover:bg-gray-300 transition-colors disabled:opacity-50 text-xs"
+                        className="px-5 py-1.5 bg-light-gold rounded-lg font-bold hover:bg-gray-300 transition-colors disabled:opacity-50 text-xs"
                     >
                         Previous
                     </button>
                     <button
                         onClick={onSubmit}
                         disabled={submitting}
-                        className="px-6 py-1.5 bg-[#0D9488] text-white rounded-lg font-bold shadow-sm hover:bg-[#0f766e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                        className="px-6 py-1.5 bg-[#BB8F53] text-white rounded-lg font-bold shadow-sm hover:bg-[#A1743E] transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs"
                     >
                         {submitting ? 'Submitting...' : 'Submit Incident Report'}
                     </button>

@@ -54,8 +54,8 @@ const JSADocuments: React.FC = () => {
             change: '-', // Calculating change requires history, skipping for now
             trend: 'up',
             icon: CheckCircle2,
-            bg: 'bg-[#E4F2D3]',
-            text: 'text-[#0E4D41]',
+            bg: 'bg-[#F1E3D3]',
+            text: 'text-[#884616]',
             iconBg: 'bg-white/60'
         },
         {
@@ -65,8 +65,8 @@ const JSADocuments: React.FC = () => {
             trend: 'up',
             icon: Clock,
             bg: 'bg-white',
-            text: 'text-[#0E4D41]',
-            iconBg: 'bg-[#E4F2D3]'
+            text: 'text-[#884616]',
+            iconBg: 'bg-[#F1E3D3]'
         },
         {
             label: 'Expired',
@@ -75,8 +75,8 @@ const JSADocuments: React.FC = () => {
             trend: 'up',
             icon: AlertCircle,
             bg: 'bg-white',
-            text: 'text-[#0E4D41]',
-            iconBg: 'bg-[#E4F2D3]'
+            text: 'text-[#884616]',
+            iconBg: 'bg-[#F1E3D3]'
         },
         {
             label: 'Total Documents',
@@ -85,8 +85,8 @@ const JSADocuments: React.FC = () => {
             trend: 'up',
             icon: FileText,
             bg: 'bg-white',
-            text: 'text-[#0E4D41]',
-            iconBg: 'bg-[#E4F2D3]'
+            text: 'text-[#884616]',
+            iconBg: 'bg-[#F1E3D3]'
         }
     ];
 
@@ -103,7 +103,7 @@ const JSADocuments: React.FC = () => {
             sortable: true,
             cell: (item) => (
                 <div className="flex flex-col">
-                    <span className="text-[#0E4D41] font-bold text-sm mb-1">{item.title}</span>
+                    <span className="text-[#884616] font-bold text-sm mb-1">{item.title}</span>
                     <span className="text-gray-500 text-xs">{item.description}</span>
                 </div>
             )
@@ -201,7 +201,7 @@ const JSADocuments: React.FC = () => {
                                     {stat.value}
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-[#E4F2D3] text-[#0E4D41] flex items-center gap-0.5">
+                                    <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-[#F1E3D3] text-[#884616] flex items-center gap-0.5">
                                         +{stat.change}
                                     </span>
                                     <span className="text-xs text-gray-400">from last month</span>

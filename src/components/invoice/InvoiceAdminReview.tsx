@@ -31,7 +31,7 @@ const InvoiceAdminReview: React.FC<InvoiceAdminReviewProps> = ({ invoice }) => {
             <div className="flex items-center justify-between">
                 <button
                     onClick={() => navigate('/admin/invoice-management')}
-                    className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-dark-green transition-colors"
+                    className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-brown transition-colors"
                 >
                     <ArrowLeft size={18} />
                     Back to Invoices
@@ -43,8 +43,8 @@ const InvoiceAdminReview: React.FC<InvoiceAdminReviewProps> = ({ invoice }) => {
             <div className="bg-white rounded-2xl border border-gray-200 p-6">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-light-green rounded-xl flex items-center justify-center">
-                            <FileText size={22} className="text-dark-green" />
+                        <div className="w-12 h-12 bg-light-gold rounded-xl flex items-center justify-center">
+                            <FileText size={22} className="text-brown" />
                         </div>
                         <div>
                             <h2 className="text-lg font-bold text-gray-900">Invoice #{invoice.invoiceNumber}</h2>
@@ -53,7 +53,7 @@ const InvoiceAdminReview: React.FC<InvoiceAdminReviewProps> = ({ invoice }) => {
                     </div>
                     <div className="text-right">
                         <p className="text-xs text-gray-500">Total Amount</p>
-                        <p className="text-2xl font-bold text-dark-green">
+                        <p className="text-2xl font-bold text-brown">
                             R {invoice.totalAmount.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}
                         </p>
                     </div>
@@ -100,8 +100,8 @@ const InvoiceAdminReview: React.FC<InvoiceAdminReviewProps> = ({ invoice }) => {
                             </div>
                         </div>
                         <div className="mt-4 pt-4 border-t border-gray-100 flex items-center gap-2">
-                            <ShieldCheck size={14} className="text-green" />
-                            <span className="text-xs font-bold text-green">Verified Entity</span>
+                            <ShieldCheck size={14} className="text-gold" />
+                            <span className="text-xs font-bold text-gold">Verified Entity</span>
                         </div>
                     </div>
 
@@ -112,7 +112,7 @@ const InvoiceAdminReview: React.FC<InvoiceAdminReviewProps> = ({ invoice }) => {
                             {invoice.checklist.map((item, idx) => (
                                 <div key={idx} className="flex items-center gap-3">
                                     {item.checked ? (
-                                        <div className="w-5 h-5 bg-dark-green rounded flex items-center justify-center flex-shrink-0">
+                                        <div className="w-5 h-5 bg-brown rounded flex items-center justify-center flex-shrink-0">
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
                                                 <path d="M5 13l4 4L19 7" />
                                             </svg>
@@ -138,8 +138,8 @@ const InvoiceAdminReview: React.FC<InvoiceAdminReviewProps> = ({ invoice }) => {
                                 return (
                                     <div key={idx} className="flex items-center justify-between p-3 bg-subtle-grey rounded-xl">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 bg-light-green rounded-lg flex items-center justify-center">
-                                                <Icon size={14} className="text-dark-green" />
+                                            <div className="w-8 h-8 bg-light-gold rounded-lg flex items-center justify-center">
+                                                <Icon size={14} className="text-brown" />
                                             </div>
                                             <div>
                                                 <span className="text-sm font-medium text-gray-800">{util.category}</span>
@@ -155,8 +155,8 @@ const InvoiceAdminReview: React.FC<InvoiceAdminReviewProps> = ({ invoice }) => {
                             {/* Refuse line */}
                             <div className="flex items-center justify-between p-3 bg-subtle-grey rounded-xl">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 bg-light-green rounded-lg flex items-center justify-center">
-                                        <Trash2 size={14} className="text-dark-green" />
+                                    <div className="w-8 h-8 bg-light-gold rounded-lg flex items-center justify-center">
+                                        <Trash2 size={14} className="text-brown" />
                                     </div>
                                     <div>
                                         <span className="text-sm font-medium text-gray-800">Refuse</span>
@@ -173,7 +173,7 @@ const InvoiceAdminReview: React.FC<InvoiceAdminReviewProps> = ({ invoice }) => {
                     </div>
 
                     {/* Totals */}
-                    <div className="bg-dark-green rounded-2xl p-6 text-white">
+                    <div className="bg-brown rounded-2xl p-6 text-white">
                         <div className="space-y-3">
                             <div className="flex justify-between">
                                 <span className="text-sm text-white/70">Excl. VAT</span>
@@ -207,7 +207,7 @@ const InvoiceAdminReview: React.FC<InvoiceAdminReviewProps> = ({ invoice }) => {
                         </button>
                         <button
                             onClick={() => setShowApproveModal(true)}
-                            className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-dark-green text-white text-sm font-bold rounded-xl hover:bg-dark-green/90 transition-all shadow-sm"
+                            className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-brown text-white text-sm font-bold rounded-xl hover:bg-brown/90 transition-all shadow-sm"
                         >
                             <CheckCircle size={18} />
                             Approve
@@ -231,7 +231,7 @@ const InvoiceAdminReview: React.FC<InvoiceAdminReviewProps> = ({ invoice }) => {
                         </button>
                         <button
                             onClick={() => { setShowApproveModal(false); navigate('/admin/invoice-management'); }}
-                            className="px-5 py-2.5 bg-dark-green text-white text-sm font-bold rounded-xl hover:bg-dark-green/90 transition-all"
+                            className="px-5 py-2.5 bg-brown text-white text-sm font-bold rounded-xl hover:bg-brown/90 transition-all"
                         >
                             Confirm Approval
                         </button>
@@ -239,8 +239,8 @@ const InvoiceAdminReview: React.FC<InvoiceAdminReviewProps> = ({ invoice }) => {
                 }
             >
                 <div className="text-center py-4">
-                    <div className="w-16 h-16 bg-green/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <CheckCircle size={32} className="text-green" />
+                    <div className="w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <CheckCircle size={32} className="text-gold" />
                     </div>
                     <p className="text-sm text-gray-700">
                         You are about to approve invoice <span className="font-bold">#{invoice.invoiceNumber}</span> for

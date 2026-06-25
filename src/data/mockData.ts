@@ -23,15 +23,15 @@ export const INCIDENT_TRENDS_DATA = [
 export const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export const CATEGORY_DATA = [
-    { name: "Safety", value: 50, color: "#0E4D41", pct: "50%" },
-    { name: "Security", value: 30, color: "#E4F2D3", pct: "30%" },
+    { name: "Safety", value: 50, color: "#884616", pct: "50%" },
+    { name: "Security", value: 30, color: "#F1E3D3", pct: "30%" },
     { name: "Environmental", value: 33.3, color: "#F8C947", pct: "33.3%" },
-    { name: "Equipment", value: 16.7, color: "#35BFA3", pct: "16.7%" },
+    { name: "Equipment", value: 16.7, color: "#BB8F53", pct: "16.7%" },
     { name: "Health", value: 20, color: "#FF4D4F", pct: "20%" },
 ];
 
 export const REGIONAL_DISTRIBUTION = [
-    { label: "GP", value: 55, color: "#0E4D41" },
+    { label: "GP", value: 55, color: "#884616" },
     { label: "WC", value: 45, color: "#25966A" },
     { label: "KZN", value: 35, color: "#3EB489" },
     { label: "EC", value: 30, color: "#66C2A5" },
@@ -120,7 +120,7 @@ export const RECENT_INCIDENTS = [
 ] as const;
 
 export const INCIDENT_MANAGEMENT_STATS = [
-    { label: "Open", count: "47", sub: "4.7% from last month", barColor: "bg-green-500" },
+    { label: "Open", count: "47", sub: "4.7% from last month", barColor: "bg-gold-500" },
     { label: "In progress", count: "23", sub: "-", barColor: "bg-blue-500" },
     { label: "Critical", count: "8", sub: "-", barColor: "bg-red-500" },
     { label: "Closed (MTD)", count: "156", sub: "-", barColor: "bg-gray-800" },

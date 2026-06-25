@@ -1,27 +1,70 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
+import { useAuthStore } from '../../store/auth.store';
 import TypeCard from './TypeCard';
 import { INCIDENT_CATEGORIES } from '../../data/constants';
 
 interface StepIncidentTypeProps {
     selected?: string;
     onSelect: (categoryId: string, type: string) => void;
+    /** Category ids to hide from the selection grid (e.g. ['security']). */
+    excludeCategoryIds?: string[];
 }
 
-const StepIncidentType: React.FC<StepIncidentTypeProps> = ({ selected, onSelect }) => {
+const StepIncidentType: React.FC<StepIncidentTypeProps> = ({ selected, onSelect, excludeCategoryIds = [] }) => {
     const [selectedCategoryId, setSelectedCategoryId] = useState(selected);
+    const categories = INCIDENT_CATEGORIES.filter((c) => !excludeCategoryIds.includes(c.id));
+    const navigate = useNavigate();
+    const user = useAuthStore((state) => state.user);
 
     const handleTypeSelect = (categoryId: string) => {
         setSelectedCategoryId(categoryId);
         // Do not auto-advance; wait for Next button click
     };
 
+    const handleBackToDashboard = () => {
+        if (!user) {
+            navigate('/');
+            return;
+        }
+        const roleName = user.role?.name?.toLowerCase().replace(/\s+/g, '_');
+
+        if (roleName === 'employee') {
+            navigate('/employee/dashboard');
+        } else if (roleName === 'supervisor') {
+            navigate('/supervisor/dashboard');
+        } else if (roleName === 'ohs_practitioner') {
+            navigate('/ohs/dashboard');
+        } else if (roleName === 'security_practitioner') {
+            navigate('/security/dashboard');
+        } else if (roleName === 'finance_official') {
+            navigate('/finance/dashboard');
+        } else if (roleName === 'system_administrator' || roleName === 'manager') {
+            navigate('/admin/dashboard');
+        } else {
+            navigate('/admin/dashboard');
+        }
+    };
+
     return (
         <div className="animate-fadeIn">
-            <h3 className="text-lg font-bold text-gray-800 mb-0.5">Incident Type</h3>
-            <p className="text-xs text-gray-400 mb-4 font-medium">Select category</p>
+            <div className="flex flex-col gap-3 items-start mb-5">
+                <button
+                    onClick={handleBackToDashboard}
+                    className="p-1.5 -mt-2 -ml-1 text-gray-500 hover:text-[#884616] bg-white hover:bg-light-gold border border-gray-150 rounded-xl transition-all shrink-0 shadow-sm flex items-center justify-center"
+                    title="Back to Dashboard"
+                >
+                    <ArrowLeft size={16} />
+                </button>
+                <div>
+                    <h3 className="text-lg font-bold text-gray-800 leading-none">Incident Type</h3>
+                    <p className="text-xs text-gray-400 mt-1.5 font-medium">Select category</p>
+                </div>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                {INCIDENT_CATEGORIES.map((category) => (
+                {categories.map((category) => (
                     <TypeCard
                         key={category.id}
                         title={category.name}
@@ -44,7 +87,7 @@ const StepIncidentType: React.FC<StepIncidentTypeProps> = ({ selected, onSelect 
                 </div>
                 <div className="flex gap-3">
                     <button
-                        className="px-5 py-1.5 bg-light-green rounded-lg font-bold cursor-not-allowed text-xs"
+                        className="px-5 py-1.5 bg-light-gold rounded-lg font-bold cursor-not-allowed text-xs"
                         disabled
                     >
                         Previous
@@ -59,7 +102,7 @@ const StepIncidentType: React.FC<StepIncidentTypeProps> = ({ selected, onSelect 
                             }
                         }}
                         disabled={!selectedCategoryId}
-                        className="px-6 py-1.5 bg-green text-white rounded-lg font-bold shadow-sm hover:bg-[#0f766e] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed text-xs"
+                        className="px-6 py-1.5 bg-gold text-white rounded-lg font-bold shadow-sm hover:bg-[#A1743E] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed text-xs"
                     >
                         Next
                     </button>

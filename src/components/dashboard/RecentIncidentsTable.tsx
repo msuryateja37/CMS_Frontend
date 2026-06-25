@@ -19,7 +19,7 @@ const RecentIncidentsTable: React.FC<RecentIncidentsTableProps> = ({ cases, load
             sortable: true,
             cell: (item) => (
                 <div className="flex items-center gap-3 w-48">
-                    <div className="w-8 h-8 rounded-full bg-[#35BFA3] flex items-center justify-center ">
+                    <div className="w-8 h-8 rounded-full bg-[#BB8F53] flex items-center justify-center ">
                         {/* <div className="w-4 h-4 rounded-full border-2 border-white/30"></div> */}
                     </div>
                     <span className="text-sm font-medium text-gray-700">{item.incidentNumber}</span>

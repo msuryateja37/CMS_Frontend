@@ -107,13 +107,13 @@ const MapSelector: React.FC<MapSelectorProps> = ({ latitude, longitude, onChange
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search for a location..."
-                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0D9488] focus:border-transparent outline-none transition-all"
+                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#BB8F53] focus:border-transparent outline-none transition-all"
                     />
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                     <button
                         type="submit"
                         disabled={isSearching}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-[#0D9488] text-white text-xs font-bold rounded-lg hover:bg-[#097a6f] transition-colors disabled:opacity-50"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-[#BB8F53] text-white text-xs font-bold rounded-lg hover:bg-[#865A2E] transition-colors disabled:opacity-50"
                     >
                         {isSearching ? 'Searching...' : 'Search'}
                     </button>
@@ -123,7 +123,7 @@ const MapSelector: React.FC<MapSelectorProps> = ({ latitude, longitude, onChange
                     onClick={handleMyLocation}
                     className="flex items-center justify-center gap-2 px-6 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 font-bold hover:bg-gray-50 transition-colors shadow-sm whitespace-nowrap"
                 >
-                    <Locate size={18} className="text-[#0D9488]" />
+                    <Locate size={18} className="text-[#BB8F53]" />
                     My Location
                 </button>
             </div>

@@ -89,8 +89,8 @@ const RiskRegister: React.FC = () => {
             trend: 'up',
             icon: Shield,
             bg: 'bg-white',
-            text: 'text-green',
-            iconBg: 'bg-subtle-green'
+            text: 'text-gold',
+            iconBg: 'bg-subtle-gold'
         },
         {
             label: 'Risk Trend',
@@ -98,8 +98,8 @@ const RiskRegister: React.FC = () => {
             change: '0%',
             trend: 'stable',
             icon: Activity,
-            bg: 'bg-[#E4F2D3]',
-            text: 'text-dark-green',
+            bg: 'bg-[#F1E3D3]',
+            text: 'text-brown',
             iconBg: 'bg-white/60'
         }
     ];
@@ -138,10 +138,10 @@ const RiskRegister: React.FC = () => {
             sortable: true,
             cell: (item) => (
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-green/20 flex items-center justify-center">
-                        <Shield size={16} className="text-green" />
+                    <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center">
+                        <Shield size={16} className="text-gold" />
                     </div>
-                    <span className="font-bold text-dark-green text-xs uppercase tracking-wider">{item.id}</span>
+                    <span className="font-bold text-brown text-xs uppercase tracking-wider">{item.id}</span>
                 </div>
             )
         },
@@ -192,7 +192,7 @@ const RiskRegister: React.FC = () => {
         {
             header: '',
             cell: () => (
-                <button className="p-2 text-light-grey hover:text-dark-green transition-colors">
+                <button className="p-2 text-light-grey hover:text-brown transition-colors">
                     <MoreHorizontal size={20} />
                 </button>
             ),
@@ -225,7 +225,7 @@ const RiskRegister: React.FC = () => {
                                 </div>
                                 <div className={clsx("flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg",
                                     stat.trend === 'up' ? 'bg-red-50 text-red-500' :
-                                        stat.trend === 'down' ? 'bg-green-50 text-green-500' :
+                                        stat.trend === 'down' ? 'bg-gold-50 text-gold-500' :
                                             'bg-gray-50 text-gray-500'
                                 )}>
                                     {stat.trend === 'up' && <TrendingUp size={12} />}
@@ -249,13 +249,13 @@ const RiskRegister: React.FC = () => {
                 {/* Search and Filters */}
                 <div className="flex flex-col xl:flex-row items-center justify-between gap-4 mt-4">
                     <div className="relative w-full xl:max-w-xl group">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-light-grey group-focus-within:text-green transition-colors" size={20} />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-light-grey group-focus-within:text-gold transition-colors" size={20} />
                         <input
                             type="text"
                             placeholder="Search by risk ID, description or owner ...."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3.5 bg-white border border-semi-subtle-grey rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-green/20 focus:border-green transition-all shadow-sm"
+                            className="w-full pl-12 pr-4 py-3.5 bg-white border border-semi-subtle-grey rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-gold/20 focus:border-gold transition-all shadow-sm"
                         />
                     </div>
                     <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
@@ -265,7 +265,7 @@ const RiskRegister: React.FC = () => {
                                 onChange={setLevelFilter}
                                 options={LEVEL_CHOICES}
                                 placeholder="Risk Level"
-                                bgColor="bg-light-green"
+                                bgColor="bg-light-gold"
                             />
                         </div>
                         <div className="w-44">
@@ -274,7 +274,7 @@ const RiskRegister: React.FC = () => {
                                 onChange={setStatusFilter}
                                 options={STATUS_OPTIONS}
                                 placeholder="Status"
-                                bgColor="bg-light-green"
+                                bgColor="bg-light-gold"
                             />
                         </div>
                     </div>

@@ -57,8 +57,8 @@ const HazardReports: React.FC = () => {
             label: 'Open Hazards',
             value: stats.openHazards,
             icon: <AlertTriangle size={20} />,
-            bg: 'bg-[#E4F2D3]',
-            text: 'text-dark-green',
+            bg: 'bg-[#F1E3D3]',
+            text: 'text-brown',
             iconBg: 'bg-white/60'
         },
         {
@@ -82,8 +82,8 @@ const HazardReports: React.FC = () => {
             value: stats.resolvedHazards,
             icon: <CheckCircle2 size={20} />,
             bg: 'bg-white',
-            text: 'text-dark-green',
-            iconBg: 'bg-subtle-green'
+            text: 'text-brown',
+            iconBg: 'bg-subtle-gold'
         }
     ];
 
@@ -98,7 +98,7 @@ const HazardReports: React.FC = () => {
             header: 'Title',
             accessorKey: 'title',
             sortable: true,
-            cell: (item) => <h3 className="text-sm font-bold text-[#0E4D41]">{item.title}</h3>
+            cell: (item) => <h3 className="text-sm font-bold text-[#884616]">{item.title}</h3>
         },
         {
             header: 'Priority',
@@ -144,7 +144,7 @@ const HazardReports: React.FC = () => {
             header: 'Actions',
             cell: () => (
                 <div className="flex items-center gap-2">
-                    <button className="flex items-center gap-2 px-3 py-1.5 bg-[#E4F2D3] text-[#0E4D41] rounded-lg text-xs font-bold hover:bg-[#d4eabc] transition-colors">
+                    <button className="flex items-center gap-2 px-3 py-1.5 bg-[#F1E3D3] text-[#884616] rounded-lg text-xs font-bold hover:bg-[#d4eabc] transition-colors">
                         <Eye size={14} /> View
                     </button>
                     <button className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg">

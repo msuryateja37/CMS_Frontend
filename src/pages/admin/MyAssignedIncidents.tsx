@@ -42,10 +42,10 @@ const MyAssignedIncidents: React.FC = () => {
     const closedCount = cases.filter(c => c.status === 'CLOSED').length;
 
     const stats = [
-        { label: 'My Open', count: openCount, icon: Package, iconBg: 'bg-subtle-green', iconColor: 'text-green', percentage: `${cases.length > 0 ? ((openCount / cases.length) * 100).toFixed(1) : 0}%` },
+        { label: 'My Open', count: openCount, icon: Package, iconBg: 'bg-subtle-gold', iconColor: 'text-gold', percentage: `${cases.length > 0 ? ((openCount / cases.length) * 100).toFixed(1) : 0}%` },
         { label: 'In Progress', count: inProgressCount, icon: CheckCircle2, iconBg: 'bg-blue-50', iconColor: 'text-blue-500', showBottomBar: true, barColor: 'bg-blue-500' },
         { label: 'Critical', count: criticalCount, icon: FileText, iconBg: 'bg-subtle-red', iconColor: 'text-brand-red', showBottomBar: true, barColor: 'bg-brand-red' },
-        { label: 'Closed (MTD)', count: closedCount, icon: AlertCircle, iconBg: 'bg-teal-50', iconColor: 'text-teal-500', showBottomBar: true, barColor: 'bg-teal-500' },
+        { label: 'Closed (MTD)', count: closedCount, icon: AlertCircle, iconBg: 'bg-gold-50', iconColor: 'text-gold-500', showBottomBar: true, barColor: 'bg-gold-500' },
     ];
 
     // Map database status to component-expected values
@@ -117,10 +117,10 @@ const MyAssignedIncidents: React.FC = () => {
             sortable: true,
             cell: (item) => (
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-green/20 flex items-center justify-center">
-                        <div className="w-4 h-4 rounded-full bg-green"></div>
+                    <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center">
+                        <div className="w-4 h-4 rounded-full bg-gold"></div>
                     </div>
-                    <span className="font-bold text-dark-green text-sm">{item.refId}</span>
+                    <span className="font-bold text-brown text-sm">{item.refId}</span>
                 </div>
             )
         },
@@ -164,7 +164,7 @@ const MyAssignedIncidents: React.FC = () => {
             accessorKey: 'assigned',
             cell: (item) => (
                 <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-semi-subtle-grey flex items-center justify-center text-xs font-bold text-dark-green shadow-sm">
+                    <div className="w-8 h-8 rounded-full bg-semi-subtle-grey flex items-center justify-center text-xs font-bold text-brown shadow-sm">
                         {item.assigned[0]}
                     </div>
                     <span className="text-sm text-dark-grey font-bold">{item.assigned}</span>
@@ -205,7 +205,7 @@ const MyAssignedIncidents: React.FC = () => {
                                 setSearchQuery(e.target.value);
                                 setCurrentPage(1); // Reset to first page on search
                             }}
-                            className="w-full pl-12 pr-4 py-3.5 bg-white border border-semi-subtle-grey rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-green/20 transition-all shadow-sm"
+                            className="w-full pl-12 pr-4 py-3.5 bg-white border border-semi-subtle-grey rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-gold/20 transition-all shadow-sm"
                         />
                     </div>
 
@@ -222,7 +222,7 @@ const MyAssignedIncidents: React.FC = () => {
                                     ...PROVINCES.map(p => ({ value: p, label: p }))
                                 ]}
                                 placeholder="All provinces"
-                                bgColor="bg-light-green"
+                                bgColor="bg-light-gold"
                             />
                         </div>
                         <div className="w-[160px]">
@@ -237,7 +237,7 @@ const MyAssignedIncidents: React.FC = () => {
                                     ...STATUS_OPTIONS
                                 ]}
                                 placeholder="All statuses"
-                                bgColor="bg-light-green"
+                                bgColor="bg-light-gold"
                             />
                         </div>
                         <div className="w-[160px]">
@@ -252,7 +252,7 @@ const MyAssignedIncidents: React.FC = () => {
                                     ...SEVERITY_OPTIONS
                                 ]}
                                 placeholder="All severities"
-                                bgColor="bg-light-green"
+                                bgColor="bg-light-gold"
                             />
                         </div>
                     </div>

@@ -17,7 +17,7 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({
   onCommentChange,
 }) => {
   const baseInput =
-    'border border-gray-300 bg-gray-50 rounded-md py-1.5 px-2.5 w-full text-[13px] outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition';
+    'border border-gray-300 bg-gray-50 rounded-md py-1.5 px-2.5 w-full text-[13px] outline-none focus:ring-2 focus:ring-gold-400 focus:border-gold-400 transition';
 
   // ── TEXT ──────────────────────────────────────────────────────────────────
   if (question.inputType === 'TEXT') {
@@ -96,7 +96,7 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({
                 value={opt.optionValue}
                 checked={value === opt.optionValue}
                 onChange={(e) => onChange(e.target.value)}
-                className="accent-emerald-600"
+                className="accent-gold-600"
               />
               {opt.optionLabel}
             </label>
@@ -139,7 +139,7 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({
                 value={opt.optionValue}
                 checked={selected.includes(opt.optionValue)}
                 onChange={() => toggle(opt.optionValue)}
-                className="accent-emerald-600 w-4 h-4"
+                className="accent-gold-600 w-4 h-4"
               />
               {opt.optionLabel}
             </label>
@@ -184,7 +184,7 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({
                 value={opt.optionValue}
                 checked={value === opt.optionValue}
                 onChange={(e) => onChange(e.target.value)}
-                className="accent-emerald-600"
+                className="accent-gold-600"
               />
               {opt.optionLabel}
             </label>

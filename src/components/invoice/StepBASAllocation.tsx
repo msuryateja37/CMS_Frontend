@@ -37,16 +37,16 @@ const StepBASAllocation: React.FC<StepBASAllocationProps> = ({ invoice }) => {
     return (
         <div className="space-y-6">
             {/* Target / Allocated banner */}
-            <div className="bg-dark-green rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="bg-brown rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-8">
                     <div>
-                        <p className="text-[10px] font-semibold text-green/70 uppercase tracking-wider">Target Total</p>
+                        <p className="text-[10px] font-semibold text-gold/70 uppercase tracking-wider">Target Total</p>
                         <p className="text-xl font-bold text-white">
                             R{invoice.totalAmount.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}
                         </p>
                     </div>
                     <div>
-                        <p className="text-[10px] font-semibold text-green/70 uppercase tracking-wider">Allocated</p>
+                        <p className="text-[10px] font-semibold text-gold/70 uppercase tracking-wider">Allocated</p>
                         <p className="text-xl font-bold text-white">
                             R{allocated.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}
                         </p>
@@ -54,7 +54,7 @@ const StepBASAllocation: React.FC<StepBASAllocationProps> = ({ invoice }) => {
                 </div>
                 <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold ${
                     isBalanced
-                        ? 'bg-green/20 text-green'
+                        ? 'bg-gold/20 text-gold'
                         : 'bg-yellow/20 text-yellow'
                 }`}>
                     {isBalanced && <CheckCircle size={16} />}
@@ -82,7 +82,7 @@ const StepBASAllocation: React.FC<StepBASAllocationProps> = ({ invoice }) => {
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-4">
-                                    <span className="text-sm font-bold text-dark-green">
+                                    <span className="text-sm font-bold text-brown">
                                         R{alloc.amount.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}
                                     </span>
                                     {isExpanded
@@ -158,8 +158,8 @@ const StepBASAllocation: React.FC<StepBASAllocationProps> = ({ invoice }) => {
 
             {/* System Note */}
             <div className="bg-subtle-grey rounded-xl p-5 flex items-start gap-3">
-                <div className="w-5 h-5 bg-dark-green/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs text-dark-green font-bold">i</span>
+                <div className="w-5 h-5 bg-brown/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-xs text-brown font-bold">i</span>
                 </div>
                 <div>
                     <p className="text-sm font-bold text-gray-800">System Note</p>
