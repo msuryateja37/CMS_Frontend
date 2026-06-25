@@ -8,10 +8,13 @@ import { INCIDENT_CATEGORIES } from '../../data/constants';
 interface StepIncidentTypeProps {
     selected?: string;
     onSelect: (categoryId: string, type: string) => void;
+    /** Category ids to hide from the selection grid (e.g. ['security']). */
+    excludeCategoryIds?: string[];
 }
 
-const StepIncidentType: React.FC<StepIncidentTypeProps> = ({ selected, onSelect }) => {
+const StepIncidentType: React.FC<StepIncidentTypeProps> = ({ selected, onSelect, excludeCategoryIds = [] }) => {
     const [selectedCategoryId, setSelectedCategoryId] = useState(selected);
+    const categories = INCIDENT_CATEGORIES.filter((c) => !excludeCategoryIds.includes(c.id));
     const navigate = useNavigate();
     const user = useAuthStore((state) => state.user);
 
@@ -61,7 +64,7 @@ const StepIncidentType: React.FC<StepIncidentTypeProps> = ({ selected, onSelect 
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                {INCIDENT_CATEGORIES.map((category) => (
+                {categories.map((category) => (
                     <TypeCard
                         key={category.id}
                         title={category.name}

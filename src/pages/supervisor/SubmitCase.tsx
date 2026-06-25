@@ -169,6 +169,7 @@ const SubmitCase: React.FC = () => {
                 <div className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-6 md:p-12 mt-4 min-h-[600px] overflow-hidden">
                     {step === 1 && (
                         <StepIncidentType
+                            excludeCategoryIds={['security']}
                             selected={formData.categoryId}
                             onSelect={(categoryId, type) => {
                                 const cat = INCIDENT_CATEGORIES.find(c => c.id === categoryId);
