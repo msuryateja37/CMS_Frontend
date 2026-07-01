@@ -24,8 +24,10 @@ const Login: React.FC = () => {
                 navigate('/supervisor/dashboard');
             } else if (roleName === 'ohs_practitioner') {
                 navigate('/ohs/dashboard');
-            } else if (roleName === 'security_practitioner') {
-                navigate('/security/dashboard');
+            } else if (roleName === 'first_aider') {
+                navigate('/first-aider/dashboard');
+            } else if (roleName === 'hr') {
+                navigate('/hr/cases');
             } else if (roleName === 'finance_official') {
                 navigate('/finance/dashboard');
             } else if (roleName === 'system_administrator' || roleName === 'manager') {

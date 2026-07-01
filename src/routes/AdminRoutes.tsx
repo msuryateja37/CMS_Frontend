@@ -35,12 +35,12 @@ import ActionPlans from '../pages/performance/ActionPlans';
 import Administration from '../pages/admin/Administration';
 import FormBuilderSettings from '../pages/admin/FormBuilderSettings';
 
-import SecurityDashboard from '../pages/security_practitioner/SecurityDashboard';
-import SecurityMyCases from '../pages/security_practitioner/SecurityMyCases';
-import SecurityCasesReview from '../pages/security_practitioner/SecurityCasesReview';
-import SecurityCaseAction from '../pages/security_practitioner/SecurityCaseAction';
-import { ReportBreach } from '../pages/security_practitioner/ReportBreach';
-import { AccessControl } from '../pages/security_practitioner/AccessControl';
+import FirstAiderDashboard from '../pages/first_aider/FirstAiderDashboard';
+import FirstAiderMyCases from '../pages/first_aider/FirstAiderMyCases';
+import FirstAiderCasesReview from '../pages/first_aider/FirstAiderCasesReview';
+import FirstAiderCaseAction from '../pages/first_aider/FirstAiderCaseAction';
+import CasePool from '../pages/ohs/CasePool';
+import HRCaseReview from '../pages/hr/HRCaseReview';
 import InvoiceInbox from '../pages/invoices/InvoiceInbox';
 import PendingApproval from '../pages/invoices/PendingApproval';
 import PaymentTracking from '../pages/invoices/PaymentTracking';
@@ -63,6 +63,7 @@ const AdminRoutes = () => {
             <Route path="/ohs/submit-case" element={<ProtectedRoute><OHSSubmitCase /></ProtectedRoute>} />
             <Route path="/ohs/report-incident/success" element={<ProtectedRoute><CaseSubmissionSuccess /></ProtectedRoute>} />
             <Route path="/ohs/submit-case/success" element={<ProtectedRoute><CaseSubmissionSuccess /></ProtectedRoute>} />
+            <Route path="/ohs/pool" element={<ProtectedRoute><CasePool /></ProtectedRoute>} />
             <Route path="/ohs/hazards" element={<ProtectedRoute><HazardReports /></ProtectedRoute>} />
             <Route path="/ohs/risk-register" element={<ProtectedRoute><RiskRegister /></ProtectedRoute>} />
             <Route path="/ohs/procedures" element={<ProtectedRoute><SafeWorkProcedures /></ProtectedRoute>} />
@@ -74,14 +75,16 @@ const AdminRoutes = () => {
             <Route path="/ohs/forms/submissions" element={<ProtectedRoute><OHSFormSubmissions /></ProtectedRoute>} />
             <Route path="/ohs" element={<Navigate to="/ohs/hazards" replace />} />
 
-            {/* Security Practitioner Routes */}
-            <Route path="/security/dashboard" element={<ProtectedRoute><SecurityDashboard /></ProtectedRoute>} />
-            <Route path="/security/my-cases" element={<ProtectedRoute><SecurityMyCases /></ProtectedRoute>} />
-            <Route path="/security/cases-review" element={<ProtectedRoute><SecurityCasesReview /></ProtectedRoute>} />
-            <Route path="/security/cases/:id" element={<ProtectedRoute><SecurityCaseAction /></ProtectedRoute>} />
-            <Route path="/security/report-breach" element={<ProtectedRoute><ReportBreach /></ProtectedRoute>} />
-            <Route path="/security/access-control" element={<ProtectedRoute><AccessControl /></ProtectedRoute>} />
-            <Route path="/security" element={<ProtectedRoute><SecurityDashboard /></ProtectedRoute>} />
+            {/* First Aider Routes (health cases) */}
+            <Route path="/first-aider/dashboard" element={<ProtectedRoute><FirstAiderDashboard /></ProtectedRoute>} />
+            <Route path="/first-aider/my-cases" element={<ProtectedRoute><FirstAiderMyCases /></ProtectedRoute>} />
+            <Route path="/first-aider/cases-review" element={<ProtectedRoute><FirstAiderCasesReview /></ProtectedRoute>} />
+            <Route path="/first-aider/cases/:id" element={<ProtectedRoute><FirstAiderCaseAction /></ProtectedRoute>} />
+            <Route path="/first-aider" element={<ProtectedRoute><FirstAiderDashboard /></ProtectedRoute>} />
+
+            {/* HR Routes (review + close cases) */}
+            <Route path="/hr/cases" element={<ProtectedRoute><HRCaseReview /></ProtectedRoute>} />
+            <Route path="/hr" element={<ProtectedRoute><HRCaseReview /></ProtectedRoute>} />
 
             {/* Operations Routes */}
             <Route path="/operations/permits" element={<ProtectedRoute><PermitToWork /></ProtectedRoute>} />

@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { formatCategory } from '../../utils/formatters';
 
-const SecurityDashboard: React.FC = () => {
+const FirstAiderDashboard: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuthStore();
 
@@ -113,7 +113,7 @@ const SecurityDashboard: React.FC = () => {
             header: '',
             cell: (item) => (
                 <button
-                    onClick={() => navigate(`/security/cases/${item.id}`)}
+                    onClick={() => navigate(`/first-aider/cases/${item.id}`)}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-light-gold text-brown text-xs font-bold rounded-lg hover:bg-gold/10 transition-colors"
                 >
                     <Eye size={14} /> View
@@ -168,7 +168,7 @@ const SecurityDashboard: React.FC = () => {
             header: '',
             cell: (item) => (
                 <button
-                    onClick={() => navigate(`/security/cases/${item.id}`)}
+                    onClick={() => navigate(`/first-aider/cases/${item.id}`)}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-light-gold text-brown text-xs font-bold rounded-lg hover:bg-gold/10 transition-colors"
                 >
                     <Eye size={14} /> View
@@ -178,7 +178,7 @@ const SecurityDashboard: React.FC = () => {
     ];
 
     return (
-        <DashboardLayout title="Security Dashboard" description="Dashboard" breadcrumbs={[{ label: "Dashboard", path: "/security/dashboard" }, { label: "Overview" }]}>
+        <DashboardLayout title="First Aider Dashboard" description="Dashboard" breadcrumbs={[{ label: "Dashboard", path: "/first-aider/dashboard" }, { label: "Overview" }]}>
             <div className="flex flex-col gap-6">
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
@@ -260,7 +260,7 @@ const SecurityDashboard: React.FC = () => {
                     <div>
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-bold text-gray-800">My Cases</h3>
-                            <button onClick={() => navigate('/security/my-cases')} className="flex items-center gap-1 text-sm font-bold text-brown hover:underline">
+                            <button onClick={() => navigate('/first-aider/my-cases')} className="flex items-center gap-1 text-sm font-bold text-brown hover:underline">
                                 View All <ChevronRight size={14} />
                             </button>
                         </div>
@@ -279,7 +279,7 @@ const SecurityDashboard: React.FC = () => {
                     <div>
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-bold text-gray-800">Assigned Cases</h3>
-                            <button onClick={() => navigate('/security/cases-review')} className="flex items-center gap-1 text-sm font-bold text-brown hover:underline">
+                            <button onClick={() => navigate('/first-aider/cases-review')} className="flex items-center gap-1 text-sm font-bold text-brown hover:underline">
                                 View All <ChevronRight size={14} />
                             </button>
                         </div>
@@ -298,4 +298,4 @@ const SecurityDashboard: React.FC = () => {
     );
 };
 
-export default SecurityDashboard;
+export default FirstAiderDashboard;

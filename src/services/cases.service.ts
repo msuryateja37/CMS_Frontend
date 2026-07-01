@@ -245,6 +245,14 @@ class CasesService {
   }
 
   /**
+   * OHS practitioner pulls a case out of their province pool.
+   */
+  async pickupCase(id: string): Promise<Case> {
+    const response = await api.put<Case>(`/cases/${id}/pickup`);
+    return response.data;
+  }
+
+  /**
    * Close case
    */
   async closeCase(id: string): Promise<Case> {

@@ -27,14 +27,14 @@ const normalizeRoleName = (role?: string): string => {
     if (lower === 'other' || lower === 'employee') return 'Employee';
     if (lower === 'supervisor') return 'Supervisor';
     if (lower.includes('ohs')) return 'OHS Practitioner';
-    if (lower.includes('security')) return 'Security Practitioner';
+    if (lower.includes('security')) return 'First Aider';
     if (lower === 'admin') return 'Admin';
     return role.split(' ')
         .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
         .join(' ');
 };
 
-const SecurityCaseAction: React.FC = () => {
+const FirstAiderCaseAction: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { user } = useAuthStore();
@@ -135,7 +135,7 @@ const SecurityCaseAction: React.FC = () => {
                     fileUrl: uploaded.url,
                     fileType: file.type,
                     fileName: file.name,
-                    uploaderRole: 'Security Practitioner',
+                    uploaderRole: 'First Aider',
                 });
             }
             setSelectedFiles([]);
@@ -173,7 +173,7 @@ const SecurityCaseAction: React.FC = () => {
 
     if (loading) {
         return (
-            <DashboardLayout title="Case Details" description="Loading..." breadcrumbs={[{ label: "Dashboard", path: "/security/dashboard" }, { label: "Cases Under Review", path: "/security/cases-review" }, { label: "Loading..." }]}>
+            <DashboardLayout title="Case Details" description="Loading..." breadcrumbs={[{ label: "Dashboard", path: "/first-aider/dashboard" }, { label: "Cases Under Review", path: "/first-aider/cases-review" }, { label: "Loading..." }]}>
                 <div className="flex items-center justify-center h-96">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div>
                 </div>
@@ -183,7 +183,7 @@ const SecurityCaseAction: React.FC = () => {
 
     if (error && !caseData) {
         return (
-            <DashboardLayout title="Case Details" description="Error" breadcrumbs={[{ label: "Dashboard", path: "/security/dashboard" }, { label: "Cases Under Review", path: "/security/cases-review" }, { label: "Error" }]}>
+            <DashboardLayout title="Case Details" description="Error" breadcrumbs={[{ label: "Dashboard", path: "/first-aider/dashboard" }, { label: "Cases Under Review", path: "/first-aider/cases-review" }, { label: "Error" }]}>
                 <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl">
                     <p className="font-bold">Error</p>
                     <p className="text-sm mt-1">{error}</p>
@@ -204,7 +204,7 @@ const SecurityCaseAction: React.FC = () => {
         <DashboardLayout
             title={`Case ${caseData.incidentNumber}`}
             description="Case Details"
-            breadcrumbs={[{ label: "Dashboard", path: "/security/dashboard" }, { label: "Cases Under Review", path: "/security/cases-review" }, { label: caseData?.incidentNumber || "Case Details" }]}
+            breadcrumbs={[{ label: "Dashboard", path: "/first-aider/dashboard" }, { label: "Cases Under Review", path: "/first-aider/cases-review" }, { label: caseData?.incidentNumber || "Case Details" }]}
         >
             <div className="max-w-7xl mx-auto">
                 {/* Success Banner */}
@@ -227,7 +227,7 @@ const SecurityCaseAction: React.FC = () => {
                 {/* Top Bar: Back + Action */}
                 <div className="flex items-center justify-between mb-6">
                     <button
-                        onClick={() => navigate('/security/cases-review')}
+                        onClick={() => navigate('/first-aider/cases-review')}
                         className="flex items-center gap-2 text-gray-500 hover:text-gray-700 transition-colors font-medium text-sm"
                     >
                         <ArrowLeft size={18} />
@@ -499,11 +499,11 @@ const SecurityCaseAction: React.FC = () => {
                             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Evidence & Attachments</h3>
                             {caseData.evidence && caseData.evidence.length > 0 ? (
                                 <div className="space-y-6">
-                                    {['Employee', 'Supervisor', 'Security Practitioner', 'Other'].map(role => {
+                                    {['Employee', 'Supervisor', 'First Aider', 'Other'].map(role => {
                                         const roleDocs = caseData.evidence?.filter(e => {
                                             const normRole = normalizeRoleName(e.uploaderRole);
                                             return role === 'Other'
-                                                ? !e.uploaderRole || !['Employee', 'Supervisor', 'Security Practitioner'].includes(normRole)
+                                                ? !e.uploaderRole || !['Employee', 'Supervisor', 'First Aider'].includes(normRole)
                                                 : normRole === role;
                                         });
                                         if (!roleDocs || roleDocs.length === 0) return null;
@@ -513,7 +513,7 @@ const SecurityCaseAction: React.FC = () => {
                                                 <div className="flex items-center gap-2 mb-3">
                                                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${role === 'Employee' ? 'bg-blue-50 text-blue-700' :
                                                         role === 'Supervisor' ? 'bg-light-gold text-brown' :
-                                                            role === 'Security Practitioner' ? 'bg-purple-50 text-purple-700' :
+                                                            role === 'First Aider' ? 'bg-purple-50 text-purple-700' :
                                                                 'bg-gray-100 text-gray-600'
                                                         }`}>
                                                         {role}
@@ -732,4 +732,4 @@ const SecurityCaseAction: React.FC = () => {
     );
 };
 
-export default SecurityCaseAction;
+export default FirstAiderCaseAction;

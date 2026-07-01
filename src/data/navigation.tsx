@@ -138,12 +138,6 @@ export const SUPERVISOR_SIDEBAR = [
         isSingle: true
     },
     {
-        label: 'Approvals',
-        path: '/supervisor/approvals',
-        icon: CheckCircle,
-        isSingle: true
-    },
-    {
         label: 'Facilities Management Services',
         path: '/supervisor/invoices',
         icon: FileText,
@@ -156,6 +150,18 @@ export const OHS_SIDEBAR = [
         label: 'Dashboard',
         path: '/ohs/dashboard',
         icon: LayoutDashboard,
+        isSingle: true
+    },
+    {
+        label: 'Case Pool',
+        path: '/ohs/pool',
+        icon: FolderOpen,
+        isSingle: true
+    },
+    {
+        label: 'My Cases',
+        path: '/ohs/my-cases',
+        icon: Folder,
         isSingle: true
     },
     {
@@ -196,22 +202,31 @@ export const OHS_SIDEBAR = [
     }
 ];
 
-export const SECURITY_SIDEBAR = [
+export const FIRST_AIDER_SIDEBAR = [
     {
         label: 'Dashboard',
-        path: '/security/dashboard',
+        path: '/first-aider/dashboard',
         icon: LayoutDashboard,
         isSingle: true
     },
     {
         label: 'My Cases',
-        path: '/security/my-cases',
+        path: '/first-aider/my-cases',
         icon: Folder,
         isSingle: true
     },
     {
         label: 'Cases Under Review',
-        path: '/security/cases-review',
+        path: '/first-aider/cases-review',
+        icon: FolderOpen,
+        isSingle: true
+    }
+];
+
+export const HR_SIDEBAR = [
+    {
+        label: 'Cases for Review',
+        path: '/hr/cases',
         icon: FolderOpen,
         isSingle: true
     }

@@ -102,6 +102,7 @@ const CaseDetails: React.FC = () => {
 
     const isAssigned = caseData?.status === 'ASSIGNED' || !!caseData?.assignedTo;
     const isClosed = caseData?.status === 'CLOSED' || caseData?.status === 'RESOLVED';
+    const isEscalatedToAdmin = caseData?.status === 'ESCALATED_TO_ADMIN';
     const canEdit = !isClosed && (isSupervisor || isAdmin || isPractitioner);
     const isUnderReview = caseData?.status === 'UNDER_REVIEW';
     const canAdd = !isClosed && (isSupervisor || isAdmin || isPractitioner);
@@ -292,6 +293,17 @@ const CaseDetails: React.FC = () => {
                             Case Closed
                         </span>
                     )}
+
+                    {/* Admin: reassign a 3-day-escalated case to another province's OHS practitioner */}
+                    {isAdmin && isEscalatedToAdmin && (
+                        <button
+                            onClick={() => setIsAssignModalOpen(true)}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-brown text-white rounded-lg hover:bg-opacity-90 transition-all font-semibold text-sm shadow-sm"
+                        >
+                            <UserPlus size={16} />
+                            Reassign to OHS (another province)
+                        </button>
+                    )}
                 </div>
 
                 {/* Assignment Modal */}
@@ -300,6 +312,7 @@ const CaseDetails: React.FC = () => {
                     onClose={() => setIsAssignModalOpen(false)}
                     incidentId={caseData.id}
                     provinceId={caseData.building?.province?.id}
+                    crossProvince={isAdmin && isEscalatedToAdmin}
                     onSuccess={() => refetchDetails()}
                 />
 

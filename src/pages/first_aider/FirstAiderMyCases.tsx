@@ -11,7 +11,7 @@ import { formatCategory } from '../../utils/formatters';
 import { useIncidents } from '../../hooks/useIncidents';
 import { useAuthStore } from '../../store/auth.store';
 
-const SecurityMyCases: React.FC = () => {
+const FirstAiderMyCases: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuthStore();
     const [searchTerm, setSearchTerm] = useState('');
@@ -88,7 +88,7 @@ const SecurityMyCases: React.FC = () => {
         {
             header: 'Actions',
             cell: (item) => (
-                <button onClick={() => navigate(`/security/cases/${item.id}`)} className="flex items-center gap-1.5 px-4 py-1.5 bg-light-gold text-brown text-xs font-bold rounded-lg hover:bg-gold/10 transition-colors whitespace-nowrap">
+                <button onClick={() => navigate(`/first-aider/cases/${item.id}`)} className="flex items-center gap-1.5 px-4 py-1.5 bg-light-gold text-brown text-xs font-bold rounded-lg hover:bg-gold/10 transition-colors whitespace-nowrap">
                     <Eye size={14} /> View
                 </button>
             )
@@ -102,10 +102,10 @@ const SecurityMyCases: React.FC = () => {
     );
 
     return (
-        <DashboardLayout title="My Cases" description="My Cases" breadcrumbs={[{ label: "Dashboard", path: "/security/dashboard" }, { label: "My Cases" }]}>
+        <DashboardLayout title="My Cases" description="My Cases" breadcrumbs={[{ label: "Dashboard", path: "/first-aider/dashboard" }, { label: "My Cases" }]}>
             <div className="flex flex-col gap-6">
                 <div className="flex justify-end mb-1">
-                    <button onClick={() => navigate('/security/report-breach')} className="flex items-center gap-2 px-4 py-2 bg-brown text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm">
+                    <button onClick={() => navigate('/first-aider/report-breach')} className="flex items-center gap-2 px-4 py-2 bg-brown text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm">
                         <FilePlus size={16} /> Report New Case
                     </button>
                 </div>
@@ -143,4 +143,4 @@ const SecurityMyCases: React.FC = () => {
     );
 };
 
-export default SecurityMyCases;
+export default FirstAiderMyCases;
