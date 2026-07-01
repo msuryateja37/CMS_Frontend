@@ -117,18 +117,11 @@ const SupervisorDashboard: React.FC = () => {
                 {/* Top Actions */}
                 <div className="flex justify-end gap-3 mb-1">
                     <button
-                        onClick={() => navigate('/supervisor/cases-review')}
-                        className="flex items-center gap-2 px-4 py-2 bg-gold text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm text-sm"
-                    >
-                        <UserPlus size={16} />
-                        Review & Assign
-                    </button>
-                    <button
                         onClick={() => navigate('/supervisor/submit-case')}
                         className="flex items-center gap-2 px-4 py-2 bg-brown text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm text-sm"
                     >
                         <FilePlus size={16} />
-                        Submit New Case
+                        Report new case
                     </button>
                 </div>
 
@@ -208,12 +201,6 @@ const SupervisorDashboard: React.FC = () => {
                 <div>
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-bold text-gray-800">All Cases</h3>
-                        <button
-                            onClick={() => navigate('/supervisor/cases-review')}
-                            className="flex items-center gap-1 text-sm font-bold text-brown hover:underline"
-                        >
-                            View All <ChevronRight size={14} />
-                        </button>
                     </div>
 
                     {loading && (

@@ -40,7 +40,7 @@ const TopBar: React.FC<TopBarProps> = ({
     actionButton,
     userProfile
 }) => {
-    const user = useAuthStore((state) => state.user);
+    const { user, logout } = useAuthStore();
     const { searchQuery, setSearchQuery, searchResults, isSearching, performSearch } = useSearchStore();
     const { toggleSidebar } = useUIStore();
     const navigate = useNavigate();
@@ -65,13 +65,18 @@ const TopBar: React.FC<TopBarProps> = ({
         fetchNotifications 
     } = useNotifications();
     const [showNotifications, setShowNotifications] = useState(false);
+    const [showProfileDropdown, setShowProfileDropdown] = useState(false);
     const notifRef = useRef<HTMLDivElement>(null);
+    const profileRef = useRef<HTMLDivElement>(null);
 
     // Close dropdown on outside click
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
                 setShowNotifications(false);
+            }
+            if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+                setShowProfileDropdown(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -96,12 +101,18 @@ const TopBar: React.FC<TopBarProps> = ({
             await markAsRead(notif.id);
         }
         if (notif.referenceId) {
-            const roleName = user?.role?.name;
-            let basePath = '/cases';
-            if (roleName === 'OHS Practitioner') basePath = '/ohs/cases';
-            else if (roleName === 'Security Practitioner') basePath = '/security/cases';
-            else if (roleName === 'Supervisor') basePath = '/supervisor/cases';
-            navigate(`${basePath}/${notif.referenceId}`);
+            const roleName = user?.role?.name?.toLowerCase().replace(/\s+/g, '_') || 'employee';
+            let path = `/employee/my-cases/${notif.referenceId}`;
+            if (roleName === 'first_aider') {
+                path = `/first-aider/cases/${notif.referenceId}`;
+            } else if (roleName === 'ohs_practitioner') {
+                path = `/ohs/cases/${notif.referenceId}`;
+            } else if (roleName === 'supervisor') {
+                path = `/supervisor/cases/${notif.referenceId}`;
+            } else if (roleName === 'system_administrator' || roleName === 'manager') {
+                path = `/admin/incidents/${notif.referenceId}`;
+            }
+            navigate(path);
             setShowNotifications(false);
         }
     };
@@ -182,7 +193,7 @@ const TopBar: React.FC<TopBarProps> = ({
     };
 
     return (
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 mb-4 lg:mb-5 transition-all duration-300">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 transition-all duration-300">
             {/* Left: Title and Breadcrumbs */}
             <div className="shrink-0 flex items-center w-full lg:w-auto gap-2">
                 {/* Mobile hamburger menu toggle */}
@@ -197,30 +208,6 @@ const TopBar: React.FC<TopBarProps> = ({
                 <div className="flex flex-col sm:flex-row sm:items-center w-full lg:w-auto gap-2.5 sm:gap-4">
                     <div>
                         <h1 className="text-[19px] font-bold text-gray-800 leading-tight">{title}</h1>
-                        {breadcrumbs && breadcrumbs.length > 0 ? (
-                            <nav className="flex items-center gap-1 text-[11px] font-semibold mt-0">
-                                {breadcrumbs.map((crumb, idx) => {
-                                    const isLast = idx === breadcrumbs.length - 1;
-                                    return (
-                                        <React.Fragment key={idx}>
-                                            {idx > 0 && <ChevronRight size={10} className="text-gray-300 mx-0.5" />}
-                                            {crumb.path && !isLast ? (
-                                                <Link to={crumb.path} className="text-gold hover:text-brown hover:underline transition-colors">
-                                                    {crumb.label}
-                                                </Link>
-                                            ) : (
-                                                <span className={isLast ? 'text-gray-500' : 'text-gold'}>{crumb.label}</span>
-                                            )}
-                                        </React.Fragment>
-                                    );
-                                })}
-                            </nav>
-                        ) : description ? (
-                            <p className="text-[11px] font-semibold mt-0">
-                                <span className="text-gold">Dashboard </span>
-                                <span className="text-black">/ {description}</span>
-                            </p>
-                        ) : null}
                     </div>
 
                     {actionButton && (
@@ -239,21 +226,7 @@ const TopBar: React.FC<TopBarProps> = ({
             <div className="flex flex-col-reverse md:flex-row items-center gap-2.5 w-full lg:w-auto">
                 {children}
 
-                {/* Functional Search with Autocomplete */}
-                <div className="w-full md:w-48 lg:w-52">
-                    <SearchInput
-                        value={searchQuery}
-                        onChange={setSearchQuery}
-                        placeholder={searchPlaceholder}
-                        suggestions={searchSuggestions}
-                        onSuggestionSelect={handleSearchSelect}
-                        loading={isSearching}
-                        variant="bordered"
-                        filterMode="contains"
-                        maxSuggestions={8}
-                        className="w-full"
-                    />
-                </div>
+
 
                 {/* Icons & Profile Group */}
                 <div className="flex items-center justify-between md:justify-end w-full md:w-auto gap-2">
@@ -325,9 +298,9 @@ const TopBar: React.FC<TopBarProps> = ({
                     </div>
 
                     {/* Profile */}
-                    <div className="relative">
+                    <div className="relative" ref={profileRef}>
                         <button
-                            onClick={() => navigate('/profile')}
+                            onClick={() => setShowProfileDropdown(!showProfileDropdown)}
                             className="flex items-center gap-1.5 pl-2 hover:bg-gray-50 rounded-xl transition-all p-0.5"
                         >
                             <div className="flex flex-col text-right hidden sm:block">
@@ -337,10 +310,32 @@ const TopBar: React.FC<TopBarProps> = ({
                             <div className="w-[28px] h-[28px] rounded-full bg-gold flex items-center justify-center text-white font-bold text-[11px] shadow-inner border-2 border-white">
                                 {getUserInitials()}
                             </div>
-                            {/* <ChevronDown size={16} className="text-gray-400" /> */}
                         </button>
 
-                        {/* Profile Dropdown logic commented out in original file */}
+                        {/* Profile Dropdown panel matching Screen 3 */}
+                        {showProfileDropdown && (
+                            <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden py-1">
+                                <div className="px-4 py-3 border-b border-gray-50">
+                                    <p className="text-xs font-bold text-gray-800 leading-none">{getFullName()}</p>
+                                    <p className="text-[10px] text-gray-400 font-semibold mt-1">
+                                        {getUserRole()} • {user?.province?.name || 'National Office'}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={async () => {
+                                        setShowProfileDropdown(false);
+                                        await logout();
+                                        navigate('/');
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-2 transition"
+                                >
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                    </svg>
+                                    Logout
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

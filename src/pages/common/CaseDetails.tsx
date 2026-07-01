@@ -101,16 +101,18 @@ const CaseDetails: React.FC = () => {
     const isPractitioner = isOHS || isSecurity;
 
     const isAssigned = caseData?.status === 'ASSIGNED' || !!caseData?.assignedTo;
-    const isClosed = caseData?.status === 'CLOSED' || caseData?.status === 'RESOLVED';
+    const isClosed = caseData?.status === 'CLOSED' || caseData?.status === 'RESOLVED' || caseData?.status === 'COMPLETED';
     const isEscalatedToAdmin = caseData?.status === 'ESCALATED_TO_ADMIN';
-    const canEdit = !isClosed && (isSupervisor || isAdmin || isPractitioner);
+    const isCurrentAssignee = user?.id === caseData?.assignedTo?.id;
+    const isHR = userRole === 'hr';
+    const canEdit = !isClosed && (isCurrentAssignee || isSupervisor || isAdmin);
     const isUnderReview = caseData?.status === 'UNDER_REVIEW';
-    const canAdd = !isClosed && (isSupervisor || isAdmin || isPractitioner);
+    const canAdd = !isClosed && (isCurrentAssignee || isSupervisor || isAdmin);
 
     // Practitioner-only actions
-    const canAddAction = !isClosed && isOHS;
-    const canAddEvidence = !isClosed && isOHS;
-    const canAddApproval = !isClosed && isOHS;
+    const canAddAction = !isClosed && isOHS && isCurrentAssignee;
+    const canAddEvidence = !isClosed && isOHS && isCurrentAssignee;
+    const canAddApproval = !isClosed && isOHS && isCurrentAssignee;
 
     const handleAddCorrectiveAction = async () => {
         if (!newActionText.trim() || !id) return;
@@ -302,6 +304,26 @@ const CaseDetails: React.FC = () => {
                         >
                             <UserPlus size={16} />
                             Reassign to OHS (another province)
+                        </button>
+                    )}
+
+                    {/* Self Assign button for unassigned cases when viewed by any practitioner role */}
+                    {!isClosed && !isUnderReview && !caseData.assignedTo && (isOHS || isSecurity || isHR || isAdmin || userRole === 'first aider') && (
+                        <button
+                            onClick={async () => {
+                                try {
+                                    await casesService.pickupCase(caseData.id);
+                                    showSuccess('Case self-assigned successfully.');
+                                    refetchDetails();
+                                    refetchTimeline();
+                                } catch (err) {
+                                    showError('Failed to self-assign case.');
+                                }
+                            }}
+                            className="flex items-center gap-2 px-5 py-2.5 bg-[#2E7D32] hover:bg-[#1B5E20] text-white rounded-lg font-semibold text-sm shadow-md transition"
+                        >
+                            <CheckCircle size={16} />
+                            Self Assign Case
                         </button>
                     )}
                 </div>

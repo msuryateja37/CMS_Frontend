@@ -13,7 +13,8 @@ import {
     FolderOpen,
     Clock,
     CheckCircle,
-    Home
+    Home,
+    MessageSquare
 } from 'lucide-react';
 
 
@@ -29,7 +30,7 @@ export const SIDEBAR_ITEMS = [
         icon: AlertCircle,
         children: [
             { path: '/admin/incidents', label: 'All Incident' },
-            { path: '/ohs/report-incident', label: 'Report Incident' },
+            { path: '/ohs/report-incident', label: 'Report new case' },
             { path: '/admin/incidents/assigned', label: 'My Assigned' }
         ]
     },
@@ -105,15 +106,21 @@ export const EMPLOYEE_SIDEBAR = [
         isSingle: true
     },
     {
+        path: '/employee/my-cases',
+        label: 'My Incident',
+        icon: Folder,
+        isSingle: true
+    },
+    {
         path: '/employee/submit-case',
-        label: 'Submit Case',
+        label: 'Report new case',
         icon: FileText,
         isSingle: true
     },
     {
-        path: '/employee/my-cases',
-        label: 'My Case',
-        icon: Folder,
+        path: '/employee/ai-assistant',
+        label: 'AI Assistant',
+        icon: MessageSquare,
         isSingle: true
     }
 ];
@@ -126,15 +133,9 @@ export const SUPERVISOR_SIDEBAR = [
         isSingle: true
     },
     {
-        label: 'Submit Case',
+        label: 'Report new case',
         path: '/supervisor/submit-case',
         icon: FilePlus,
-        isSingle: true
-    },
-    {
-        label: 'Cases for Review',
-        path: '/supervisor/cases-review',
-        icon: FolderOpen,
         isSingle: true
     },
     {

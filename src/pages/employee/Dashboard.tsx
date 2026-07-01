@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout';
-import { DataTable, type Column } from '../../components/common/DataTable';
 import { Pill } from '../../components/common/Pill';
 import { getStatusLabel } from '../../data/constants';
 import { type EmployeeCase } from '../../services/employeeService';
@@ -11,25 +10,22 @@ import {
     Clock,
     CheckCircle,
     FilePlus,
-    Eye,
-    ChevronDown,
     Loader2,
     AlertCircle,
     Trash2
 } from 'lucide-react';
-import { formatCategory } from '../../utils/formatters';
 import { useAuthStore } from '../../store/auth.store';
 
 const EmployeeDashboard: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuthStore();
-    const firstName = user?.fullName?.split(' ')[0] || user?.firstName || 'User';
+    const firstName = user?.fullName?.split(' ')[0] || 'User';
 
     // Use custom hooks for data fetching
     const { data: stats, isLoading: statsLoading, error: statsError } = useEmployeeStats();
-    const { data: casesData, isLoading: casesLoading, error: casesError } = useMyCases({ take: 5 });
+    const { data: casesData, isLoading: casesLoading, error: casesError } = useMyCases({ take: 20 });
 
-    // Local state for drafts (remains UI state)
+    // Local state for drafts
     const [drafts, setDrafts] = useState<any[]>([]);
 
     useEffect(() => {
@@ -50,104 +46,41 @@ const EmployeeDashboard: React.FC = () => {
         }
     };
 
-    // Stats Configuration
-    const statsConfig = stats ? [
-        {
-            label: 'My Active Cases',
-            value: stats.activeCases.toString(),
-            change: stats.activeCasesChange,
-            icon: FileText,
-            color: 'text-gold-600',
-            bgColor: 'bg-gold-50',
-            trendColor: 'bg-gold-100/50 text-gold-700'
-        },
-        {
-            label: 'Pending Actions',
-            value: stats.pendingActions.toString(),
-            change: stats.pendingActionsChange,
-            icon: Clock,
-            color: 'text-amber-600',
-            bgColor: 'bg-amber-50',
-            trendColor: 'bg-amber-100/50 text-amber-700'
-        },
-        {
-            label: 'Resolved Cases',
-            value: stats.resolvedCases.toString(),
-            change: stats.resolvedCasesChange,
-            icon: CheckCircle,
-            color: 'text-gold-600',
-            bgColor: 'bg-gold-50',
-            trendColor: 'bg-gold-100/50 text-gold-700'
-        }
-    ] : [];
+    // Calculate metrics locally for perfect sync
+    const activeCases = cases.filter(c => c.status !== 'CLOSED' && c.status !== 'COMPLETED').length;
+    const closedCases = cases.filter(c => c.status === 'CLOSED' || c.status === 'COMPLETED').length;
+    const monthlyCases = cases.filter(c => {
+        const date = new Date(c.createdAt);
+        const now = new Date();
+        return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+    }).length;
 
-    // Columns Definition
-    const columns: Column<EmployeeCase>[] = [
-        {
-            header: 'Case ID',
-            accessorKey: 'incidentNumber',
-            sortable: true,
-            cell: (item) => (
-                <span className="font-mono text-sm font-medium text-gray-600 whitespace-nowrap">{item.incidentNumber}</span>
-            )
-        },
-        {
-            header: 'Category',
-            accessorKey: 'category',
-            sortable: true,
-            cell: (item) => <span className="text-gray-700 font-medium text-xs whitespace-nowrap">{formatCategory(item.category || item.type || 'N/A')}</span>
-        },
-        {
-            header: 'Priority',
-            cell: (item) => {
-                const sev = item.severity || 'medium';
-                return <Pill label={sev.charAt(0).toUpperCase() + sev.slice(1).toLowerCase()} variant={sev.toLowerCase()} />;
-            }
-        },
-        {
-            header: 'Status',
-            accessorKey: 'status',
-            sortable: true,
-            cell: (item) => {
-                const statusLabel = getStatusLabel(item.status);
-                return <Pill label={statusLabel.toUpperCase()} variant={item.status.toLowerCase().replace(/_/g, ' ')} />;
-            }
-        },
-        /* {
-            header: 'SLA',
-            cell: () => (
-                <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-gray-700">On Track</span>
-                    <span className="text-[9px] text-gray-400">(12d left)</span>
-                </div>
-            )
-        }, */
-        {
-            header: '',
-            cell: (item) => (
-                <button
-                    onClick={() => navigate(`/employee/my-cases/${item.id}`)}
-                    className="flex items-center gap-1 px-2 py-1 bg-[#E8F5E9] text-brown text-[10px] font-bold rounded-lg hover:bg-gold hover:text-white transition-colors border border-gold/20"
-                >
-                    <Eye size={12} />
-                    View
-                    <ChevronDown size={12} className="-rotate-90" />
-                </button>
-            )
-        }
-    ];
+    const getOpenForTime = (item: EmployeeCase) => {
+        if (item.status === 'CLOSED' || item.status === 'COMPLETED') return '—';
+        const diffMs = Date.now() - new Date(item.createdAt).getTime();
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        if (diffHours < 24) return `${diffHours}h`;
+        const diffDays = Math.floor(diffHours / 24);
+        return `${diffDays}d`;
+    };
+
+    const getCategoryLabel = (category: string) => {
+        if (!category) return 'Other';
+        const cat = category.toLowerCase();
+        if (cat === 'health') return 'Health';
+        if (cat === 'safety') return 'Safety';
+        if (cat === 'environmental') return 'Environmental';
+        if (cat === 'mva' || cat === 'motor_vehicle' || cat === 'motor vehicle') return 'MVA';
+        return 'Other';
+    };
 
     if (loading) {
         return (
-            <DashboardLayout
-                title={`Welcome back, ${firstName}`}
-                description="Dashboard"
-                breadcrumbs={[{ label: "Dashboard", path: "/employee/dashboard" }, { label: "Overview" }]}
-            >
+            <DashboardLayout title="OHS Incident Management">
                 <div className="flex items-center justify-center min-h-[400px]">
                     <div className="text-center">
-                        <Loader2 className="w-12 h-12 text-gold animate-spin mx-auto mb-4" />
-                        <p className="text-gray-500">Loading dashboard...</p>
+                        <Loader2 className="w-10 h-10 text-gold animate-spin mx-auto mb-3" />
+                        <p className="text-xs text-gray-500 font-semibold">Loading dashboard...</p>
                     </div>
                 </div>
             </DashboardLayout>
@@ -156,19 +89,15 @@ const EmployeeDashboard: React.FC = () => {
 
     if (error) {
         return (
-            <DashboardLayout
-                title={`Welcome back, ${firstName}`}
-                description="Dashboard"
-                breadcrumbs={[{ label: "Dashboard", path: "/employee/dashboard" }, { label: "Overview" }]}
-            >
+            <DashboardLayout title="OHS Incident Management">
                 <div className="flex items-center justify-center min-h-[400px]">
-                    <div className="text-center">
-                        <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                        <p className="text-gray-700 font-medium mb-2">Failed to load dashboard</p>
-                        <p className="text-gray-500 text-sm mb-4">{(error as any)?.message || 'Unknown error'}</p>
+                    <div className="text-center max-w-sm p-5 bg-white border border-gray-100 rounded-2xl shadow-sm">
+                        <AlertCircle className="w-10 h-10 text-red-500 mx-auto mb-3" />
+                        <p className="text-xs font-bold text-gray-800 mb-1">Failed to load dashboard</p>
+                        <p className="text-[11px] text-gray-400 mb-4">{(error as any)?.message || 'Unknown network error'}</p>
                         <button
                             onClick={() => window.location.reload()}
-                            className="px-4 py-2 bg-gold text-white rounded-lg hover:bg-[#A1743E] transition-colors"
+                            className="px-4 py-2 bg-[#884616] text-white text-xs font-bold rounded-lg hover:bg-opacity-95 transition"
                         >
                             Retry
                         </button>
@@ -179,113 +108,137 @@ const EmployeeDashboard: React.FC = () => {
     }
 
     return (
-        <DashboardLayout
-            title={`Welcome back, ${firstName}`}
-            description="Dashboard"
-            breadcrumbs={[{ label: "Dashboard", path: "/employee/dashboard" }, { label: "Overview" }]}
-        >
-            <div className="flex flex-col gap-6">
-                {/* Top Actions Button */}
-                <div className="flex justify-end mb-1">
-                   <button
-                        onClick={() => navigate('/employee/submit-case')}
-                        className="flex items-center gap-2 px-4 py-2 bg-brown text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm text-sm"
-                    >
-                        <FilePlus size={16} />
-                        Submit New Case
-                    </button>
-                </div>
-
-                {/* Statistics Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    {statsConfig.map((stat, index) => (
-                        <div key={index} className="bg-white py-3.5 px-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
-                            <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${stat.bgColor}`}>
-                                <stat.icon className={stat.color} size={20} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5 leading-none">{stat.label}</p>
-                                <div className="flex items-baseline gap-1.5">
-                                    <span className="text-2xl font-bold text-gray-900 leading-none">{stat.value}</span>
-                                    {stat.change !== '0%' && (
-                                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold leading-none ${stat.trendColor}`}>
-                                            {stat.change}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Main Content Split: Table & Drafts */}
-                <div className="flex flex-col lg:flex-row gap-6 items-stretch">
-                    {/* Left Column: My Cases Table (Approx 3/4 width) */}
-                    <div className="w-full lg:flex-[3] flex flex-col gap-3">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-base font-bold text-black">My Cases</h2>
-                            <button
-                                onClick={() => navigate('/employee/my-cases')}
-                                className="flex items-center gap-1 px-2.5 py-1.5 bg-[#E9E9E9] text-gray-600 text-[11px] font-bold rounded-lg hover:bg-gray-200 transition-colors"
-                            >
-                                View All
-                                <ChevronDown size={12} />
-                            </button>
-                        </div>
-
-                        <DataTable
-                            data={cases}
-                            columns={columns}
-                            keyField="id"
-                            selectable={true}
-                            paginatable={false}
-                            searchable={false}
-                            filterable={false}
-                            emptyMessage="No cases found. Submit your first case to get started."
-                        />
+        <DashboardLayout title="OHS Incident Management">
+            {/* Split Page Layout: Left main column, Right stats & drafts */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start max-w-[1400px] mx-auto">
+                
+                {/* Left Column (Main Actions & Incident List) */}
+                <div className="lg:col-span-3 space-y-6">
+                    
+                    {/* Welcome Header */}
+                    <div>
+                        <h1 className="text-xl font-bold text-gray-900">Welcome back, {firstName}</h1>
+                        <p className="text-xs text-gray-500 mt-0.5">Report new incidents and track your existing ones.</p>
                     </div>
 
-                    {/* Right Column: Saved Drafts (Approx 1/4 width with border box) */}
-                    <div className="w-full lg:flex-[1] flex flex-col gap-3">
-                        <h2 className="text-base font-bold text-black">Saved Drafts</h2>
-                        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex-1 min-h-[240px] flex flex-col">
-                            {drafts.length > 0 ? (
-                                <div className="flex flex-col gap-3 overflow-y-auto max-h-[360px] pr-0.5 custom-scrollbar">
-                                    {drafts.map((draft) => (
-                                        <div
-                                            key={draft.id}
-                                            className="bg-subtle-grey p-3 rounded-xl border border-gray-100 hover:bg-gray-100 transition-all cursor-pointer relative group flex flex-col"
-                                            onClick={() => navigate('/employee/submit-case', { state: { draft } })}
-                                        >
-                                            <div className="flex justify-between items-start mb-1">
-                                                <div className="font-bold text-black text-xs truncate max-w-[80%]">
-                                                    {draft.categoryName || 'New Incident'}
-                                                </div>
-                                                <button
-                                                    onClick={(e) => handleDeleteDraft(draft.id, e)}
-                                                    className="text-gray-400 hover:text-red transition-all p-1"
-                                                    title="Delete draft"
-                                                >
-                                                    <Trash2 size={12} />
-                                                </button>
-                                            </div>
-                                            <div className="text-[11px] text-gray-500 mb-1.5 line-clamp-2">
-                                                {draft.description ? draft.description : 'No description'}
-                                            </div>
-                                            <div className="text-[9px] text-gray-400 flex items-center gap-1 mt-auto">
-                                                <Clock size={9} />
-                                                Saved {new Date(draft.lastSaved || Date.now()).toLocaleDateString()}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-center py-10 my-auto">
-                                    <p className="text-xs text-gray-400 font-medium">No saved drafts</p>
-                                </div>
-                            )}
+                    {/* Report a New Incident Action Card (Green) */}
+                    <div className="bg-[#E8F5E9]/60 border border-green-200/50 rounded-2xl p-5 flex items-center justify-between shadow-sm">
+                        <div className="flex items-center gap-4">
+                            <div className="w-11 h-11 rounded-full bg-[#2E7D32] flex items-center justify-center text-white shrink-0 shadow-inner">
+                                <FilePlus size={20} />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-sm text-[#1B5E20]">Report new case</h3>
+                                <p className="text-xs text-gray-500 mt-0.5">Log a safety, health, environmental or other case.</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => navigate('/employee/submit-case')}
+                            className="bg-[#2E7D32] hover:bg-[#1B5E20] text-white font-bold text-xs px-4 py-2.5 rounded-lg transition shadow-md hover:-translate-y-0.5 transform"
+                        >
+                            Start report
+                        </button>
+                    </div>
+
+                    {/* My Incidents Table Section */}
+                    <div className="space-y-3">
+                        <div>
+                            <h2 className="text-sm font-bold text-gray-800">My incidents</h2>
+                            <p className="text-[11px] text-gray-400 mt-0.5">All incidents you have reported.</p>
+                        </div>
+
+                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="border-b border-gray-100 bg-gray-50 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                                            <th className="py-3 px-4">Ref #</th>
+                                            <th className="py-3 px-4">Date</th>
+                                            <th className="py-3 px-4">Category</th>
+                                            <th className="py-3 px-4">Office</th>
+                                            <th className="py-3 px-4">Status</th>
+                                            <th className="py-3 px-4">Open for</th>
+                                            <th className="py-3 px-4 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-50 text-xs">
+                                        {cases.slice(0, 10).map((item) => (
+                                            <tr key={item.id} className="hover:bg-gray-50/50 transition">
+                                                <td className="py-3 px-4 font-mono font-bold text-gray-700">{item.incidentNumber}</td>
+                                                <td className="py-3 px-4 text-gray-500 whitespace-nowrap">
+                                                    {new Date(item.occurredAt).toLocaleDateString('en-GB', {
+                                                        day: 'numeric',
+                                                        month: 'short',
+                                                        year: 'numeric'
+                                                    })}
+                                                </td>
+                                                <td className="py-3 px-4 font-semibold text-gray-800">{getCategoryLabel(item.category)}</td>
+                                                <td className="py-3 px-4 text-gray-500 max-w-[150px] truncate">{item.building?.name || 'N/A'}</td>
+                                                <td className="py-3 px-4">
+                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${
+                                                        item.status === 'CLOSED' || item.status === 'COMPLETED'
+                                                            ? 'bg-green-50 text-green-700'
+                                                            : 'bg-blue-50 text-blue-700'
+                                                    }`}>
+                                                        {getStatusLabel(item.status)}
+                                                    </span>
+                                                </td>
+                                                <td className="py-3 px-4 font-medium text-gray-500">{getOpenForTime(item)}</td>
+                                                <td className="py-3 px-4 text-right">
+                                                    <button
+                                                        onClick={() => navigate(`/employee/my-cases/${item.id}`)}
+                                                        className="text-[#884616] hover:underline font-bold text-xs"
+                                                    >
+                                                        View
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+
+                                        {cases.length === 0 && (
+                                            <tr>
+                                                <td colSpan={7} className="py-12 text-center text-gray-400 text-xs font-medium">
+                                                    No cases found. Start a report above to submit your first case.
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
+                </div>
+
+                {/* Right Column (Stats Stack & Drafts) */}
+                <div className="space-y-6 lg:col-span-1">
+                    {/* Stats Panel Stacked Vertically */}
+                    <div className="space-y-3">
+                        <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest leading-none">Stats</h2>
+                        <div className="grid grid-cols-1 gap-3">
+                            
+                            {/* MY INCIDENTS (MONTH) */}
+                            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-between min-h-[90px]">
+                                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-none">My Incidents (Month)</div>
+                                <div className="text-2xl font-bold text-gray-900 mt-2">{monthlyCases}</div>
+                            </div>
+
+                            {/* OPEN */}
+                            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-between min-h-[90px]">
+                                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-none">Open</div>
+                                <div className="text-2xl font-bold text-blue-600 mt-2">{activeCases}</div>
+                            </div>
+
+                            {/* CLOSED */}
+                            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-between min-h-[90px]">
+                                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-none">Closed</div>
+                                <div className="text-2xl font-bold text-green-600 mt-2">{closedCases}</div>
+                            </div>
+
+                        </div>
+                    </div>
+
+
+
                 </div>
             </div>
         </DashboardLayout>

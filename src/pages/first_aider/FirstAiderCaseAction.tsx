@@ -255,10 +255,32 @@ const FirstAiderCaseAction: React.FC = () => {
                     )}
 
                     {!isClosed && !isUnderReview && !isCurrentAssignee && (
-                        <span className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-500 rounded-lg font-semibold text-sm">
-                            <Shield size={16} />
-                            Assigned to {caseData.assignedTo?.name || 'another practitioner'}
-                        </span>
+                        caseData.assignedTo ? (
+                            <span className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-500 rounded-lg font-semibold text-sm">
+                                <Shield size={16} />
+                                Assigned to {caseData.assignedTo?.name || 'another practitioner'}
+                            </span>
+                        ) : (
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        setLoading(true);
+                                        await casesService.pickupCase(caseData.id);
+                                        showSuccess('Case self-assigned successfully.');
+                                        fetchCaseDetails(caseData.id);
+                                        fetchTimeline(caseData.id);
+                                    } catch (err) {
+                                        setError('Failed to self-assign case.');
+                                    } finally {
+                                        setLoading(false);
+                                    }
+                                }}
+                                className="flex items-center gap-2 px-5 py-2.5 bg-[#2E7D32] hover:bg-[#1B5E20] text-white rounded-lg font-semibold text-sm shadow-md transition"
+                            >
+                                <CheckCircle size={16} />
+                                Self Assign Case
+                            </button>
+                        )
                     )}
 
                     {isUnderReview && (
