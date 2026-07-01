@@ -205,19 +205,32 @@ const Sidebar: React.FC = () => {
                 </div>
             )}
 
-            {/* Logout Card */}
-            <div className="p-3 mt-auto shrink-0">
-                <button
-                    onClick={handleLogout}
-                    title={sidebarCollapsed ? "Logout" : undefined}
-                    className={clsx(
-                        "flex items-center justify-center gap-1.5 bg-gold hover:bg-[#A1743E] text-white rounded-xl font-bold transition-all shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] relative z-10 text-xs",
-                        sidebarCollapsed ? "p-2.5 w-10 mx-auto" : "w-full py-2 px-3.5"
-                    )}
-                >
-                    <LogOut size={15} strokeWidth={2.5} className="shrink-0" />
-                    {!sidebarCollapsed && <span>Logout</span>}
-                </button>
+            {/* Bottom: Logo with name (expanded) or Logout icon (collapsed) */}
+            <div className="p-3 mt-auto shrink-0 border-t border-white/10">
+                {sidebarCollapsed ? (
+                    <button
+                        onClick={handleLogout}
+                        title="Logout"
+                        className="flex items-center justify-center p-2.5 w-10 mx-auto rounded-xl bg-white/10 hover:bg-white/20 text-gray-300 transition-all"
+                    >
+                        <LogOut size={15} strokeWidth={2.5} className="shrink-0" />
+                    </button>
+                ) : (
+                    <div className="flex flex-col items-center gap-2">
+                        <img
+                            src="/logo_with_name.png"
+                            alt="Land Reform & Rural Development"
+                            className="w-full max-w-[160px] h-auto object-contain opacity-90"
+                        />
+                        <button
+                            onClick={handleLogout}
+                            className="flex items-center gap-1 text-[10px] text-gray-400 hover:text-white font-semibold transition-colors mt-1"
+                        >
+                            <LogOut size={11} strokeWidth={2.5} />
+                            Sign out
+                        </button>
+                    </div>
+                )}
             </div>
         </aside>
     );
