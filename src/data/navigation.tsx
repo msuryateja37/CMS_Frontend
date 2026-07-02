@@ -14,7 +14,8 @@ import {
     Clock,
     CheckCircle,
     Home,
-    MessageSquare
+    MessageSquare,
+    User
 } from 'lucide-react';
 
 
@@ -29,8 +30,8 @@ export const SIDEBAR_ITEMS = [
         label: 'Incidents',
         icon: AlertCircle,
         children: [
-            { path: '/admin/incidents', label: 'All Incident' },
-            { path: '/ohs/report-incident', label: 'Report new case' },
+            { path: '/admin/incidents', label: 'All Incidents' },
+            { path: '/ohs/report-incident', label: 'Report new incident' },
             { path: '/admin/incidents/assigned', label: 'My Assigned' }
         ]
     },
@@ -95,6 +96,12 @@ export const SIDEBAR_ITEMS = [
         label: 'ADMINISTRATION',
         icon: UserCog,
         isSingle: true
+    },
+    {
+        path: '/profile',
+        label: 'My Profile',
+        icon: User,
+        isSingle: true
     }
 ];
 
@@ -107,13 +114,13 @@ export const EMPLOYEE_SIDEBAR = [
     },
     {
         path: '/employee/my-cases',
-        label: 'My Incident',
+        label: 'My Incidents',
         icon: Folder,
         isSingle: true
     },
     {
         path: '/employee/submit-case',
-        label: 'Report new case',
+        label: 'Report new incident',
         icon: FileText,
         isSingle: true
     },
@@ -121,6 +128,12 @@ export const EMPLOYEE_SIDEBAR = [
         path: '/employee/ai-assistant',
         label: 'AI Assistant',
         icon: MessageSquare,
+        isSingle: true
+    },
+    {
+        path: '/profile',
+        label: 'My Profile',
+        icon: User,
         isSingle: true
     }
 ];
@@ -133,7 +146,7 @@ export const SUPERVISOR_SIDEBAR = [
         isSingle: true
     },
     {
-        label: 'Report new case',
+        label: 'Report new incident',
         path: '/supervisor/submit-case',
         icon: FilePlus,
         isSingle: true
@@ -142,6 +155,12 @@ export const SUPERVISOR_SIDEBAR = [
         label: 'Facilities Management Services',
         path: '/supervisor/invoices',
         icon: FileText,
+        isSingle: true
+    },
+    {
+        path: '/profile',
+        label: 'My Profile',
+        icon: User,
         isSingle: true
     }
 ];
@@ -154,13 +173,13 @@ export const OHS_SIDEBAR = [
         isSingle: true
     },
     {
-        label: 'Case Pool',
+        label: 'Incident Pool',
         path: '/ohs/pool',
         icon: FolderOpen,
         isSingle: true
     },
     {
-        label: 'My Cases',
+        label: 'My Incidents',
         path: '/ohs/my-cases',
         icon: Folder,
         isSingle: true
@@ -200,6 +219,12 @@ export const OHS_SIDEBAR = [
         path: '/ohs/forms/submissions',
         icon: Clock,
         isSingle: true
+    },
+    {
+        path: '/profile',
+        label: 'My Profile',
+        icon: User,
+        isSingle: true
     }
 ];
 
@@ -211,24 +236,36 @@ export const FIRST_AIDER_SIDEBAR = [
         isSingle: true
     },
     {
-        label: 'My Cases',
+        label: 'My Incidents',
         path: '/first-aider/my-cases',
         icon: Folder,
         isSingle: true
     },
     {
-        label: 'Cases Under Review',
+        label: 'Incidents Under Review',
         path: '/first-aider/cases-review',
         icon: FolderOpen,
+        isSingle: true
+    },
+    {
+        path: '/profile',
+        label: 'My Profile',
+        icon: User,
         isSingle: true
     }
 ];
 
 export const HR_SIDEBAR = [
     {
-        label: 'Cases for Review',
+        label: 'Incidents for Review',
         path: '/hr/cases',
         icon: FolderOpen,
+        isSingle: true
+    },
+    {
+        path: '/profile',
+        label: 'My Profile',
+        icon: User,
         isSingle: true
     }
 ];
@@ -241,7 +278,7 @@ export const INVESTIGATOR_SIDEBAR = [
         isSingle: true
     },
     {
-        label: 'Assigned Cases',
+        label: 'Assigned Incidents',
         path: '/investigator/assigned-cases',
         icon: Folder,
         isSingle: true
@@ -268,6 +305,12 @@ export const INVESTIGATOR_SIDEBAR = [
         label: 'SLA Tracking',
         path: '/investigator/sla-tracking',
         icon: Clock,
+        isSingle: true
+    },
+    {
+        path: '/profile',
+        label: 'My Profile',
+        icon: User,
         isSingle: true
     }
 ];
@@ -308,6 +351,12 @@ export const CHAIRPERSON_SIDEBAR = [
         path: '/chairperson/escalations',
         icon: AlertCircle,
         isSingle: true
+    },
+    {
+        path: '/profile',
+        label: 'My Profile',
+        icon: User,
+        isSingle: true
     }
 ];
 
@@ -346,6 +395,12 @@ export const EA_DA_SIDEBAR = [
         label: 'Escalations',
         path: '/ea-da/escalations',
         icon: AlertCircle,
+        isSingle: true
+    },
+    {
+        path: '/profile',
+        label: 'My Profile',
+        icon: User,
         isSingle: true
     }
 ];

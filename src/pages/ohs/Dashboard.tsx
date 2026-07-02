@@ -73,7 +73,7 @@ const OHSDashboard: React.FC = () => {
     // Columns for "My Cases" (cases I created)
     const myCasesColumns: Column<Case>[] = [
         {
-            header: 'Case ID',
+            header: 'Incident ID',
             accessorKey: 'incidentNumber',
             sortable: true,
             cell: (item) => (
@@ -122,7 +122,7 @@ const OHSDashboard: React.FC = () => {
     // Columns for "Assigned Cases"
     const assignedColumns: Column<Case>[] = [
         {
-            header: 'Case ID',
+            header: 'Incident ID',
             accessorKey: 'incidentNumber',
             sortable: true,
             cell: (item) => (
@@ -183,7 +183,7 @@ const OHSDashboard: React.FC = () => {
                         className="flex items-center gap-2 px-4 py-2 bg-brown text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm text-sm"
                     >
                         <FilePlus size={16} />
-                        Submit New Case
+                        Submit New Incident
                     </button>
                 </div>
 
@@ -196,7 +196,7 @@ const OHSDashboard: React.FC = () => {
                             <span className="text-[10px] font-bold uppercase tracking-wider">Assigned</span>
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 leading-none">{loading ? '...' : totalAssigned}</h3>
-                        <p className="text-[10px] text-gray-400 mt-1 leading-tight">Total cases assigned to you</p>
+                        <p className="text-[10px] text-gray-400 mt-1 leading-tight">Total incidents assigned to you</p>
                     </div>
 
                     <div className="bg-white py-3 px-4 rounded-xl border border-gray-100 shadow-sm">
@@ -263,7 +263,7 @@ const OHSDashboard: React.FC = () => {
                 {loading && (
                     <div className="flex items-center justify-center py-12">
                         <Loader2 className="w-8 h-8 text-gold animate-spin" />
-                        <span className="ml-3 text-gray-600">Loading cases...</span>
+                        <span className="ml-3 text-gray-600">Loading incidents...</span>
                     </div>
                 )}
 
@@ -275,7 +275,7 @@ const OHSDashboard: React.FC = () => {
                 {!loading && !error && (
                     <div>
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-gray-800">My Cases</h3>
+                            <h3 className="text-lg font-bold text-gray-800">My Incidents</h3>
                             <button
                                 onClick={() => navigate('/ohs/my-cases')}
                                 className="flex items-center gap-1 text-sm font-bold text-brown hover:underline"
@@ -287,7 +287,7 @@ const OHSDashboard: React.FC = () => {
                         {myCases.length === 0 ? (
                             <div className="text-center py-10 bg-white rounded-2xl border border-gray-100">
                                 <FileText className="mx-auto text-gray-300 mb-2" size={32} />
-                                <p className="text-gray-400 font-medium">No cases reported by you yet.</p>
+                                <p className="text-gray-400 font-medium">No incidents reported by you yet.</p>
                             </div>
                         ) : (
                             <DataTable
@@ -306,7 +306,7 @@ const OHSDashboard: React.FC = () => {
                 {!loading && !error && (
                     <div>
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-gray-800">Assigned Cases</h3>
+                            <h3 className="text-lg font-bold text-gray-800">Assigned Incidents</h3>
                             <button
                                 onClick={() => navigate('/ohs/cases-review')}
                                 className="flex items-center gap-1 text-sm font-bold text-brown hover:underline"
@@ -318,7 +318,7 @@ const OHSDashboard: React.FC = () => {
                         {assignedCases.length === 0 ? (
                             <div className="text-center py-10 bg-white rounded-2xl border border-gray-100">
                                 <Folder className="mx-auto text-gray-300 mb-2" size={32} />
-                                <p className="text-gray-400 font-medium">No cases assigned to you yet.</p>
+                                <p className="text-gray-400 font-medium">No incidents assigned to you yet.</p>
                             </div>
                         ) : (
                             <DataTable

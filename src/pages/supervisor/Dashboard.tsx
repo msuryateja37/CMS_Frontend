@@ -42,7 +42,7 @@ const SupervisorDashboard: React.FC = () => {
 
     const columns: Column<Case>[] = [
         {
-            header: 'Case ID',
+            header: 'Incident ID',
             accessorKey: 'incidentNumber',
             sortable: true,
             cell: (item) => (
@@ -109,7 +109,7 @@ const SupervisorDashboard: React.FC = () => {
     return (
         <DashboardLayout
             title="Supervisor Dashboard"
-            description="Overview of all cases"
+            description="Overview of all incidents"
             breadcrumbs={[{ label: "Dashboard", path: "/supervisor/dashboard" }, { label: "Overview" }]}
         >
             <div className="flex flex-col gap-4">
@@ -121,7 +121,7 @@ const SupervisorDashboard: React.FC = () => {
                         className="flex items-center gap-2 px-4 py-2 bg-brown text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm text-sm"
                     >
                         <FilePlus size={16} />
-                        Report new case
+                        Report new incident
                     </button>
                 </div>
 
@@ -130,10 +130,10 @@ const SupervisorDashboard: React.FC = () => {
                     <div className="bg-white py-3 px-4 rounded-xl border border-gray-100 shadow-sm">
                         <div className="flex items-center gap-2 text-gray-400 mb-1.5">
                             <Folder size={15} />
-                            <span className="text-[10px] font-bold uppercase tracking-wider">Total Cases</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Total Incidents</span>
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 leading-none">{loading ? '...' : totalCases}</h3>
-                        <p className="text-[10px] text-gray-400 mt-1 leading-tight">All cases in system</p>
+                        <p className="text-[10px] text-gray-400 mt-1 leading-tight">All incidents in system</p>
                     </div>
 
                     <div className="bg-white py-3 px-4 rounded-xl border border-gray-100 shadow-sm">
@@ -160,7 +160,7 @@ const SupervisorDashboard: React.FC = () => {
                             <span className="text-[10px] font-bold uppercase tracking-wider">Closed</span>
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 leading-none">{loading ? '...' : closedCases}</h3>
-                        <p className="text-[10px] text-gray-400 mt-1 leading-tight">Resolved cases</p>
+                        <p className="text-[10px] text-gray-400 mt-1 leading-tight">Resolved incidents</p>
                     </div>
                 </div>
 
@@ -200,13 +200,13 @@ const SupervisorDashboard: React.FC = () => {
                 {/* All Cases Table */}
                 <div>
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-bold text-gray-800">All Cases</h3>
+                        <h3 className="text-lg font-bold text-gray-800">All Incidents</h3>
                     </div>
 
                     {loading && (
                         <div className="flex items-center justify-center py-12">
                             <Loader2 className="w-8 h-8 text-gold animate-spin" />
-                            <span className="ml-3 text-gray-600">Loading cases...</span>
+                            <span className="ml-3 text-gray-600">Loading incidents...</span>
                         </div>
                     )}
 
@@ -217,7 +217,7 @@ const SupervisorDashboard: React.FC = () => {
                     {!loading && !error && recentCases.length === 0 && (
                         <div className="text-center py-12 bg-white rounded-2xl border border-gray-100">
                             <Folder className="mx-auto text-gray-300 mb-2" size={32} />
-                            <p className="text-gray-400 font-medium">No cases found.</p>
+                            <p className="text-gray-400 font-medium">No incidents found.</p>
                         </div>
                     )}
 

@@ -18,7 +18,7 @@ import { formatCategory } from '../../utils/formatters';
 
 
 const TABS = [
-    { id: 'details', label: 'Details of the case' },
+    { id: 'details', label: 'Details of the incident' },
     { id: 'actions', label: 'Corrective actions' },
     { id: 'evidence', label: 'Attachments / evidence' },
     { id: 'approvals', label: 'Approvals / recommendations' },
@@ -198,7 +198,7 @@ const CaseDetails: React.FC = () => {
 
     if (caseLoading) {
         return (
-            <DashboardLayout title="Case Details" description="Loading..." breadcrumbs={[{ label: "Dashboard" }, { label: "Case Details" }]}>
+            <DashboardLayout title="Incident Details" description="Loading..." breadcrumbs={[{ label: "Dashboard" }, { label: "Incident Details" }]}>
                 <div className="flex items-center justify-center h-96">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div>
                 </div>
@@ -208,10 +208,10 @@ const CaseDetails: React.FC = () => {
 
     if (caseError || !caseData) {
         return (
-            <DashboardLayout title="Case Details" description="Error" breadcrumbs={[{ label: "Dashboard" }, { label: "Error" }]}>
+            <DashboardLayout title="Incident Details" description="Error" breadcrumbs={[{ label: "Dashboard" }, { label: "Error" }]}>
                 <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl">
                     <p className="font-bold">Error</p>
-                    <p className="text-sm mt-1">{(caseError as any)?.message || 'Case not found.'}</p>
+                    <p className="text-sm mt-1">{(caseError as any)?.message || 'Incident not found.'}</p>
                     <button onClick={() => navigate(-1)} className="mt-3 bg-red-100 px-4 py-2 rounded-lg text-red-800 font-bold text-sm">Go Back</button>
                 </div>
             </DashboardLayout>
@@ -222,9 +222,9 @@ const CaseDetails: React.FC = () => {
 
     return (
         <DashboardLayout
-            title={`Case ${caseData.incidentNumber}`}
-            description="Case Details"
-            breadcrumbs={[{ label: "Dashboard" }, { label: "Case Details" }]}
+            title={`Incident ${caseData.incidentNumber}`}
+            description="Incident Details"
+            breadcrumbs={[{ label: "Dashboard" }, { label: "Incident Details" }]}
         >
             <div className="max-w-7xl mx-auto">
                 {/* Status Messages */}
@@ -292,7 +292,7 @@ const CaseDetails: React.FC = () => {
                     {isSupervisor && isClosed && (
                         <span className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-500 rounded-lg font-semibold text-sm">
                             <CheckCircle size={16} />
-                            Case Closed
+                            Incident Closed
                         </span>
                     )}
 
@@ -313,17 +313,17 @@ const CaseDetails: React.FC = () => {
                             onClick={async () => {
                                 try {
                                     await casesService.pickupCase(caseData.id);
-                                    showSuccess('Case self-assigned successfully.');
+                                    showSuccess('Incident self-assigned successfully.');
                                     refetchDetails();
                                     refetchTimeline();
                                 } catch (err) {
-                                    showError('Failed to self-assign case.');
+                                    showError('Failed to self-assign incident.');
                                 }
                             }}
                             className="flex items-center gap-2 px-5 py-2.5 bg-[#2E7D32] hover:bg-[#1B5E20] text-white rounded-lg font-semibold text-sm shadow-md transition"
                         >
                             <CheckCircle size={16} />
-                            Self Assign Case
+                            Self Assign Incident
                         </button>
                     )}
                 </div>
@@ -376,7 +376,7 @@ const CaseDetails: React.FC = () => {
 
                         <div className="flex items-center justify-between flex-wrap gap-4 mt-2 w-full">
                             <h1 className="text-xl font-bold text-gray-900">
-                                {formatCategory(caseData.category || caseData.type || 'Untitled Case')}
+                                {formatCategory(caseData.category || caseData.type || 'Untitled Incident')}
                             </h1>
 
                             <div className="flex items-center gap-4 text-sm text-gray-500">
@@ -434,7 +434,7 @@ const CaseDetails: React.FC = () => {
 
                                     {/* Details Grid */}
                                     <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
-                                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Case Details</h3>
+                                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Incident Details</h3>
                                         <div className="grid grid-cols-2 md:grid-cols-3 gap-y-5 gap-x-6">
                                             <div>
                                                 <label className="flex items-center gap-1.5 text-xs text-gray-400 font-semibold mb-1">
@@ -467,7 +467,13 @@ const CaseDetails: React.FC = () => {
                                                     <Shield size={12} /> Assigned To
                                                 </label>
                                                 <p className="text-sm font-medium text-gray-800">
-                                                    {caseData.assignedTo?.name || <span className="text-gray-400 italic">Unassigned</span>}
+                                                    {caseData.assignedTo?.name || (
+                                                        ['North West', 'Eastern Cape', 'Northern Cape'].includes(caseData.province?.name || '') && caseData.category?.toLowerCase() !== 'health' ? (
+                                                            <span className="text-gold font-bold text-[13px]">Serviced by National Office (ASD OHS)</span>
+                                                        ) : (
+                                                            <span className="text-gray-400 italic">Unassigned</span>
+                                                        )
+                                                    )}
                                                 </p>
                                             </div>
                                             <div>
@@ -531,7 +537,13 @@ const CaseDetails: React.FC = () => {
                                             <div className="flex justify-between items-center py-2 border-b border-gray-100">
                                                 <span className="text-xs text-gray-500 font-semibold">Assigned To</span>
                                                 <span className="text-sm font-medium text-gray-800">
-                                                    {caseData.assignedTo?.name || <span className="text-gray-400 italic text-xs">Unassigned</span>}
+                                                    {caseData.assignedTo?.name || (
+                                                        ['North West', 'Eastern Cape', 'Northern Cape'].includes(caseData.province?.name || '') && caseData.category?.toLowerCase() !== 'health' ? (
+                                                            <span className="text-gold font-bold text-xs">Serviced by National Office (ASD OHS)</span>
+                                                        ) : (
+                                                            <span className="text-gray-400 italic text-xs">Unassigned</span>
+                                                        )
+                                                    )}
                                                 </span>
                                             </div>
                                             <div className="flex justify-between items-center py-2 border-b border-gray-100">
@@ -913,7 +925,7 @@ const CaseDetails: React.FC = () => {
                                                 <textarea
                                                     value={comment}
                                                     onChange={(e) => setComment(e.target.value)}
-                                                    placeholder="Document your findings, actions taken, or notes about this case..."
+                                                    placeholder="Document your findings, actions taken, or notes about this incident..."
                                                     className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold resize-none bg-gray-50"
                                                     rows={4}
                                                 />

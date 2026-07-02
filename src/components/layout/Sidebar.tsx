@@ -90,9 +90,9 @@ const Sidebar: React.FC = () => {
                     />
                     {!sidebarCollapsed && (
                         <h1 className="text-xs font-bold text-white tracking-wide leading-tight truncate">
-                            Case Management
+                            OHS Incident Management System
                         </h1>
-                    )}
+                    ) /* line 95 */}
                 </div>
                 
                 <button 
@@ -206,30 +206,33 @@ const Sidebar: React.FC = () => {
             )}
 
             {/* Bottom: Logo with name (expanded) or Logout icon (collapsed) */}
-            <div className="p-3 mt-auto shrink-0 border-t border-white/10">
-                {sidebarCollapsed ? (
-                    <button
-                        onClick={handleLogout}
-                        title="Logout"
-                        className="flex items-center justify-center p-2.5 w-10 mx-auto rounded-xl bg-white/10 hover:bg-white/20 text-gray-300 transition-all"
-                    >
-                        <LogOut size={15} strokeWidth={2.5} className="shrink-0" />
-                    </button>
-                ) : (
-                    <div className="flex flex-col items-center gap-2">
+            <div className="p-3 mt-auto shrink-0 border-t border-white/10 flex flex-col gap-2">
+                {!sidebarCollapsed && (
+                    <div className="flex justify-center mb-1">
                         <img
                             src="/logo_with_name.png"
                             alt="Land Reform & Rural Development"
                             className="w-full max-w-[160px] h-auto object-contain opacity-90"
                         />
-                        <button
-                            onClick={handleLogout}
-                            className="flex items-center gap-1 text-[10px] text-gray-400 hover:text-white font-semibold transition-colors mt-1"
-                        >
-                            <LogOut size={11} strokeWidth={2.5} />
-                            Sign out
-                        </button>
                     </div>
+                )}
+                
+                {sidebarCollapsed ? (
+                    <button
+                        onClick={handleLogout}
+                        title="Logout"
+                        className="flex items-center justify-center p-2.5 w-10 mx-auto rounded-xl bg-white/5 hover:bg-red-600/20 text-gray-200 hover:text-white transition-all duration-200 border border-white/10 hover:border-red-500/30 shadow-sm active:scale-[0.98]"
+                    >
+                        <LogOut size={15} strokeWidth={2.5} className="shrink-0" />
+                    </button>
+                ) : (
+                    <button
+                        onClick={handleLogout}
+                        className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-white/5 hover:bg-red-600/20 text-gray-200 hover:text-white font-semibold text-[13px] transition-all duration-200 border border-white/10 hover:border-red-500/30 shadow-sm hover:shadow-red-950/20 active:scale-[0.98]"
+                    >
+                        <LogOut size={14} strokeWidth={2.5} className="shrink-0" />
+                        <span>Sign out</span>
+                    </button>
                 )}
             </div>
         </aside>

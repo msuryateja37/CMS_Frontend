@@ -66,7 +66,7 @@ const OHSCasesReview: React.FC = () => {
 
     const columns: Column<Case>[] = [
         {
-            header: 'Case ID',
+            header: 'Incident ID',
             accessorKey: 'incidentNumber',
             sortable: true,
             cell: (item) => (
@@ -147,9 +147,9 @@ const OHSCasesReview: React.FC = () => {
 
     return (
         <DashboardLayout
-            title="OHS Cases for Review"
-            description="Cases Review"
-            breadcrumbs={[{ label: "Dashboard", path: "/ohs/dashboard" }, { label: "Cases Review" }]}
+            title="OHS Incidents for Review"
+            description="Incidents Review"
+            breadcrumbs={[{ label: "Dashboard", path: "/ohs/dashboard" }, { label: "Incidents Review" }]}
             userProfile={{ name: 'OHS Practitioner', role: 'OHS Practitioner' }}
         >
             <div className="flex flex-col gap-6">
@@ -157,20 +157,20 @@ const OHSCasesReview: React.FC = () => {
                 <div className="flex justify-end gap-3 mb-1">
                     <button className="flex items-center gap-2 px-4 py-2 bg-gold text-white font-bold rounded-lg hover:bg-[#A1743E] transition-colors shadow-sm">
                         <FileSearch size={18} />
-                        Review Cases
+                        Review Incidents
                     </button>
                     <button
                         onClick={() => navigate('/ohs/submit-case')}
                         className="flex items-center gap-2 px-4 py-2 bg-gold text-white font-bold rounded-lg hover:bg-[#A1743E] transition-colors shadow-sm">
                         <FilePlus size={16} />
-                        Submit New Case
+                        Submit New Incident
                     </button>
                 </div>
 
                 {loading && (
                     <div className="flex items-center justify-center py-12">
                         <Loader2 className="w-8 h-8 text-gold animate-spin" />
-                        <span className="ml-3 text-gray-600">Loading cases...</span>
+                        <span className="ml-3 text-gray-600">Loading incidents...</span>
                     </div>
                 )}
 
@@ -186,14 +186,14 @@ const OHSCasesReview: React.FC = () => {
                         columns={columns}
                         keyField="id"
                         emptyMessage={(searchTerm || statusFilter !== 'all' || categoryFilter || priorityFilter)
-                            ? "No cases found matching your criteria."
-                            : "No cases for review."}
+                            ? "No incidents found matching your criteria."
+                            : "No incidents for review."}
                         selectable={true}
                         selectedIds={selectedIds}
                         onSelectionChange={setSelectedIds}
                         searchable={true}
                         onSearch={setSearchTerm}
-                        searchPlaceholder="Search Cases..."
+                        searchPlaceholder="Search Incidents..."
                         filterable={true}
                         totalItems={totalItems}
                         paginatable={true}

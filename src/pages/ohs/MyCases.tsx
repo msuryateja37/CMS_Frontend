@@ -36,7 +36,7 @@ const MyCases: React.FC = () => {
 
     const cases = casesData?.data || [];
     const totalItems = casesData?.total || 0;
-    const error = casesError ? (casesError as any).message || 'Failed to load cases' : null;
+    const error = casesError ? (casesError as any).message || 'Failed to load incidents' : null;
 
     const handleStatusFilterChange = (val: string) => {
         setStatusFilter(val);
@@ -55,7 +55,7 @@ const MyCases: React.FC = () => {
 
     const columns: Column<Case>[] = [
         {
-            header: 'Case ID',
+            header: 'Incident ID',
             accessorKey: 'incidentNumber',
             sortable: true,
             cell: (item) => (
@@ -122,9 +122,9 @@ const MyCases: React.FC = () => {
 
     return (
         <DashboardLayout
-            title="My Cases"
-            description="My Cases"
-            breadcrumbs={[{ label: "Dashboard", path: "/ohs/dashboard" }, { label: "My Cases" }]}
+            title="My Incidents"
+            description="My Incidents"
+            breadcrumbs={[{ label: "Dashboard", path: "/ohs/dashboard" }, { label: "My Incidents" }]}
         >
             <div className="flex flex-col gap-6">
                 {/* Top Actions */}
@@ -134,14 +134,14 @@ const MyCases: React.FC = () => {
                         className="flex items-center gap-2 px-4 py-2 bg-brown text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm"
                     >
                         <FilePlus size={16} />
-                        Report New Case
+                        Report New Incident
                     </button>
                 </div>
 
                 {loading && (
                     <div className="flex items-center justify-center py-12">
                         <Loader2 className="w-8 h-8 text-gold animate-spin" />
-                        <span className="ml-3 text-gray-600">Loading cases...</span>
+                        <span className="ml-3 text-gray-600">Loading incidents...</span>
                     </div>
                 )}
 
@@ -159,7 +159,7 @@ const MyCases: React.FC = () => {
                         onSelectionChange={() => { }}
                         searchable={true}
                         onSearch={setSearchTerm}
-                        searchPlaceholder="Search your cases..."
+                        searchPlaceholder="Search your incidents..."
                         filterable={true}
                         totalItems={totalItems}
                         paginatable={true}

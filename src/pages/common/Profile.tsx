@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth.store';
 import authService from '../../services/auth.service';
 import DashboardLayout from '../../layouts/DashboardLayout';
@@ -16,11 +17,13 @@ import {
     Save,
     X,
     CheckCircle2,
-    Loader2
+    Loader2,
+    LogOut
 } from 'lucide-react';
 
 const Profile: React.FC = () => {
-    const { user, refreshUser } = useAuthStore();
+    const { user, refreshUser, logout } = useAuthStore();
+    const navigate = useNavigate();
     const [isEditing, setIsEditing] = useState(false);
     const [saving, setSaving] = useState(false);
     const [success, setSuccess] = useState(false);
@@ -280,6 +283,24 @@ const Profile: React.FC = () => {
                             <p className="text-sm font-medium text-gray-800 py-2.5">{user.department?.building?.name || '-'}</p>
                         </div>
                     </div>
+                </div>
+
+                {/* Account Actions / Logout */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="text-center sm:text-left">
+                        <h4 className="text-sm font-bold text-gray-800">Account Session</h4>
+                        <p className="text-xs text-gray-400 font-medium mt-1">Log out of your current session on this device.</p>
+                    </div>
+                    <button
+                        onClick={async () => {
+                            await logout();
+                            navigate('/');
+                        }}
+                        className="flex items-center justify-center gap-2 px-6 py-2.5 bg-white hover:bg-red-50/60 text-red-600 hover:text-red-600/90 font-semibold rounded-lg transition-all text-sm shadow-sm border border-red-100 hover:border-red-200/80 active:scale-[0.98] w-full sm:w-auto"
+                    >
+                        <LogOut size={16} />
+                        Log Out
+                    </button>
                 </div>
             </div>
         </DashboardLayout>

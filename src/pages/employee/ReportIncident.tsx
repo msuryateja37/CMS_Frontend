@@ -355,12 +355,12 @@ const ReportIncident: React.FC = () => {
     return (
         <DashboardLayout
             title="OHS Incident Management"
-            breadcrumbs={[{ label: "Dashboard", path: dashboardPath }, { label: "Report new case" }]}
+            breadcrumbs={[{ label: "Dashboard", path: dashboardPath }, { label: "Report new incident" }]}
         >
             <div className="max-w-[850px] mx-auto space-y-6 pb-12 animate-fadeIn">
                 {/* Form Header */}
                 <div>
-                    <h1 className="text-xl font-bold text-gray-900">Report new case</h1>
+                    <h1 className="text-xl font-bold text-gray-900">Report new incident</h1>
                     <p className="text-xs text-gray-500 mt-0.5">
                         Complete every field accurately — this information starts the routing and notification process.
                     </p>
@@ -707,7 +707,7 @@ const ReportIncident: React.FC = () => {
                             className="px-6 py-2.5 bg-[#2E7D32] hover:bg-[#1B5E20] text-white font-bold text-xs rounded-lg transition shadow-md disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed disabled:shadow-none flex items-center gap-1.5"
                         >
                             {createCaseMutation.isPending && <Loader2 size={13} className="animate-spin" />}
-                            Report new case
+                            Report new incident
                         </button>
                     </div>
 
@@ -722,9 +722,9 @@ const ReportIncident: React.FC = () => {
                             <div className="w-10 h-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center mx-auto mb-3.5">
                                 <HelpCircle size={22} />
                             </div>
-                            <h3 className="font-bold text-sm text-gray-800">Report new case?</h3>
+                            <h3 className="font-bold text-sm text-gray-800">Report new incident?</h3>
                             <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
-                                Are you sure you want to report this new case? This will route the case to the appropriate provincial responders.
+                                Are you sure you want to report this new incident? This will route the incident to the appropriate provincial responders.
                             </p>
                         </div>
                         <div className="px-4 py-3 bg-gray-50 flex items-center justify-end gap-2 border-t border-gray-150">

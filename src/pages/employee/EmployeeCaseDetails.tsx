@@ -66,7 +66,7 @@ const EmployeeCaseDetails: React.FC = () => {
                 <div className="flex items-center justify-center min-h-[400px]">
                     <div className="text-center">
                         <div className="w-10 h-10 border-2 border-t-transparent border-[#884616] rounded-full animate-spin mx-auto mb-3" />
-                        <span className="text-xs text-gray-500 font-semibold">Loading case details...</span>
+                        <span className="text-xs text-gray-500 font-semibold">Loading incident details...</span>
                     </div>
                 </div>
             </DashboardLayout>
@@ -79,8 +79,8 @@ const EmployeeCaseDetails: React.FC = () => {
                 <div className="flex items-center justify-center min-h-[400px]">
                     <div className="text-center max-w-sm p-5 bg-white border border-gray-150 rounded-2xl shadow-sm">
                         <AlertCircle className="w-10 h-10 text-red-500 mx-auto mb-3" />
-                        <p className="text-xs font-bold text-gray-800 mb-1">Failed to load case</p>
-                        <p className="text-[11px] text-gray-400 mb-4">{(caseError as any)?.message || 'Incident case details not found.'}</p>
+                        <p className="text-xs font-bold text-gray-800 mb-1">Failed to load incident</p>
+                        <p className="text-[11px] text-gray-400 mb-4">{(caseError as any)?.message || 'Incident details not found.'}</p>
                         <button
                             onClick={() => navigate(-1)}
                             className="px-4 py-2 bg-[#884616] text-white text-xs font-bold rounded-lg hover:bg-opacity-95 transition"
@@ -107,15 +107,24 @@ const EmployeeCaseDetails: React.FC = () => {
 
     // Determine current assignee description
     const getCurrentlyWith = () => {
-        if (isClosed) return { name: 'None', role: 'Case Closed' };
+        if (isClosed) return { name: 'None', role: 'Incident Closed' };
+        
+        const provName = caseData.province?.name || '';
+        const isNationalServiced = ['North West', 'Eastern Cape', 'Northern Cape'].includes(provName);
+
         if (caseData.assignments && caseData.assignments.length > 0) {
             const ass = caseData.assignments[0];
+            const isFirstAider = ass.assignedTo?.email?.includes('firstaider');
             return {
                 name: ass.assignedTo?.name || 'Assigned Responders',
-                role: ass.assignedTo?.email?.includes('firstaider') ? 'First Aider' : 'OHS Practitioner'
+                role: isFirstAider ? 'First Aider' : (isNationalServiced ? 'Serviced by National Office (ASD OHS)' : 'OHS Practitioner')
             };
         }
         if (caseData.status === 'POOL') {
+            const isHealth = caseData.category?.toLowerCase() === 'health';
+            if (isNationalServiced && !isHealth) {
+                return { name: 'National Office (ASD OHS)', role: 'Serviced by National Office (ASD OHS)' };
+            }
             return { name: 'OHS Pool', role: 'Waiting for pickup' };
         }
         if (caseData.status === 'ESCALATED_TO_ADMIN') {
@@ -310,7 +319,7 @@ const EmployeeCaseDetails: React.FC = () => {
                         {isClosed && (
                             <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm space-y-5 animate-fadeIn">
                                 <div>
-                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Case Closed</span>
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Incident Closed</span>
                                     <h2 className="text-base font-bold text-gray-900 mt-1">Resolution Summary</h2>
                                 </div>
 
@@ -334,7 +343,7 @@ const EmployeeCaseDetails: React.FC = () => {
                                     <div className="md:col-span-2">
                                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Closeout comments</span>
                                         <span className="font-medium text-gray-700 leading-relaxed block">
-                                            Incident fully investigated. First aid treatment logged. Work area inspected; floor dry and clear of obstructions. Case resolved.
+                                            Incident fully investigated. First aid treatment logged. Work area inspected; floor dry and clear of obstructions. Incident resolved.
                                         </span>
                                     </div>
                                 </div>

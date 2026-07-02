@@ -56,7 +56,7 @@ const CasesReview: React.FC = () => {
 
     const columns: Column<Case>[] = [
         {
-            header: 'Case ID',
+            header: 'Incident ID',
             accessorKey: 'incidentNumber',
             sortable: true,
             cell: (item) => (
@@ -131,9 +131,9 @@ const CasesReview: React.FC = () => {
 
     return (
         <DashboardLayout
-            title="Cases for Review"
-            description="Review and assign cases to practitioners"
-            breadcrumbs={[{ label: "Dashboard", path: "/supervisor/dashboard" }, { label: "Cases Review" }]}
+            title="Incidents for Review"
+            description="Review and assign incidents to practitioners"
+            breadcrumbs={[{ label: "Dashboard", path: "/supervisor/dashboard" }, { label: "Incidents Review" }]}
         >
             <div className="flex flex-col gap-6">
                 {/* Top Actions */}
@@ -143,14 +143,14 @@ const CasesReview: React.FC = () => {
                         className="flex items-center gap-2 px-4 py-2 bg-brown text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm text-sm"
                     >
                         <FilePlus size={16} />
-                        Submit New Case
+                        Submit New Incident
                     </button>
                 </div>
 
                 {loading && (
                     <div className="flex items-center justify-center py-12">
                         <Loader2 className="w-8 h-8 text-gold animate-spin" />
-                        <span className="ml-3 text-gray-600">Loading cases...</span>
+                        <span className="ml-3 text-gray-600">Loading incidents...</span>
                     </div>
                 )}
 
@@ -166,14 +166,14 @@ const CasesReview: React.FC = () => {
                         columns={columns}
                         keyField="id"
                         emptyMessage={(searchTerm || statusFilter !== 'all' || categoryFilter || priorityFilter)
-                            ? "No cases found matching your criteria."
-                            : "No cases found."}
+                            ? "No incidents found matching your criteria."
+                            : "No incidents found."}
                         selectable={true}
                         selectedIds={selectedIds}
                         onSelectionChange={setSelectedIds}
                         searchable={true}
                         onSearch={setSearchTerm}
-                        searchPlaceholder="Search Cases..."
+                        searchPlaceholder="Search Incidents..."
                         filterable={true}
                         totalItems={totalItems}
                         paginatable={true}

@@ -128,8 +128,8 @@ const EmployeeDashboard: React.FC = () => {
                                 <FilePlus size={20} />
                             </div>
                             <div>
-                                <h3 className="font-bold text-sm text-[#1B5E20]">Report new case</h3>
-                                <p className="text-xs text-gray-500 mt-0.5">Log a safety, health, environmental or other case.</p>
+                                <h3 className="font-bold text-sm text-[#1B5E20]">Report new incident</h3>
+                                <p className="text-xs text-gray-500 mt-0.5">Log a safety, health, environmental or other incident.</p>
                             </div>
                         </div>
                         <button
@@ -198,7 +198,7 @@ const EmployeeDashboard: React.FC = () => {
                                         {cases.length === 0 && (
                                             <tr>
                                                 <td colSpan={7} className="py-12 text-center text-gray-400 text-xs font-medium">
-                                                    No cases found. Start a report above to submit your first case.
+                                                    No incidents found. Start a report above to submit your first incident.
                                                 </td>
                                             </tr>
                                         )}

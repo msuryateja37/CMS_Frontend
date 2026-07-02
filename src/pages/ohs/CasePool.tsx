@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Eye } from 'lucide-react';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import casesService, { type Case } from '../../services/cases.service';
 
@@ -87,12 +88,9 @@ const CasePool: React.FC = () => {
               {cases.map((c) => (
                 <tr key={c.id} className="border-t border-gray-100 hover:bg-gray-50">
                   <td className="px-5 py-3">
-                    <button
-                      onClick={() => navigate(`/ohs/cases/${c.id}`)}
-                      className="font-semibold text-gray-800 hover:text-gold-700"
-                    >
+                    <span className="font-semibold text-gray-800">
                       {c.incidentNumber}
-                    </button>
+                    </span>
                     <div className="text-xs text-gray-400 truncate max-w-[280px]">{c.description}</div>
                   </td>
                   <td className="px-5 py-3 capitalize">{c.category}</td>
@@ -104,13 +102,22 @@ const CasePool: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-5 py-3 text-right">
-                    <button
-                      onClick={() => handlePickup(c.id)}
-                      disabled={pickingId === c.id}
-                      className="bg-gold-500 hover:bg-gold-600 disabled:opacity-60 text-white px-4 py-1.5 rounded-lg font-semibold text-xs transition-colors"
-                    >
-                      {pickingId === c.id ? 'Picking up…' : 'Pick Up'}
-                    </button>
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => navigate(`/ohs/cases/${c.id}`)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-light-gold text-brown text-xs font-bold rounded-lg hover:bg-gold/10 transition-colors active:scale-[0.98]"
+                      >
+                        <Eye size={14} />
+                        View
+                      </button>
+                      <button
+                        onClick={() => handlePickup(c.id)}
+                        disabled={pickingId === c.id}
+                        className="bg-gold-500 hover:bg-gold-600 disabled:opacity-60 text-white px-4 py-1.5 rounded-lg font-semibold text-xs transition-colors active:scale-[0.98]"
+                      >
+                        {pickingId === c.id ? 'Picking up…' : 'Pick Up'}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

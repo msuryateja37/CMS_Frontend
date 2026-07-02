@@ -14,6 +14,12 @@ const Login: React.FC = () => {
     const [ssoProvince, setSsoProvince] = useState('Gauteng');
     const [ssoRole, setSsoRole] = useState('EMPLOYEE');
 
+    useEffect(() => {
+        if (['Eastern Cape', 'Northern Cape', 'North West'].includes(ssoProvince) && ssoRole === 'OHS_PRACTITIONER') {
+            setSsoRole('EMPLOYEE');
+        }
+    }, [ssoProvince, ssoRole]);
+
     const provincesList = [
         'Eastern Cape',
         'Free State',
@@ -259,23 +265,30 @@ const Login: React.FC = () => {
                             <div>
                                 <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Select Role Account</label>
                                 <div className="grid grid-cols-1 gap-2">
-                                    {rolesList.map(role => (
-                                        <button
-                                            key={role.id}
-                                            type="button"
-                                            onClick={() => setSsoRole(role.id)}
-                                            className={`flex items-center justify-between px-4 py-3 rounded-xl border text-left transition-all ${
-                                                ssoRole === role.id
-                                                    ? 'border-[#884616] bg-amber-50/30 text-[#884616] font-bold shadow-sm'
-                                                    : 'border-gray-200 hover:bg-gray-50 text-gray-700'
-                                            }`}
-                                        >
-                                            <span className="text-xs">{role.label}</span>
-                                            <span className="text-[10px] text-gray-400 font-mono">
-                                                {role.prefix}.{ssoProvince.replace(/\s+/g, '').toLowerCase()}@dlrrd.gov.za
-                                            </span>
-                                        </button>
-                                    ))}
+                                    {rolesList
+                                        .filter(role => {
+                                            if (['Eastern Cape', 'Northern Cape', 'North West'].includes(ssoProvince) && role.id === 'OHS_PRACTITIONER') {
+                                                return false;
+                                            }
+                                            return true;
+                                        })
+                                        .map(role => (
+                                            <button
+                                                key={role.id}
+                                                type="button"
+                                                onClick={() => setSsoRole(role.id)}
+                                                className={`flex items-center justify-between px-4 py-3 rounded-xl border text-left transition-all ${
+                                                    ssoRole === role.id
+                                                        ? 'border-[#884616] bg-amber-50/30 text-[#884616] font-bold shadow-sm'
+                                                        : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+                                                }`}
+                                            >
+                                                <span className="text-xs">{role.label}</span>
+                                                <span className="text-[10px] text-gray-400 font-mono">
+                                                    {role.prefix}.{ssoProvince.replace(/\s+/g, '').toLowerCase()}@dlrrd.gov.za
+                                                </span>
+                                            </button>
+                                        ))}
                                 </div>
                             </div>
                         </div>
