@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { Eye } from 'lucide-react';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import casesService, { type Case } from '../../services/cases.service';
+import { useAuthStore } from '../../store/auth.store';
 
 const CasePool: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [cases, setCases] = useState<Case[]>([]);
   const [loading, setLoading] = useState(true);
   const [pickingId, setPickingId] = useState<string | null>(null);
@@ -15,7 +17,12 @@ const CasePool: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await casesService.getCases({ status: 'POOL' });
+      const isNational = user?.role?.name?.toUpperCase()?.replace(/_/g, ' ') === 'OHS NATIONAL OFFICE';
+      const filters: any = { status: 'POOL' };
+      if (!isNational && user?.provinceId) {
+        filters.provinceId = user.provinceId;
+      }
+      const res = await casesService.getCases(filters);
       setCases(res.data ?? []);
     } catch {
       setError('Failed to load the pool. Please try again.');
@@ -25,8 +32,10 @@ const CasePool: React.FC = () => {
   };
 
   useEffect(() => {
-    load();
-  }, []);
+    if (user) {
+      load();
+    }
+  }, [user]);
 
   const handlePickup = async (id: string) => {
     setPickingId(id);

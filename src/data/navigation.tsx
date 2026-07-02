@@ -114,13 +114,13 @@ export const EMPLOYEE_SIDEBAR = [
     },
     {
         path: '/employee/my-cases',
-        label: 'My Incidents',
+        label: 'My Incident',
         icon: Folder,
         isSingle: true
     },
     {
         path: '/employee/submit-case',
-        label: 'Report new incident',
+        label: 'Report new case',
         icon: FileText,
         isSingle: true
     },
@@ -185,39 +185,15 @@ export const OHS_SIDEBAR = [
         isSingle: true
     },
     {
-        label: 'Disability Assessment Checklist',
-        path: '/ohs/forms/disability',
+        label: 'Inspections',
+        path: '/ohs/inspections',
         icon: FileText,
         isSingle: true
     },
     {
-        label: 'OHS Inspection Checklist',
-        path: '/ohs/forms/inspection',
-        icon: AlertCircle,
-        isSingle: true
-    },
-    {
-        label: 'New Building Assessment Checklist',
-        path: '/ohs/forms/building',
-        icon: Home,
-        isSingle: true
-    },
-    {
-        label: 'OHS Compliance Audit',
-        path: '/ohs/forms/audit',
-        icon: CheckCircle,
-        isSingle: true
-    },
-    {
-        label: 'Hazard Identification Risk Assessment',
-        path: '/ohs/forms/hazard',
-        icon: AlertCircle,
-        isSingle: true
-    },
-    {
-        label: 'Submissions History',
-        path: '/ohs/forms/submissions',
-        icon: Clock,
+        label: 'HIRA',
+        path: '/ohs/hira',
+        icon: Shield,
         isSingle: true
     },
     {

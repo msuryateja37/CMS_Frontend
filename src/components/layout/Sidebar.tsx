@@ -18,7 +18,7 @@ const Sidebar: React.FC = () => {
         const role = user?.role?.name?.toLowerCase().replace(/\s+/g, '_');
         if (role === 'employee') return EMPLOYEE_SIDEBAR;
         if (role === 'supervisor') return SUPERVISOR_SIDEBAR;
-        if (role === 'ohs_practitioner') return OHS_SIDEBAR;
+        if (role === 'ohs_practitioner' || role === 'ohs_national_office') return OHS_SIDEBAR;
         if (role === 'first_aider') return FIRST_AIDER_SIDEBAR;
         if (role === 'hr') return HR_SIDEBAR;
         if (role === 'investigator') return INVESTIGATOR_SIDEBAR;
@@ -177,7 +177,7 @@ const Sidebar: React.FC = () => {
             </nav>
 
             {/* Inspector Information — shown for OHS role */}
-            {!sidebarCollapsed && (user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'ohs_practitioner') && (
+            {!sidebarCollapsed && (user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'ohs_practitioner' || user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'ohs_national_office') && (
                 <div className="px-4 pb-2 shrink-0">
                     <div className="border-t border-white/10 pt-4 mb-3">
                         <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Inspector Information</p>

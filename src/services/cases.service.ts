@@ -410,6 +410,22 @@ class CasesService {
     });
     return response.data;
   }
+
+  /**
+   * Get Annexure 1 details for a case
+   */
+  async getAnnexureOne(id: string): Promise<any> {
+    const response = await api.get(`/cases/${id}/annexure1`);
+    return response.data;
+  }
+
+  /**
+   * Update/save Annexure 1 details for a case
+   */
+  async updateAnnexureOne(id: string, data: any): Promise<any> {
+    const response = await api.put(`/cases/${id}/annexure1`, data);
+    return response.data;
+  }
 }
 
 export default new CasesService();

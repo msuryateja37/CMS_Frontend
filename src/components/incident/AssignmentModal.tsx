@@ -33,11 +33,14 @@ const AssignmentModal: React.FC<AssignmentModalProps> = ({ isOpen, onClose, inci
     const fetchPractitioners = async (role: string) => {
         try {
             setIsLoadingUsers(true);
-            const data = await userService.listFiltered(
+            let data = await userService.listFiltered(
                 crossProvince ? { role } : { provinceId, role },
             );
-            // In cross-province mode, drop the case's own province (it already
-            // failed to pick the case up — that's why it escalated).
+            // If no local OHS practitioners found, fallback to national list
+            if (!crossProvince && provinceId && data.length === 0) {
+                data = await userService.listFiltered({ role });
+            }
+            // In cross-province mode, drop the case's own province
             const list = crossProvince
                 ? data.filter((u) => (u as unknown as { province?: { id?: string } }).province?.id !== provinceId)
                 : data;

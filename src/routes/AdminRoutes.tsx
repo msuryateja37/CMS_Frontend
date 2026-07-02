@@ -21,6 +21,8 @@ import OHSNewBuildingForm from '../pages/forms/OHSNewBuildingForm';
 import OHSAuditForm from '../pages/forms/OHSAuditForm';
 import OHSHazardForm from '../pages/forms/OHSHazardForm';
 import OHSFormSubmissions from '../pages/forms/OHSFormSubmissionshistory';
+import OHSInspections from '../pages/ohs/Inspections';
+import OHSHira from '../pages/ohs/Hira';
 
 import PermitToWork from '../pages/operations/PermitToWork';
 import Inspections from '../pages/operations/Inspections';
@@ -63,6 +65,8 @@ const AdminRoutes = () => {
             <Route path="/ohs/report-incident/success" element={<ProtectedRoute><CaseSubmissionSuccess /></ProtectedRoute>} />
             <Route path="/ohs/submit-case/success" element={<ProtectedRoute><CaseSubmissionSuccess /></ProtectedRoute>} />
             <Route path="/ohs/pool" element={<ProtectedRoute><CasePool /></ProtectedRoute>} />
+            <Route path="/ohs/inspections" element={<ProtectedRoute><OHSInspections /></ProtectedRoute>} />
+            <Route path="/ohs/hira" element={<ProtectedRoute><OHSHira /></ProtectedRoute>} />
             <Route path="/ohs/hazards" element={<ProtectedRoute><HazardReports /></ProtectedRoute>} />
             <Route path="/ohs/risk-register" element={<ProtectedRoute><RiskRegister /></ProtectedRoute>} />
             <Route path="/ohs/procedures" element={<ProtectedRoute><SafeWorkProcedures /></ProtectedRoute>} />
@@ -72,7 +76,7 @@ const AdminRoutes = () => {
             <Route path="/ohs/forms/audit" element={<ProtectedRoute><OHSAuditForm /></ProtectedRoute>} />
             <Route path="/ohs/forms/hazard" element={<ProtectedRoute><OHSHazardForm /></ProtectedRoute>} />
             <Route path="/ohs/forms/submissions" element={<ProtectedRoute><OHSFormSubmissions /></ProtectedRoute>} />
-            <Route path="/ohs" element={<Navigate to="/ohs/hazards" replace />} />
+            <Route path="/ohs" element={<Navigate to="/ohs/dashboard" replace />} />
 
             {/* First Aider Routes (health cases) */}
             <Route path="/first-aider/dashboard" element={<ProtectedRoute><FirstAiderDashboard /></ProtectedRoute>} />

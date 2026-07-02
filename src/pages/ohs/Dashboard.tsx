@@ -17,21 +17,24 @@ import {
     ChevronRight,
     TrendingUp,
     FileText,
-    FilePlus
+    FilePlus,
+    Inbox
 } from 'lucide-react';
 import { formatCategory } from '../../utils/formatters';
 
 const OHSDashboard: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuthStore();
+    const isNational = user?.role?.name?.toUpperCase()?.replace(/_/g, ' ') === 'OHS NATIONAL OFFICE';
 
-    // Fetch cases created by practitioner
+    // Fetch unassigned (POOL) cases in the same province (unless National Office)
     const {
-        data: reportedData,
-        isLoading: loadingReported,
-        error: errorReported
+        data: poolData,
+        isLoading: loadingPool,
+        error: errorPool
     } = useIncidents({
-        reported_by: user?.id,
+        status: 'POOL',
+        provinceId: isNational ? undefined : user?.provinceId,
         take: 100,
     });
 
@@ -45,14 +48,14 @@ const OHSDashboard: React.FC = () => {
         take: 100,
     });
 
-    const myCases = reportedData?.data || [];
+    const poolCases = poolData?.data || [];
     const assignedCases = assignedData?.data || [];
-    const loading = loadingReported || loadingAssigned;
-    const error = (errorReported || errorAssigned) ? 'Failed to load dashboard data.' : null;
+    const loading = loadingPool || loadingAssigned;
+    const error = (errorPool || errorAssigned) ? 'Failed to load dashboard data.' : null;
 
     // Stats from assigned cases
     const totalAssigned = assignedCases.length;
-    const pendingCases = assignedCases.filter(c => c.status === 'ASSIGNED' || c.status === 'OPEN').length;
+    const pendingCases = assignedCases.filter(c => c.status === 'ASSIGNED' || c.status === 'IN_PROGRESS' || c.status === 'OPEN').length;
     const solvedCases = assignedCases.filter(c => c.status === 'CLOSED' || c.status === 'RESOLVED').length;
     const underReviewCases = assignedCases.filter(c => c.status === 'UNDER_REVIEW').length;
 
@@ -70,8 +73,8 @@ const OHSDashboard: React.FC = () => {
 
     const criticalCount = assignedCases.filter(c => c.severity?.toLowerCase() === 'critical' || c.severity?.toLowerCase() === 'high').length;
 
-    // Columns for "My Cases" (cases I created)
-    const myCasesColumns: Column<Case>[] = [
+    // Columns for "Unassigned Incidents"
+    const poolColumns: Column<Case>[] = [
         {
             header: 'Incident ID',
             accessorKey: 'incidentNumber',
@@ -87,12 +90,12 @@ const OHSDashboard: React.FC = () => {
             cell: (item) => <span className="text-gray-700 font-medium">{formatCategory(item.category || 'N/A')}</span>
         },
         {
-            header: 'Status',
-            accessorKey: 'status',
+            header: 'Severity',
+            accessorKey: 'severity',
             sortable: true,
             cell: (item) => {
-                const statusLabel = getStatusLabel(item.status);
-                return <Pill label={statusLabel.toUpperCase()} variant={item.status.toLowerCase().replace(/_/g, ' ')} />;
+                const sev = item.severity || 'medium';
+                return <Pill label={sev.charAt(0).toUpperCase() + sev.slice(1).toLowerCase()} variant={sev.toLowerCase()} />;
             }
         },
         {
@@ -110,10 +113,10 @@ const OHSDashboard: React.FC = () => {
             cell: (item) => (
                 <button
                     onClick={() => navigate(`/ohs/cases/${item.id}`)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-light-gold text-brown text-xs font-bold rounded-lg hover:bg-gold/10 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 text-orange-750 text-xs font-bold rounded-lg hover:bg-orange-100 transition-colors"
                 >
                     <Eye size={14} />
-                    View
+                    View Pool
                 </button>
             )
         }
@@ -169,8 +172,8 @@ const OHSDashboard: React.FC = () => {
 
     return (
         <DashboardLayout
-            title="OHS Dashboard"
-            description="Dashboard"
+            title={isNational ? "OHS National Office Dashboard" : "OHS Dashboard"}
+            description={isNational ? "National-level incident monitoring and escalation control" : "Dashboard"}
             breadcrumbs={[{ label: "Dashboard", path: "/ohs/dashboard" }, { label: "Overview" }]}
         >
 
@@ -183,14 +186,14 @@ const OHSDashboard: React.FC = () => {
                         className="flex items-center gap-2 px-4 py-2 bg-brown text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm text-sm"
                     >
                         <FilePlus size={16} />
-                        Submit New Incident
+                        Report new case
                     </button>
                 </div>
 
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="bg-white py-3 px-4 rounded-xl border border-gray-100 shadow-sm">
+                    <div className="bg-white py-3 px-4 rounded-xl border border-gray-150 shadow-sm">
                         <div className="flex items-center gap-2 text-gray-400 mb-1.5">
                             <Folder size={15} />
                             <span className="text-[10px] font-bold uppercase tracking-wider">Assigned</span>
@@ -199,7 +202,7 @@ const OHSDashboard: React.FC = () => {
                         <p className="text-[10px] text-gray-400 mt-1 leading-tight">Total incidents assigned to you</p>
                     </div>
 
-                    <div className="bg-white py-3 px-4 rounded-xl border border-gray-100 shadow-sm">
+                    <div className="bg-white py-3 px-4 rounded-xl border border-gray-150 shadow-sm">
                         <div className="flex items-center gap-2 text-amber-500 mb-1.5">
                             <Clock size={15} />
                             <span className="text-[10px] font-bold uppercase tracking-wider">Pending</span>
@@ -208,7 +211,7 @@ const OHSDashboard: React.FC = () => {
                         <p className="text-[10px] text-gray-400 mt-1 leading-tight">Awaiting your action</p>
                     </div>
 
-                    <div className="bg-white py-3 px-4 rounded-xl border border-gray-100 shadow-sm">
+                    <div className="bg-white py-3 px-4 rounded-xl border border-gray-150 shadow-sm">
                         <div className="flex items-center gap-2 text-gold mb-1.5">
                             <CheckCircle2 size={15} />
                             <span className="text-[10px] font-bold uppercase tracking-wider">Solved</span>
@@ -217,7 +220,7 @@ const OHSDashboard: React.FC = () => {
                         <p className="text-[10px] text-gray-400 mt-1 leading-tight">Closed & resolved</p>
                     </div>
 
-                    <div className="bg-white py-3 px-4 rounded-xl border border-gray-100 shadow-sm">
+                    <div className="bg-white py-3 px-4 rounded-xl border border-gray-150 shadow-sm">
                         <div className="flex items-center gap-2 text-blue-500 mb-1.5">
                             <TrendingUp size={15} />
                             <span className="text-[10px] font-bold uppercase tracking-wider">Avg. Time</span>
@@ -229,7 +232,7 @@ const OHSDashboard: React.FC = () => {
 
                 {/* Secondary Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-white py-2.5 px-3.5 rounded-xl border border-gray-100 shadow-sm flex items-center gap-3">
+                    <div className="bg-white py-2.5 px-3.5 rounded-xl border border-gray-150 shadow-sm flex items-center gap-3">
                         <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
                             <Clock size={16} className="text-amber-600" />
                         </div>
@@ -239,7 +242,7 @@ const OHSDashboard: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="bg-white py-2.5 px-3.5 rounded-xl border border-gray-100 shadow-sm flex items-center gap-3">
+                    <div className="bg-white py-2.5 px-3.5 rounded-xl border border-gray-150 shadow-sm flex items-center gap-3">
                         <div className="w-9 h-9 rounded-lg bg-red/10 flex items-center justify-center shrink-0">
                             <AlertTriangle size={16} className="text-red-500" />
                         </div>
@@ -249,13 +252,13 @@ const OHSDashboard: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="bg-white py-2.5 px-3.5 rounded-xl border border-gray-100 shadow-sm flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                            <FileText size={16} className="text-blue-500" />
+                    <div className="bg-white py-2.5 px-3.5 rounded-xl border border-gray-150 shadow-sm flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
+                            <Inbox size={16} className="text-orange-500" />
                         </div>
                         <div>
-                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none mb-0.5">My Reported</p>
-                            <p className="text-base font-bold text-gray-900 leading-none">{loading ? '...' : myCases.length}</p>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none mb-0.5">Unassigned Pool</p>
+                            <p className="text-base font-bold text-gray-900 leading-none">{loading ? '...' : poolCases.length}</p>
                         </div>
                     </div>
                 </div>
@@ -271,28 +274,35 @@ const OHSDashboard: React.FC = () => {
                     <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700">{error}</div>
                 )}
 
-                {/* My Cases Section (cases I created/reported) */}
+                {/* Unassigned Incident Pool Section */}
                 {!loading && !error && (
                     <div>
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-gray-800">My Incidents</h3>
+                            <div className="flex items-center gap-2">
+                                <h3 className="text-lg font-bold text-gray-800">Unassigned Incidents</h3>
+                                {poolCases.length > 0 && (
+                                    <span className="bg-orange-100 text-orange-700 text-xs font-bold px-2 py-0.5 rounded-full">
+                                        {poolCases.length} waiting
+                                    </span>
+                                )}
+                            </div>
                             <button
-                                onClick={() => navigate('/ohs/my-cases')}
+                                onClick={() => navigate('/ohs/pool')}
                                 className="flex items-center gap-1 text-sm font-bold text-brown hover:underline"
                             >
-                                View All <ChevronRight size={14} />
+                                View All Pool <ChevronRight size={14} />
                             </button>
                         </div>
 
-                        {myCases.length === 0 ? (
-                            <div className="text-center py-10 bg-white rounded-2xl border border-gray-100">
-                                <FileText className="mx-auto text-gray-300 mb-2" size={32} />
-                                <p className="text-gray-400 font-medium">No incidents reported by you yet.</p>
+                        {poolCases.length === 0 ? (
+                            <div className="text-center py-10 bg-white rounded-2xl border border-gray-150">
+                                <Inbox className="mx-auto text-gray-300 mb-2" size={32} />
+                                <p className="text-gray-400 font-medium">No pool incidents awaiting pickup.</p>
                             </div>
                         ) : (
                             <DataTable
-                                data={myCases.slice(0, 5)}
-                                columns={myCasesColumns}
+                                data={poolCases.slice(0, 5)}
+                                columns={poolColumns}
                                 keyField="id"
                                 selectable={false}
                                 selectedIds={[]}
@@ -316,7 +326,7 @@ const OHSDashboard: React.FC = () => {
                         </div>
 
                         {assignedCases.length === 0 ? (
-                            <div className="text-center py-10 bg-white rounded-2xl border border-gray-100">
+                            <div className="text-center py-10 bg-white rounded-2xl border border-gray-150">
                                 <Folder className="mx-auto text-gray-300 mb-2" size={32} />
                                 <p className="text-gray-400 font-medium">No incidents assigned to you yet.</p>
                             </div>

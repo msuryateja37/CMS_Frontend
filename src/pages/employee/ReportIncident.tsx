@@ -6,7 +6,7 @@ import { useCreateCase } from '../../hooks/useIncidents';
 import { useUsers } from '../../hooks/useUsers';
 import locationService, { type Province, type Building } from '../../services/location.service';
 import casesService from '../../services/cases.service';
-import { Trash2, Loader2, CheckCircle, AlertCircle, FileUp, Sparkles, HelpCircle } from 'lucide-react';
+import { Trash2, Loader2, CheckCircle, AlertCircle, FileUp, Sparkles, HelpCircle, X } from 'lucide-react';
 
 interface Person {
     id: string;
@@ -67,11 +67,13 @@ const ReportIncident: React.FC = () => {
     const [driverDetails, setDriverDetails] = useState('');
     const [otherSubtype, setOtherSubtype] = useState('');
 
+    const [showOtherModal, setShowOtherModal] = useState(false);
+
     const userRole = user?.role?.name?.toLowerCase()?.replace(/_/g, ' ')?.replace(/\s+/g, ' ')?.trim();
     const isSupervisor = userRole === 'supervisor';
 
-    // Query employees nationally
-    const { data: allEmployees } = useUsers(isSupervisor ? { role: 'EMPLOYEE' } : undefined);
+    // Query employees in current province
+    const { data: allEmployees } = useUsers(isSupervisor ? { role: 'EMPLOYEE', provinceId: user?.provinceId } : undefined);
     const filteredEmployees = (allEmployees || []).filter(emp =>
         emp.name?.toLowerCase().includes(employeeSearch.toLowerCase()) ||
         emp.email?.toLowerCase().includes(employeeSearch.toLowerCase()) ||
@@ -495,18 +497,13 @@ const ReportIncident: React.FC = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Province *</label>
-                                <select
-                                    value={formData.provinceId || ''}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, provinceId: e.target.value, buildingId: undefined }))}
-                                    required
-                                    className="w-full px-3.5 py-2 bg-white border border-gray-200 rounded-lg text-xs font-semibold outline-none focus:border-[#884616] transition cursor-pointer"
-                                >
-                                    <option value="" disabled>Select Province</option>
-                                    {provinces.map(p => (
-                                        <option key={p.id} value={p.id}>{p.name}</option>
-                                    ))}
-                                </select>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Province</label>
+                                <input
+                                    type="text"
+                                    value={provinces.find(p => p.id === formData.provinceId)?.name || provinces.find(p => p.id === user?.provinceId)?.name || 'Gauteng'}
+                                    disabled
+                                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-500 cursor-not-allowed"
+                                />
                             </div>
                             <div>
                                 <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Office / Building *</label>
@@ -545,7 +542,12 @@ const ReportIncident: React.FC = () => {
                                     <button
                                         key={tile.id}
                                         type="button"
-                                        onClick={() => setFormData(prev => ({ ...prev, categoryId: tile.id }))}
+                                        onClick={() => {
+                                            setFormData(prev => ({ ...prev, categoryId: tile.id }));
+                                            if (tile.id === 'others') {
+                                                setShowOtherModal(true);
+                                            }
+                                        }}
                                         className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all ${
                                             formData.categoryId === tile.id
                                                 ? 'border-[#884616] bg-amber-50/30 text-[#884616] font-bold shadow-sm'
@@ -561,20 +563,20 @@ const ReportIncident: React.FC = () => {
 
                         {/* Dynamic Sub-Fields based on selected Category */}
                         {category === 'others' && (
-                            <div className="pt-2 animate-fadeIn">
-                                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Sub-type *</label>
-                                <select
-                                    value={otherSubtype}
-                                    onChange={(e) => setOtherSubtype(e.target.value)}
-                                    required
-                                    className="w-full px-3.5 py-2 bg-white border border-gray-200 rounded-lg text-xs font-semibold outline-none focus:border-[#884616] cursor-pointer"
-                                >
-                                    <option value="" disabled>Select subtype</option>
-                                    <option value="Power Outage">Power Outage</option>
-                                    <option value="Water Outage">Water Outage</option>
-                                    <option value="Infrastructure">Infrastructure</option>
-                                    <option value="Other">Other</option>
-                                </select>
+                            <div className="pt-2 animate-fadeIn flex flex-col gap-1.5">
+                                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Sub-type Details *</label>
+                                <div className="flex items-center gap-2">
+                                    <span className="px-3 py-1.5 bg-amber-50 text-[#884616] border border-amber-200 rounded-lg text-xs font-semibold">
+                                        {otherSubtype || 'Not specified'}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowOtherModal(true)}
+                                        className="text-xs text-[#884616] hover:underline font-bold"
+                                    >
+                                        Edit Details
+                                    </button>
+                                </div>
                             </div>
                         )}
 
@@ -741,6 +743,82 @@ const ReportIncident: React.FC = () => {
                                 className="px-5 py-2 bg-[#2E7D32] hover:bg-[#1B5E20] text-white rounded-lg text-xs font-bold transition shadow-md"
                             >
                                 Confirm Submission
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Other Subtype Custom Popup Modal */}
+            {showOtherModal && (
+                <div className="fixed inset-0 bg-black/55 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl border border-gray-150 overflow-hidden animate-fadeIn">
+                        <div className="flex items-center justify-between px-5 py-4 bg-gray-50 border-b border-gray-100">
+                            <h3 className="font-bold text-sm text-gray-800">Specify Category Details</h3>
+                            <button 
+                                type="button" 
+                                onClick={() => setShowOtherModal(false)}
+                                className="text-gray-400 hover:text-gray-600 transition"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
+                        <div className="p-5 space-y-4">
+                            <p className="text-[11px] text-gray-500 font-medium leading-relaxed">
+                                Select one of the common other incident subtypes or enter your own custom detail below:
+                            </p>
+                            
+                            <div className="grid grid-cols-2 gap-2">
+                                {['Power Outage', 'Water Outage', 'Infrastructure'].map(type => (
+                                    <button
+                                        key={type}
+                                        type="button"
+                                        onClick={() => setOtherSubtype(type)}
+                                        className={`py-2 px-3 border rounded-xl text-center text-xs font-semibold transition-all ${
+                                            otherSubtype === type
+                                                ? 'border-[#884616] bg-amber-50/30 text-[#884616]'
+                                                : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                                        }`}
+                                    >
+                                        {type}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="pt-2">
+                                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Custom Subtype Detail *</label>
+                                <input
+                                    type="text"
+                                    placeholder="Type details (e.g. Broken Elevator)"
+                                    value={otherSubtype}
+                                    onChange={(e) => setOtherSubtype(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs font-semibold outline-none focus:border-[#884616] transition"
+                                />
+                            </div>
+                        </div>
+                        <div className="px-4 py-3 bg-gray-50 flex items-center justify-end gap-2 border-t border-gray-150">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setOtherSubtype('');
+                                    setShowOtherModal(false);
+                                }}
+                                className="px-4 py-2 border border-gray-250 hover:bg-gray-100 text-gray-600 rounded-lg text-xs font-bold transition"
+                            >
+                                Clear
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (!otherSubtype.trim()) {
+                                        alert('Please select or enter details');
+                                        return;
+                                    }
+                                    setShowOtherModal(false);
+                                }}
+                                className="px-5 py-2 bg-[#BB8F53] hover:bg-[#A1743E] text-white rounded-lg text-xs font-bold transition shadow-md"
+                            >
+                                Confirm Details
                             </button>
                         </div>
                     </div>

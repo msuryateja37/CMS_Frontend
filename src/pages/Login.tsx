@@ -38,6 +38,7 @@ const Login: React.FC = () => {
         { id: 'SUPERVISOR', label: 'Supervisor', prefix: 'supervisor' },
         { id: 'FIRST_AIDER', label: 'First Aider', prefix: 'firstaider' },
         { id: 'OHS_PRACTITIONER', label: 'OHS Practitioner', prefix: 'ohspractitioner' },
+        { id: 'OHS_NATIONAL_OFFICE', label: 'OHS National Office', prefix: 'ohspractitioner' },
         { id: 'HR', label: 'HR Officer', prefix: 'hr' }
     ];
 
@@ -53,7 +54,7 @@ const Login: React.FC = () => {
                 navigate('/employee/dashboard');
             } else if (roleName === 'supervisor') {
                 navigate('/supervisor/dashboard');
-            } else if (roleName === 'ohs_practitioner') {
+            } else if (roleName === 'ohs_practitioner' || roleName === 'ohs_national_office') {
                 navigate('/ohs/dashboard');
             } else if (roleName === 'first_aider') {
                 navigate('/first-aider/dashboard');

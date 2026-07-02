@@ -63,6 +63,9 @@ const FirstAiderCaseAction: React.FC = () => {
 
     // Escalation modal
     const [showEscalation, setShowEscalation] = useState(false);
+    
+    // Forwarding state
+    const [forwarding, setForwarding] = useState(false);
 
     useEffect(() => {
         if (id) {
@@ -166,6 +169,23 @@ const FirstAiderCaseAction: React.FC = () => {
         }
     };
 
+    const handleForwardToOhsAndHr = async () => {
+        if (!id) return;
+        try {
+            setForwarding(true);
+            await casesService.updateStatus(id, 'UNDER_REVIEW');
+            await casesService.addComment(id, 'Employee joined a hospital. Forwarding the case to OHS Practitioner and HR for Annexure 1 processing.');
+            showSuccess('Case forwarded to OHS & HR successfully due to hospitalization.');
+            fetchCaseDetails(id);
+            fetchTimeline(id);
+        } catch (err) {
+            console.error('Error forwarding case:', err);
+            setError('Failed to forward case.');
+        } finally {
+            setForwarding(false);
+        }
+    };
+
     const getSeverityStyle = (severity?: string) => {
         if (!severity) return severityConfig.medium;
         return severityConfig[severity.toLowerCase()] || severityConfig.medium;
@@ -236,6 +256,16 @@ const FirstAiderCaseAction: React.FC = () => {
 
                     {!isClosed && !isUnderReview && isCurrentAssignee && (
                         <div className="flex items-center gap-3">
+                            {caseData.category === 'health' && (
+                                <button
+                                    onClick={handleForwardToOhsAndHr}
+                                    disabled={forwarding}
+                                    className="flex items-center gap-2 px-4 py-2.5 bg-red-50 border border-red-200 text-red-750 rounded-lg hover:bg-red-100 transition-all font-semibold text-sm disabled:opacity-50"
+                                >
+                                    {forwarding ? <Loader2 size={16} className="animate-spin" /> : <ArrowUpRight size={16} />}
+                                    Forward to HR & OHS (Hospitalized)
+                                </button>
+                            )}
                             <button
                                 onClick={() => setShowEscalation(true)}
                                 className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition-all font-semibold text-sm"

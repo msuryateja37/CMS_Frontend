@@ -132,6 +132,11 @@ const CaseAction: React.FC = () => {
     // Tab state
     const [activeTab, setActiveTab] = useState('details');
 
+    // Annexure 1 form states
+    const [annexData, setAnnexData] = useState<any>(null);
+    const [loadingAnnex, setLoadingAnnex] = useState(false);
+    const [savingAnnex, setSavingAnnex] = useState(false);
+
     // Form toggle states
     const [showActionForm, setShowActionForm] = useState(false);
     const [showEvidenceForm, setShowEvidenceForm] = useState(false);
@@ -142,6 +147,7 @@ const CaseAction: React.FC = () => {
 
     const TABS = [
         { id: 'details', label: 'Details of the case' },
+        ...(caseData?.category === 'health' ? [{ id: 'annexure1', label: 'Annexure 1 (Health Form)' }] : []),
         { id: 'actions', label: 'Corrective actions' },
         { id: 'evidence', label: 'Attachments / evidence' },
         { id: 'approvals', label: 'Approvals / recommendations' },
@@ -153,8 +159,23 @@ const CaseAction: React.FC = () => {
         if (id) {
             fetchCaseDetails(id);
             fetchTimeline(id);
+            if (activeTab === 'annexure1') {
+                fetchAnnexDetails(id);
+            }
         }
-    }, [id]);
+    }, [id, activeTab, caseData?.category]);
+
+    const fetchAnnexDetails = async (caseId: string) => {
+        try {
+            setLoadingAnnex(true);
+            const data = await casesService.getAnnexureOne(caseId);
+            setAnnexData(data);
+        } catch (err) {
+            console.error('Error loading Annexure 1:', err);
+        } finally {
+            setLoadingAnnex(false);
+        }
+    };
 
     const fetchCaseDetails = async (caseId: string, showLoader = true) => {
         try {
@@ -182,6 +203,22 @@ const CaseAction: React.FC = () => {
     const showSuccess = (msg: string) => {
         setSuccessMsg(msg);
         setTimeout(() => setSuccessMsg(''), 4000);
+    };
+
+    const handleSaveAnnex = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!id || !annexData) return;
+        try {
+            setSavingAnnex(true);
+            await casesService.updateAnnexureOne(id, annexData);
+            showSuccess('Annexure 1 form details updated successfully.');
+            void fetchAnnexDetails(id);
+        } catch (err) {
+            console.error('Error saving Annexure 1:', err);
+            setError('Failed to save Annexure 1 details.');
+        } finally {
+            setSavingAnnex(false);
+        }
     };
 
     const handleAddComment = async () => {
@@ -703,6 +740,345 @@ const CaseAction: React.FC = () => {
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'annexure1' && (
+                            <div className="space-y-6 max-w-4xl w-full">
+                                {loadingAnnex ? (
+                                    <div className="flex items-center justify-center py-12 text-sm text-gray-400">
+                                        <Loader2 className="animate-spin h-5 w-5 mr-2" />
+                                        Loading Annexure 1...
+                                    </div>
+                                ) : !annexData ? (
+                                    <div className="p-6 text-center text-gray-400 bg-gray-50 rounded-xl">
+                                        Failed to load Annexure 1 data.
+                                    </div>
+                                ) : (
+                                    <form onSubmit={handleSaveAnnex} className="space-y-6">
+                                        {/* Part A Card */}
+                                        <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm space-y-4 animate-fadeIn">
+                                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 pb-2">PART A: RECORDING OF INCIDENT</h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Name of Employer</label>
+                                                    <input
+                                                        type="text"
+                                                        value={annexData.employerName || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, employerName: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Name of Affected Person</label>
+                                                    <input
+                                                        type="text"
+                                                        value={annexData.affectedName || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, affectedName: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Identity Number of Affected Person</label>
+                                                    <input
+                                                        type="text"
+                                                        value={annexData.affectedIdNumber || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, affectedIdNumber: e.target.value })}
+                                                        placeholder="e.g. 8501015024083"
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                    />
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div>
+                                                        <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Date of Incident</label>
+                                                        <input
+                                                            type="date"
+                                                            value={annexData.dateOfIncident || ''}
+                                                            onChange={(e) => setAnnexData({ ...annexData, dateOfIncident: e.target.value })}
+                                                            className="w-full px-2 py-1.5 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Time of Incident</label>
+                                                        <input
+                                                            type="time"
+                                                            value={annexData.timeOfIncident || ''}
+                                                            onChange={(e) => setAnnexData({ ...annexData, timeOfIncident: e.target.value })}
+                                                            className="w-full px-2 py-1.5 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Parts of Body Affected</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="e.g. Neck, Eye, Finger, Hand, Foot, Leg"
+                                                        value={annexData.bodyPartsAffected || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, bodyPartsAffected: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Effect on Person</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="e.g. Sprains, Contusion, Fracture, Unconsciousness"
+                                                        value={annexData.effectOnPerson || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, effectOnPerson: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="pt-2">
+                                                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Expected Period of Disablement</label>
+                                                <div className="flex flex-wrap gap-4 mt-1">
+                                                    {['0-13 days', '2-4 weeks', '4-16 weeks', '16-52 weeks', 'Killed'].map(p => (
+                                                        <label key={p} className="flex items-center gap-2 text-xs font-medium text-gray-650 cursor-pointer">
+                                                            <input
+                                                                type="radio"
+                                                                name="disablementPeriod"
+                                                                value={p}
+                                                                checked={annexData.disablementPeriod === p}
+                                                                onChange={() => setAnnexData({ ...annexData, disablementPeriod: p })}
+                                                                className="h-3.5 w-3.5 text-[#884616] focus:ring-[#884616]"
+                                                            />
+                                                            <span>{p}</span>
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Description of Occupational Disease</label>
+                                                    <textarea
+                                                        rows={2}
+                                                        value={annexData.occupationalDiseaseDesc || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, occupationalDiseaseDesc: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Machine / Process Involved</label>
+                                                    <textarea
+                                                        rows={2}
+                                                        value={annexData.machineProcess || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, machineProcess: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Reported to Commissioner?</label>
+                                                    <select
+                                                        value={annexData.reportedToCommissioner === null ? '' : String(annexData.reportedToCommissioner)}
+                                                        onChange={(e) => setAnnexData({ ...annexData, reportedToCommissioner: e.target.value === 'true' })}
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none"
+                                                    >
+                                                        <option value="">Select Option</option>
+                                                        <option value="true">Yes</option>
+                                                        <option value="false">No</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Reported to Police (SAPS)?</label>
+                                                    <select
+                                                        value={annexData.reportedToPolice === null ? '' : String(annexData.reportedToPolice)}
+                                                        onChange={(e) => setAnnexData({ ...annexData, reportedToPolice: e.target.value === 'true' })}
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none"
+                                                    >
+                                                        <option value="">Select Option</option>
+                                                        <option value="true">Yes</option>
+                                                        <option value="false">No</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">SAPS Office & Reference</label>
+                                                    <input
+                                                        type="text"
+                                                        value={annexData.sapsOfficeRef || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, sapsOfficeRef: e.target.value })}
+                                                        placeholder="e.g. Pretoria CAS 123/05"
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Part B Card */}
+                                        <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm space-y-4 animate-fadeIn">
+                                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 pb-2">PART B: INVESTIGATION OF INCIDENT</h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Name of Investigator</label>
+                                                    <input
+                                                        type="text"
+                                                        value={annexData.investigatorName || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, investigatorName: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Designation</label>
+                                                    <input
+                                                        type="text"
+                                                        value={annexData.investigatorDesignation || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, investigatorDesignation: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Date of Investigation</label>
+                                                    <input
+                                                        type="date"
+                                                        value={annexData.investigationDate || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, investigationDate: e.target.value })}
+                                                        className="w-full px-3 py-1.5 border border-gray-250 rounded-lg text-xs font-semibold outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Short Description of Incident</label>
+                                                <textarea
+                                                    rows={2}
+                                                    value={annexData.incidentShortDesc || ''}
+                                                    onChange={(e) => setAnnexData({ ...annexData, incidentShortDesc: e.target.value })}
+                                                    className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Suspected Cause of Incident</label>
+                                                <textarea
+                                                    rows={2}
+                                                    value={annexData.suspectedCause || ''}
+                                                    onChange={(e) => setAnnexData({ ...annexData, suspectedCause: e.target.value })}
+                                                    className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Recommended Steps to Prevent Recurrence</label>
+                                                <textarea
+                                                    rows={2}
+                                                    value={annexData.recommendedSteps || ''}
+                                                    onChange={(e) => setAnnexData({ ...annexData, recommendedSteps: e.target.value })}
+                                                    className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                />
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Investigator Signature</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Type name to sign electronically"
+                                                        value={annexData.investigatorSignature || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, investigatorSignature: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold font-serif italic outline-none focus:border-[#884616]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Signature Date</label>
+                                                    <input
+                                                        type="date"
+                                                        value={annexData.investigatorSigDate || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, investigatorSigDate: e.target.value })}
+                                                        className="w-full px-3 py-1.5 border border-gray-250 rounded-lg text-xs font-semibold outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Part C Card */}
+                                        <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm space-y-4 animate-fadeIn">
+                                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 pb-2">PART C: ACTION TAKEN BY EMPLOYER</h3>
+                                            <div>
+                                                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Remarks & Actions Taken</label>
+                                                <textarea
+                                                    rows={2}
+                                                    value={annexData.employerRemarks || ''}
+                                                    onChange={(e) => setAnnexData({ ...annexData, employerRemarks: e.target.value })}
+                                                    className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                />
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Employer Signature</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Type name to sign"
+                                                        value={annexData.employerSignature || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, employerSignature: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold font-serif italic outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Date</label>
+                                                    <input
+                                                        type="date"
+                                                        value={annexData.employerSigDate || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, employerSigDate: e.target.value })}
+                                                        className="w-full px-3 py-1.5 border border-gray-250 rounded-lg text-xs font-semibold outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Part D Card */}
+                                        <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm space-y-4 animate-fadeIn">
+                                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 pb-2">PART D: SHE COMMITTEE REMARKS</h3>
+                                            <div>
+                                                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Committee Remarks</label>
+                                                <textarea
+                                                    rows={2}
+                                                    value={annexData.committeeRemarks || ''}
+                                                    onChange={(e) => setAnnexData({ ...annexData, committeeRemarks: e.target.value })}
+                                                    className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                />
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Chairperson Signature</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Type name to sign"
+                                                        value={annexData.committeeChairpersonSignature || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, committeeChairpersonSignature: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold font-serif italic outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Date</label>
+                                                    <input
+                                                        type="date"
+                                                        value={annexData.committeeChairpersonSigDate || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, committeeChairpersonSigDate: e.target.value })}
+                                                        className="w-full px-3 py-1.5 border border-gray-250 rounded-lg text-xs font-semibold outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Action Bar */}
+                                        <div className="flex justify-end gap-3 pt-2">
+                                            <button
+                                                type="submit"
+                                                disabled={savingAnnex}
+                                                className="px-6 py-2.5 bg-brown text-white font-bold rounded-xl hover:bg-opacity-95 shadow-sm text-xs transition disabled:opacity-50 active:scale-[0.98]"
+                                            >
+                                                {savingAnnex ? 'Saving Details...' : 'Save Annexure 1 Details'}
+                                            </button>
+                                        </div>
+                                    </form>
+                                )}
                             </div>
                         )}
 
