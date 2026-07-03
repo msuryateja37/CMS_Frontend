@@ -2,19 +2,22 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import casesService, { type Case } from '../../services/cases.service';
+import { useAuthStore } from '../../store/auth.store';
 
 const HRCaseReview: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [cases, setCases] = useState<Case[]>([]);
   const [loading, setLoading] = useState(true);
   const [closingId, setClosingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = async () => {
+    if (!user) return;
     setLoading(true);
     setError(null);
     try {
-      const res = await casesService.getCases({ take: 200 });
+      const res = await casesService.getCases({ take: 200, provinceId: user.province?.id });
       setCases(res.data ?? []);
     } catch {
       setError('Failed to load cases. Please try again.');
@@ -24,8 +27,10 @@ const HRCaseReview: React.FC = () => {
   };
 
   useEffect(() => {
-    load();
-  }, []);
+    if (user) {
+      load();
+    }
+  }, [user]);
 
   const handleClose = async (id: string) => {
     setClosingId(id);

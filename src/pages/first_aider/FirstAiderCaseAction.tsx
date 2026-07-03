@@ -490,58 +490,7 @@ const FirstAiderCaseAction: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* Upload Evidence */}
-                                <div>
-                                    <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 mb-2">
-                                        <Paperclip size={13} /> Upload Evidence
-                                    </label>
 
-                                    <input
-                                        ref={fileInputRef}
-                                        type="file"
-                                        multiple
-                                        onChange={handleFileSelect}
-                                        className="hidden"
-                                        accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
-                                    />
-
-                                    <div
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center cursor-pointer hover:border-gold/40 hover:bg-gold/5 transition-all"
-                                    >
-                                        <Upload className="mx-auto text-gray-300 mb-2" size={28} />
-                                        <p className="text-sm text-gray-500 font-medium">Click to select files</p>
-                                        <p className="text-xs text-gray-400 mt-1">Images, PDF, Word, Excel supported</p>
-                                    </div>
-
-                                    {/* Selected Files List */}
-                                    {selectedFiles.length > 0 && (
-                                        <div className="mt-3 space-y-2">
-                                            {selectedFiles.map((file, idx) => (
-                                                <div key={idx} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg border border-gray-100">
-                                                    <div className="flex items-center gap-2 overflow-hidden">
-                                                        <FileText size={14} className="text-gray-400 shrink-0" />
-                                                        <span className="text-sm text-gray-700 truncate">{file.name}</span>
-                                                        <span className="text-xs text-gray-400 shrink-0">({(file.size / 1024).toFixed(1)} KB)</span>
-                                                    </div>
-                                                    <button onClick={() => removeFile(idx)} className="text-gray-400 hover:text-red-500 shrink-0 ml-2">
-                                                        <X size={14} />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                            <div className="flex justify-end mt-2">
-                                                <button
-                                                    onClick={handleUploadEvidence}
-                                                    disabled={uploadingFiles}
-                                                    className="flex items-center gap-2 px-4 py-2 bg-brown text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50"
-                                                >
-                                                    {uploadingFiles ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-                                                    Upload {selectedFiles.length} File{selectedFiles.length > 1 ? 's' : ''}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
                             </div>
                         )}
 

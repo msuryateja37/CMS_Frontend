@@ -18,7 +18,7 @@ const CasePool: React.FC = () => {
     setError(null);
     try {
       const isNational = user?.role?.name?.toUpperCase()?.replace(/_/g, ' ') === 'OHS NATIONAL OFFICE';
-      const filters: any = { status: 'POOL' };
+      const filters: any = { status: 'POOL,UNDER_REVIEW', unassignedOnly: 'true' };
       if (!isNational && user?.province?.id) {
         filters.provinceId = user.province.id;
       }

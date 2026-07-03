@@ -33,7 +33,8 @@ const OHSDashboard: React.FC = () => {
         isLoading: loadingPool,
         error: errorPool
     } = useIncidents({
-        status: 'POOL',
+        status: 'POOL,UNDER_REVIEW',
+        unassignedOnly: 'true',
         provinceId: isNational ? undefined : user?.province?.id,
         take: 100,
     });
