@@ -216,6 +216,7 @@ const FirstAiderCaseAction: React.FC = () => {
 
     const sevStyle = getSeverityStyle(caseData.severity);
     const isClosed = caseData.status === 'CLOSED' || caseData.status === 'RESOLVED';
+    const isForwarded = caseData.status === 'FORWARDED_TO_OHS_AND_HR';
     const isUnderReview = caseData.status === 'UNDER_REVIEW';
     const isCurrentAssignee = user?.id === caseData.assignedTo?.id;
 
@@ -253,7 +254,7 @@ const FirstAiderCaseAction: React.FC = () => {
                         <span>Back to Cases</span>
                     </button>
 
-                    {!isClosed && !isUnderReview && isCurrentAssignee && (
+                    {!isClosed && !isUnderReview && !isForwarded && isCurrentAssignee && (
                         <div className="flex items-center gap-3">
                             {caseData.category === 'health' && (
                                 <button
@@ -283,7 +284,14 @@ const FirstAiderCaseAction: React.FC = () => {
                         </div>
                     )}
 
-                    {!isClosed && !isUnderReview && !isCurrentAssignee && (
+                    {isForwarded && (
+                        <span className="flex items-center gap-2 px-4 py-2.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg font-semibold text-sm">
+                            <ArrowUpRight size={16} />
+                            Forwarded to OHS &amp; HR
+                        </span>
+                    )}
+
+                    {!isClosed && !isUnderReview && !isForwarded && !isCurrentAssignee && (
                         caseData.assignedTo ? (
                             <span className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-500 rounded-lg font-semibold text-sm">
                                 <Shield size={16} />

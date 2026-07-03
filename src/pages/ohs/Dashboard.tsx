@@ -18,7 +18,8 @@ import {
     TrendingUp,
     FileText,
     FilePlus,
-    Inbox
+    Inbox,
+    Users
 } from 'lucide-react';
 import { formatCategory } from '../../utils/formatters';
 
@@ -27,13 +28,13 @@ const OHSDashboard: React.FC = () => {
     const { user } = useAuthStore();
     const isNational = user?.role?.name?.toUpperCase()?.replace(/_/g, ' ') === 'OHS NATIONAL OFFICE';
 
-    // Fetch unassigned (POOL) cases in the same province (unless National Office)
+    // Fetch unassigned pool cases in the same province (includes FORWARDED_TO_OHS_AND_HR)
     const {
         data: poolData,
         isLoading: loadingPool,
         error: errorPool
     } = useIncidents({
-        status: 'POOL,UNDER_REVIEW',
+        status: 'POOL,UNDER_REVIEW,FORWARDED_TO_OHS_AND_HR',
         unassignedOnly: 'true',
         provinceId: isNational ? undefined : user?.province?.id,
         take: 100,
@@ -74,6 +75,13 @@ const OHSDashboard: React.FC = () => {
 
     const criticalCount = assignedCases.filter(c => c.severity?.toLowerCase() === 'critical' || c.severity?.toLowerCase() === 'high').length;
 
+    const hrStatusLabel: Record<string, string> = {
+        HR_UNASSIGNED: 'Unassigned',
+        HR_ASSIGNED: 'Assigned',
+        HR_UNDER_REVIEW: 'Under Review',
+        HR_APPROVED: 'Approved',
+    };
+
     // Columns for "Unassigned Incidents"
     const poolColumns: Column<Case>[] = [
         {
@@ -81,7 +89,12 @@ const OHSDashboard: React.FC = () => {
             accessorKey: 'incidentNumber',
             sortable: true,
             cell: (item) => (
-                <span className="font-mono text-sm font-medium text-gray-600">{item.incidentNumber}</span>
+                <div>
+                    <span className="font-mono text-sm font-medium text-gray-600">{item.incidentNumber}</span>
+                    {item.status === 'FORWARDED_TO_OHS_AND_HR' && (
+                        <span className="ml-2 text-[10px] bg-purple-100 text-purple-700 font-bold px-1.5 py-0.5 rounded uppercase">Health</span>
+                    )}
+                </div>
             )
         },
         {
@@ -100,14 +113,41 @@ const OHSDashboard: React.FC = () => {
             }
         },
         {
-            header: 'Date',
-            accessorKey: 'createdAt',
+            header: 'Status',
+            accessorKey: 'status',
             sortable: true,
             cell: (item) => (
-                <span className="text-gray-500 text-sm">
-                    {new Date(item.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
-                </span>
+                <Pill label={getStatusLabel(item.status)} variant={item.status.toLowerCase().replace(/_/g, ' ')} />
             )
+        },
+        {
+            header: 'HR Status',
+            cell: (item) => {
+                const hrStatus = (item as any).hrStatus as string | undefined;
+                if (!hrStatus) return <span className="text-gray-400 text-xs">—</span>;
+                const colorMap: Record<string, string> = {
+                    HR_UNASSIGNED: 'bg-gray-100 text-gray-600',
+                    HR_ASSIGNED: 'bg-blue-100 text-blue-700',
+                    HR_UNDER_REVIEW: 'bg-amber-100 text-amber-700',
+                    HR_APPROVED: 'bg-green-100 text-green-700',
+                };
+                return (
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${colorMap[hrStatus] ?? 'bg-gray-100 text-gray-600'}`}>
+                        {hrStatusLabel[hrStatus] ?? hrStatus}
+                    </span>
+                );
+            }
+        },
+        {
+            header: 'HR Assignee',
+            cell: (item) => {
+                const hr = (item as any).hrAssignedTo as { name: string } | undefined;
+                return hr ? (
+                    <span className="flex items-center gap-1 text-xs text-gray-600">
+                        <Users size={12} /> {hr.name}
+                    </span>
+                ) : <span className="text-gray-400 text-xs">—</span>;
+            }
         },
         {
             header: '',

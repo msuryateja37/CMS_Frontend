@@ -591,6 +591,63 @@ const CaseAction: React.FC = () => {
                     </div>
                 </div>
 
+                {/* Parallel Flow Banner — visible for forwarded health incidents */}
+                {caseData.status === 'FORWARDED_TO_OHS_AND_HR' && (
+                    <div className="mb-6 bg-purple-50 border border-purple-200 rounded-2xl p-5">
+                        <p className="text-xs font-bold text-purple-700 uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <Users size={14} /> Parallel Processing — OHS &amp; HR Tracks
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* OHS Track */}
+                            <div className="bg-white rounded-xl border border-purple-100 p-4">
+                                <p className="text-[11px] text-gray-400 font-bold uppercase tracking-wide mb-2">OHS Investigation Track</p>
+                                <div className="flex items-center gap-3">
+                                    <Pill label={getStatusLabel(caseData.status)} variant={caseData.status.toLowerCase().replace(/_/g, ' ')} />
+                                    <span className="text-sm text-gray-700">
+                                        {caseData.assignedTo
+                                            ? <><span className="text-gray-400">Assigned to:</span> <strong>{caseData.assignedTo.name}</strong></>
+                                            : <span className="text-orange-600 font-semibold">Awaiting OHS pickup</span>
+                                        }
+                                    </span>
+                                </div>
+                            </div>
+                            {/* HR Track */}
+                            <div className="bg-white rounded-xl border border-purple-100 p-4">
+                                <p className="text-[11px] text-gray-400 font-bold uppercase tracking-wide mb-2">HR Documentation Track</p>
+                                <div className="flex items-center gap-3">
+                                    {(() => {
+                                        const hrStatus = (caseData as any).hrStatus as string | undefined;
+                                        const hrAssignedTo = (caseData as any).hrAssignedTo as { name: string } | undefined;
+                                        const colorMap: Record<string, string> = {
+                                            HR_UNASSIGNED: 'bg-gray-100 text-gray-600',
+                                            HR_ASSIGNED: 'bg-blue-100 text-blue-700',
+                                            HR_UNDER_REVIEW: 'bg-amber-100 text-amber-700',
+                                            HR_APPROVED: 'bg-green-100 text-green-700',
+                                        };
+                                        const labelMap: Record<string, string> = {
+                                            HR_UNASSIGNED: 'Unassigned',
+                                            HR_ASSIGNED: 'Assigned',
+                                            HR_UNDER_REVIEW: 'Under Review',
+                                            HR_APPROVED: 'Approved',
+                                        };
+                                        return <>
+                                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${colorMap[hrStatus ?? ''] ?? 'bg-gray-100 text-gray-600'}`}>
+                                                {labelMap[hrStatus ?? ''] ?? (hrStatus ?? 'Unknown')}
+                                            </span>
+                                            <span className="text-sm text-gray-700">
+                                                {hrAssignedTo
+                                                    ? <><span className="text-gray-400">Assigned to:</span> <strong>{hrAssignedTo.name}</strong></>
+                                                    : <span className="text-orange-600 font-semibold">Awaiting HR pickup</span>
+                                                }
+                                            </span>
+                                        </>;
+                                    })()}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Tabs Navigation */}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
                     <div className="border-b border-gray-200 px-6">
