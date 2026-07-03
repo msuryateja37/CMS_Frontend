@@ -100,7 +100,7 @@ const CasePool: React.FC = () => {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
               <tr>
-                <th className="text-left font-semibold px-5 py-3">Incident</th>
+                <th className="text-left font-semibold px-5 py-3">Incident ID</th>
                 <th className="text-left font-semibold px-5 py-3">Category</th>
                 <th className="text-left font-semibold px-5 py-3">Severity</th>
                 <th className="text-left font-semibold px-5 py-3">Province</th>

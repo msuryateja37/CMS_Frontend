@@ -157,7 +157,7 @@ const OHSDashboard: React.FC = () => {
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 text-orange-750 text-xs font-bold rounded-lg hover:bg-orange-100 transition-colors"
                 >
                     <Eye size={14} />
-                    View Pool
+                    View
                 </button>
             )
         }
@@ -227,7 +227,7 @@ const OHSDashboard: React.FC = () => {
                         className="flex items-center gap-2 px-4 py-2 bg-brown text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm text-sm"
                     >
                         <FilePlus size={16} />
-                        Report new case
+                        Report New Incident
                     </button>
                 </div>
 
@@ -331,7 +331,7 @@ const OHSDashboard: React.FC = () => {
                                 onClick={() => navigate('/ohs/pool')}
                                 className="flex items-center gap-1 text-sm font-bold text-brown hover:underline"
                             >
-                                View All Pool <ChevronRight size={14} />
+                                View Pool <ChevronRight size={14} />
                             </button>
                         </div>
 
