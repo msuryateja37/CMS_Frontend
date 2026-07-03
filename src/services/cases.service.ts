@@ -426,6 +426,14 @@ class CasesService {
     const response = await api.put(`/cases/${id}/annexure1`, data);
     return response.data;
   }
+
+  /**
+   * Forward a health case to OHS pool due to hospitalization
+   */
+  async forwardToOhs(id: string): Promise<Case> {
+    const response = await api.put<Case>(`/cases/${id}/forward-ohs`);
+    return response.data;
+  }
 }
 
 export default new CasesService();

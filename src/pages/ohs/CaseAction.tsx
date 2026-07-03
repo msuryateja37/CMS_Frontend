@@ -147,7 +147,7 @@ const CaseAction: React.FC = () => {
 
     const TABS = [
         { id: 'details', label: 'Details of the case' },
-        ...(caseData?.category === 'health' ? [{ id: 'annexure1', label: 'Annexure 1 (Health Form)' }] : []),
+        ...(caseData?.category === 'health' ? [{ id: 'investigation', label: 'Investigation' }] : []),
         { id: 'actions', label: 'Corrective actions' },
         { id: 'evidence', label: 'Attachments / evidence' },
         { id: 'approvals', label: 'Approvals / recommendations' },
@@ -159,7 +159,7 @@ const CaseAction: React.FC = () => {
         if (id) {
             fetchCaseDetails(id);
             fetchTimeline(id);
-            if (activeTab === 'annexure1') {
+            if (activeTab === 'investigation') {
                 fetchAnnexDetails(id);
             }
         }
@@ -743,7 +743,7 @@ const CaseAction: React.FC = () => {
                             </div>
                         )}
 
-                        {activeTab === 'annexure1' && (
+                        {activeTab === 'investigation' && (
                             <div className="space-y-6 max-w-4xl w-full">
                                 {loadingAnnex ? (
                                     <div className="flex items-center justify-center py-12 text-sm text-gray-400">

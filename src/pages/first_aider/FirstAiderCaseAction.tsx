@@ -173,8 +173,7 @@ const FirstAiderCaseAction: React.FC = () => {
         if (!id) return;
         try {
             setForwarding(true);
-            await casesService.updateStatus(id, 'UNDER_REVIEW');
-            await casesService.addComment(id, 'Employee joined a hospital. Forwarding the case to OHS Practitioner and HR for Annexure 1 processing.');
+            await casesService.forwardToOhs(id);
             showSuccess('Case forwarded to OHS & HR successfully due to hospitalization.');
             fetchCaseDetails(id);
             fetchTimeline(id);

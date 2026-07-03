@@ -18,6 +18,9 @@ const Login: React.FC = () => {
         if (['Eastern Cape', 'Northern Cape', 'North West'].includes(ssoProvince) && ssoRole === 'OHS_PRACTITIONER') {
             setSsoRole('EMPLOYEE');
         }
+        if (ssoProvince !== 'National Office' && ssoRole === 'OHS_NATIONAL_OFFICE') {
+            setSsoRole('EMPLOYEE');
+        }
     }, [ssoProvince, ssoRole]);
 
     const provincesList = [
@@ -270,6 +273,9 @@ const Login: React.FC = () => {
                                         .filter(role => {
                                             if (['Eastern Cape', 'Northern Cape', 'North West'].includes(ssoProvince) && role.id === 'OHS_PRACTITIONER') {
                                                 return false;
+                                            }
+                                            if (role.id === 'OHS_NATIONAL_OFFICE') {
+                                                return ssoProvince === 'National Office';
                                             }
                                             return true;
                                         })

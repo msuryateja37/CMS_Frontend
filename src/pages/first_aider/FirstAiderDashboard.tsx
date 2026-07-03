@@ -55,7 +55,12 @@ const FirstAiderDashboard: React.FC = () => {
 
     const reportedCases = reportedData?.data || [];
     const assignedCases = assignedData?.data || [];
-    const poolCases = poolData?.data || [];
+    const poolCases = (poolData?.data || []).filter(c => {
+        if (c.category === 'health' && c.annexureOne) {
+            return false;
+        }
+        return true;
+    });
     const loading = loadingReported || loadingAssigned || loadingPool;
 
     // "My Cases" = cases assigned to this first aider
