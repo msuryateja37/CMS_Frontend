@@ -19,8 +19,8 @@ const CasePool: React.FC = () => {
     try {
       const isNational = user?.role?.name?.toUpperCase()?.replace(/_/g, ' ') === 'OHS NATIONAL OFFICE';
       const filters: any = { status: 'POOL' };
-      if (!isNational && user?.provinceId) {
-        filters.provinceId = user.provinceId;
+      if (!isNational && user?.province?.id) {
+        filters.provinceId = user.province.id;
       }
       const res = await casesService.getCases(filters);
       setCases(res.data ?? []);

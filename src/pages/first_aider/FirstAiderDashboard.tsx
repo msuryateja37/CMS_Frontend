@@ -49,7 +49,7 @@ const FirstAiderDashboard: React.FC = () => {
         error: errorPool
     } = useIncidents({
         status: 'POOL',
-        provinceId: user?.provinceId,
+        provinceId: user?.province?.id,
         take: 100,
     });
 

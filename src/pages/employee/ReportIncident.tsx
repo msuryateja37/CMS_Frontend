@@ -73,7 +73,7 @@ const ReportIncident: React.FC = () => {
     const isSupervisor = userRole === 'supervisor';
 
     // Query employees in current province
-    const { data: allEmployees } = useUsers(isSupervisor ? { role: 'EMPLOYEE', provinceId: user?.provinceId } : undefined);
+    const { data: allEmployees } = useUsers(isSupervisor ? { role: 'EMPLOYEE', provinceId: user?.province?.id } : undefined);
     const filteredEmployees = (allEmployees || []).filter(emp =>
         emp.name?.toLowerCase().includes(employeeSearch.toLowerCase()) ||
         emp.email?.toLowerCase().includes(employeeSearch.toLowerCase()) ||
@@ -88,9 +88,9 @@ const ReportIncident: React.FC = () => {
             if (user) {
                 setFormData(prev => ({
                     ...prev,
-                    provinceId: user.provinceId || undefined,
+                    provinceId: user.province?.id || undefined,
                     buildingId: user.department?.building?.id || undefined,
-                    departmentId: user.departmentId || undefined
+                    departmentId: user.department?.id || undefined
                 }));
             }
         }
@@ -110,7 +110,7 @@ const ReportIncident: React.FC = () => {
     const [uploading, setUploading] = useState<Record<string, boolean>>({});
 
     // Dynamic Supervisor Query
-    const userProvinceId = formData.provinceId || user?.provinceId;
+    const userProvinceId = formData.provinceId || user?.province?.id;
     const { data: supervisors } = useUsers(
         userProvinceId ? { provinceId: userProvinceId, role: 'SUPERVISOR' } : undefined
     );
@@ -165,9 +165,9 @@ const ReportIncident: React.FC = () => {
         } else if (user) {
             setFormData(prev => ({
                 ...prev,
-                provinceId: user.provinceId || undefined,
+                provinceId: user.province?.id || undefined,
                 buildingId: user.department?.building?.id || undefined,
-                departmentId: user.departmentId || undefined
+                departmentId: user.department?.id || undefined
             }));
             
             // Set current date/time by default
@@ -500,7 +500,7 @@ const ReportIncident: React.FC = () => {
                                 <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Province</label>
                                 <input
                                     type="text"
-                                    value={provinces.find(p => p.id === formData.provinceId)?.name || provinces.find(p => p.id === user?.provinceId)?.name || 'Gauteng'}
+                                    value={provinces.find(p => p.id === formData.provinceId)?.name || provinces.find(p => p.id === user?.province?.id)?.name || 'Gauteng'}
                                     disabled
                                     className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-500 cursor-not-allowed"
                                 />

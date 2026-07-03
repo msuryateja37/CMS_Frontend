@@ -34,7 +34,7 @@ const OHSDashboard: React.FC = () => {
         error: errorPool
     } = useIncidents({
         status: 'POOL',
-        provinceId: isNational ? undefined : user?.provinceId,
+        provinceId: isNational ? undefined : user?.province?.id,
         take: 100,
     });
 
