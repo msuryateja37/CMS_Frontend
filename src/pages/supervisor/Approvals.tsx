@@ -160,7 +160,7 @@ const Approvals: React.FC = () => {
                         onSelectionChange={() => { }}
                         searchable={true}
                         onSearch={setSearchTerm}
-                        searchPlaceholder="Search cases..."
+                        searchPlaceholder="Search incidents..."
                         filterable={true}
                         totalItems={totalItems}
                         paginatable={true}

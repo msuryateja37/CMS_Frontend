@@ -91,7 +91,7 @@ const AssignmentModal: React.FC<AssignmentModalProps> = ({ isOpen, onClose, inci
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title={crossProvince ? 'Reassign to another province' : 'Assign Case'}
+            title={crossProvince ? 'Reassign to another province' : 'Assign Incident'}
             footer={
                 <>
                     <button
@@ -113,8 +113,8 @@ const AssignmentModal: React.FC<AssignmentModalProps> = ({ isOpen, onClose, inci
             <div className="space-y-4">
                 <p className="text-sm text-gray-500 mb-4">
                     {crossProvince
-                        ? 'This case was not picked up within 3 days. Assign it to an OHS practitioner from another province.'
-                        : 'Select the practitioner category and assign a practitioner from the same area as this case.'}
+                        ? 'This incident was not picked up within 3 days. Assign it to an OHS practitioner from another province.'
+                        : 'Select the practitioner category and assign a practitioner from the same area as this incident.'}
                 </p>
 
                 {!crossProvince && (
@@ -142,7 +142,7 @@ const AssignmentModal: React.FC<AssignmentModalProps> = ({ isOpen, onClose, inci
                             </div>
                         ) : users.length === 0 ? (
                             <p className="text-xs text-red-500 py-3">
-                                No OHS practitioners found{crossProvince ? ' in other provinces.' : " in the case's area."}
+                                No OHS practitioners found{crossProvince ? ' in other provinces.' : " in the incident's area."}
                             </p>
                         ) : (
                             <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-100">

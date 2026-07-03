@@ -37,7 +37,7 @@ const CasesReview: React.FC = () => {
 
     const cases = casesData?.data || [];
     const totalItems = casesData?.total || 0;
-    const error = casesError ? (casesError as any).message || 'Failed to load cases' : null;
+    const error = casesError ? (casesError as any).message || 'Failed to load incidents' : null;
 
     const handleStatusFilterChange = (val: string) => {
         setStatusFilter(val);

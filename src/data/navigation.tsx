@@ -31,7 +31,7 @@ export const SIDEBAR_ITEMS = [
         icon: AlertCircle,
         children: [
             { path: '/admin/incidents', label: 'All Incidents' },
-            { path: '/ohs/report-incident', label: 'Report new incident' },
+            { path: '/ohs/report-incident', label: 'Report New Incident' },
             { path: '/admin/incidents/assigned', label: 'My Assigned' }
         ]
     },
@@ -114,13 +114,13 @@ export const EMPLOYEE_SIDEBAR = [
     },
     {
         path: '/employee/my-cases',
-        label: 'My Incident',
+        label: 'My Incidents',
         icon: Folder,
         isSingle: true
     },
     {
         path: '/employee/submit-case',
-        label: 'Report new incident',
+        label: 'Report New Incident',
         icon: FileText,
         isSingle: true
     },
@@ -146,7 +146,7 @@ export const SUPERVISOR_SIDEBAR = [
         isSingle: true
     },
     {
-        label: 'Report new incident',
+        label: 'Report New Incident',
         path: '/supervisor/submit-case',
         icon: FilePlus,
         isSingle: true

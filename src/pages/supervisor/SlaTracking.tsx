@@ -145,14 +145,14 @@ const SlaTracking: React.FC = () => {
                         className="flex items-center gap-2 px-4 py-2 bg-gold text-white font-bold rounded-lg hover:bg-[#A1743E] transition-colors shadow-sm"
                     >
                         <FileSearch size={18} />
-                        Review Cases
+                        Review Incidents
                     </button>
                     <button
                         onClick={() => navigate('/supervisor/submit-case')}
                         className="flex items-center gap-2 px-4 py-2 bg-gold text-white font-bold rounded-lg hover:bg-[#A1743E] transition-colors shadow-sm"
                     >
                         <FilePlus size={16} />
-                        Submit New Case
+                        Report New Incident
                     </button>
                 </div>
 
@@ -179,7 +179,7 @@ const SlaTracking: React.FC = () => {
                                     <div className="bg-brown h-2 rounded-full" style={{ width: `${complianceRate}%` }}></div>
                                 </div>
                             </div>
-                            <p className="text-xs text-gray-400">{slaData.length} cases tracked</p>
+                            <p className="text-xs text-gray-400">{slaData.length} incidents tracked</p>
                         </div>
                     </div>
 
@@ -230,16 +230,16 @@ const SlaTracking: React.FC = () => {
                     <div className="bg-white rounded-xl border border-gray-100 p-8 text-center shadow-sm">
                         <Clock className="mx-auto text-gray-300 mb-3" size={32} />
                         <p className="text-gray-500 font-medium">No SLA tracking data available.</p>
-                        <p className="text-gray-400 text-sm mt-1">SLA tracking starts when cases are created with matching SLA rules.</p>
+                        <p className="text-gray-400 text-sm mt-1">SLA tracking starts when incidents are created with matching SLA rules.</p>
                     </div>
                 )}
 
-                {/* Overdue Cases Section */}
+                {/* Overdue Incidents Section */}
                 {breached.length > 0 && (
                     <div>
                         <div className="flex items-center gap-2 mb-4">
                             <AlertCircle className="text-red-500" size={18} />
-                            <h3 className="text-red-600 font-bold text-md">Overdue Cases - Immediate Action Required</h3>
+                            <h3 className="text-red-600 font-bold text-md">Overdue Incidents - Immediate Action Required</h3>
                         </div>
                         <div className="space-y-3">
                             {breached.map(renderCaseCard)}
@@ -247,12 +247,12 @@ const SlaTracking: React.FC = () => {
                     </div>
                 )}
 
-                {/* At Risk Cases Section */}
+                {/* At Risk Incidents Section */}
                 {atRisk.length > 0 && (
                     <div>
                         <div className="flex items-center gap-2 mb-4">
                             <Clock className="text-amber-500" size={18} />
-                            <h3 className="text-amber-700 font-bold text-md">At Risk Cases - Approaching Deadline</h3>
+                            <h3 className="text-amber-700 font-bold text-md">At Risk Incidents - Approaching Deadline</h3>
                         </div>
                         <div className="space-y-3">
                             {atRisk.map(renderCaseCard)}
@@ -260,12 +260,12 @@ const SlaTracking: React.FC = () => {
                     </div>
                 )}
 
-                {/* On Track Cases Section */}
+                {/* On Track Incidents Section */}
                 {onTrack.length > 0 && (
                     <div>
                         <div className="flex items-center gap-2 mb-4">
                             <CheckCircle2 className="text-gold-500" size={18} />
-                            <h3 className="text-gray-800 font-bold text-md">On Track Cases</h3>
+                            <h3 className="text-gray-800 font-bold text-md">On Track Incidents</h3>
                         </div>
                         <div className="space-y-3">
                             {onTrack.map(renderCaseCard)}

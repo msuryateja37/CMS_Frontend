@@ -128,7 +128,7 @@ const EmployeeDashboard: React.FC = () => {
                                 <FilePlus size={20} />
                             </div>
                             <div>
-                                <h3 className="font-bold text-sm text-[#1B5E20]">Report new incident</h3>
+                                <h3 className="font-bold text-sm text-[#1B5E20]">Report New Incident</h3>
                                 <p className="text-xs text-gray-500 mt-0.5">Log a safety, health, environmental or other incident.</p>
                             </div>
                         </div>
@@ -136,7 +136,7 @@ const EmployeeDashboard: React.FC = () => {
                             onClick={() => navigate('/employee/submit-case')}
                             className="bg-[#2E7D32] hover:bg-[#1B5E20] text-white font-bold text-xs px-4 py-2.5 rounded-lg transition shadow-md hover:-translate-y-0.5 transform"
                         >
-                            Start report
+                            Start Report
                         </button>
                     </div>
 

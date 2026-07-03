@@ -121,7 +121,7 @@ const SupervisorDashboard: React.FC = () => {
                         className="flex items-center gap-2 px-4 py-2 bg-brown text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm text-sm"
                     >
                         <FilePlus size={16} />
-                        Report new incident
+                        Report New Incident
                     </button>
                 </div>
 
@@ -197,7 +197,7 @@ const SupervisorDashboard: React.FC = () => {
                     </div>
                 </div>
 
-                {/* All Cases Table */}
+                {/* All Incidents Table */}
                 <div>
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-bold text-gray-800">All Incidents</h3>
