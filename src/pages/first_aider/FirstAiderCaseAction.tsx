@@ -307,7 +307,7 @@ const FirstAiderCaseAction: React.FC = () => {
                                         fetchCaseDetails(caseData.id);
                                         fetchTimeline(caseData.id);
                                     } catch (err) {
-                                        setError('Failed to self-assign case.');
+                                        setError('Failed to self-assign incident.');
                                     } finally {
                                         setLoading(false);
                                     }
@@ -315,7 +315,7 @@ const FirstAiderCaseAction: React.FC = () => {
                                 className="flex items-center gap-2 px-5 py-2.5 bg-[#2E7D32] hover:bg-[#1B5E20] text-white rounded-lg font-semibold text-sm shadow-md transition"
                             >
                                 <CheckCircle size={16} />
-                                Self Assign Case
+                                Self Assign Incident
                             </button>
                         )
                     )}
