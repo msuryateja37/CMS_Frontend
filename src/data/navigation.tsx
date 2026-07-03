@@ -120,7 +120,7 @@ export const EMPLOYEE_SIDEBAR = [
     },
     {
         path: '/employee/submit-case',
-        label: 'Report new case',
+        label: 'Report new incident',
         icon: FileText,
         isSingle: true
     },

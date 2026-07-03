@@ -117,6 +117,13 @@ export interface Case {
     user: { id: string; name: string; email?: string };
     createdAt: string;
   }>;
+
+  hrStatus?: string;
+  hrAssignedTo?: {
+    id: string;
+    name: string;
+    email: string;
+  };
 }
 
 export interface CaseApprovalAttachment {
@@ -432,6 +439,22 @@ class CasesService {
    */
   async forwardToOhs(id: string): Promise<Case> {
     const response = await api.put<Case>(`/cases/${id}/forward-ohs`);
+    return response.data;
+  }
+
+  /**
+   * HR Officer picks up a forwarded health incident.
+   */
+  async hrPickupCase(id: string): Promise<Case> {
+    const response = await api.put<Case>(`/cases/${id}/hr-pickup`);
+    return response.data;
+  }
+
+  /**
+   * HR Officer updates the status of the HR parallel track.
+   */
+  async hrUpdateStatus(id: string, hrStatus: string): Promise<Case> {
+    const response = await api.put<Case>(`/cases/${id}/hr-status`, { hrStatus });
     return response.data;
   }
 }

@@ -102,56 +102,56 @@ const FirstAiderDashboard: React.FC = () => {
         );
     };
 
-    // Pool (unassigned) cases columns
-    const poolColumns: Column<Case>[] = [
-        {
-            header: 'Case ID',
-            accessorKey: 'incidentNumber',
-            sortable: true,
-            cell: (item) => <span className="font-mono text-sm font-medium text-gray-600">{item.incidentNumber}</span>
-        },
-        {
-            header: 'Category',
-            accessorKey: 'category',
-            sortable: true,
-            cell: (item) => <span className="text-gray-700 font-medium">{formatCategory(item.category || 'N/A')}</span>
-        },
-        {
-            header: 'Severity',
-            accessorKey: 'severity',
-            sortable: true,
-            cell: (item) => {
-                const sev = item.severity || 'medium';
-                return <Pill label={sev.charAt(0).toUpperCase() + sev.slice(1).toLowerCase()} variant={sev.toLowerCase()} />;
-            }
-        },
-        {
-            header: 'Date',
-            accessorKey: 'createdAt',
-            sortable: true,
-            cell: (item) => (
-                <span className="text-gray-500 text-sm">
-                    {new Date(item.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
-                </span>
-            )
-        },
-        {
-            header: '',
-            cell: (item) => (
-                <button
-                    onClick={() => navigate(`/first-aider/cases/${item.id}`)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 text-orange-700 text-xs font-bold rounded-lg hover:bg-orange-100 transition-colors"
-                >
-                    <Eye size={14} /> View
-                </button>
-            )
-        }
-    ];
-
-    // My Cases columns
-    const myCasesColumns: Column<Case>[] = [
-        {
-            header: 'Case ID',
+     // Pool (unassigned) cases columns
+     const poolColumns: Column<Case>[] = [
+         {
+             header: 'Incident ID',
+             accessorKey: 'incidentNumber',
+             sortable: true,
+             cell: (item) => <span className="font-mono text-sm font-medium text-gray-600">{item.incidentNumber}</span>
+         },
+         {
+             header: 'Category',
+             accessorKey: 'category',
+             sortable: true,
+             cell: (item) => <span className="text-gray-700 font-medium">{formatCategory(item.category || 'N/A')}</span>
+         },
+         {
+             header: 'Severity',
+             accessorKey: 'severity',
+             sortable: true,
+             cell: (item) => {
+                 const sev = item.severity || 'medium';
+                 return <Pill label={sev.charAt(0).toUpperCase() + sev.slice(1).toLowerCase()} variant={sev.toLowerCase()} />;
+             }
+         },
+         {
+             header: 'Date',
+             accessorKey: 'createdAt',
+             sortable: true,
+             cell: (item) => (
+                 <span className="text-gray-500 text-sm">
+                     {new Date(item.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                 </span>
+             )
+         },
+         {
+             header: '',
+             cell: (item) => (
+                 <button
+                     onClick={() => navigate(`/first-aider/cases/${item.id}`)}
+                     className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 text-orange-700 text-xs font-bold rounded-lg hover:bg-orange-100 transition-colors"
+                 >
+                     <Eye size={14} /> View
+                 </button>
+             )
+         }
+     ];
+ 
+     // My Cases columns
+     const myCasesColumns: Column<Case>[] = [
+         {
+             header: 'Incident ID',
             accessorKey: 'incidentNumber',
             sortable: true,
             cell: (item) => <span className="font-mono text-sm font-medium text-gray-600">{item.incidentNumber}</span>
@@ -203,7 +203,7 @@ const FirstAiderDashboard: React.FC = () => {
                             <span className="text-xs font-semibold uppercase tracking-wide">Assigned</span>
                         </div>
                         <h3 className="text-3xl font-bold text-gray-900">{loading ? '...' : totalAssigned}</h3>
-                        <p className="text-xs text-gray-400 mt-1">Total cases assigned to you</p>
+                        <p className="text-xs text-gray-400 mt-1">Total incidents assigned to you</p>
                     </div>
                     <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
                         <div className="flex items-center gap-2 text-amber-500 mb-3">
@@ -265,7 +265,7 @@ const FirstAiderDashboard: React.FC = () => {
                 {loading && (
                     <div className="flex items-center justify-center py-12">
                         <Loader2 className="w-8 h-8 text-gold animate-spin" />
-                        <span className="ml-3 text-gray-600">Loading cases...</span>
+                        <span className="ml-3 text-gray-600">Loading incidents...</span>
                     </div>
                 )}
 
@@ -275,7 +275,7 @@ const FirstAiderDashboard: React.FC = () => {
                         <div>
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-2">
-                                    <h3 className="text-lg font-bold text-gray-800">Unassigned Cases</h3>
+                                    <h3 className="text-lg font-bold text-gray-800">Unassigned Incidents</h3>
                                     {poolCases.length > 0 && (
                                         <span className="bg-orange-100 text-orange-700 text-xs font-bold px-2 py-0.5 rounded-full">
                                             {poolCases.length} new
@@ -289,7 +289,7 @@ const FirstAiderDashboard: React.FC = () => {
                             {poolCases.length === 0 ? (
                                 <div className="text-center py-10 bg-white rounded-2xl border border-gray-100">
                                     <Inbox className="mx-auto text-gray-300 mb-2" size={32} />
-                                    <p className="text-gray-400 font-medium">No unassigned cases in your province pool.</p>
+                                    <p className="text-gray-400 font-medium">No unassigned incidents in your province pool.</p>
                                 </div>
                             ) : (
                                 <DataTable data={poolCases.slice(0, 5)} columns={poolColumns} keyField="id" selectable={false} selectedIds={[]} onSelectionChange={() => { }} />
@@ -299,7 +299,7 @@ const FirstAiderDashboard: React.FC = () => {
                         {/* My Cases */}
                         <div>
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg font-bold text-gray-800">My Cases</h3>
+                                <h3 className="text-lg font-bold text-gray-800">My Incidents</h3>
                                 <button onClick={() => navigate('/first-aider/my-cases')} className="flex items-center gap-1 text-sm font-bold text-brown hover:underline">
                                     View All <ChevronRight size={14} />
                                 </button>
@@ -307,7 +307,7 @@ const FirstAiderDashboard: React.FC = () => {
                             {myCases.length === 0 ? (
                                 <div className="text-center py-10 bg-white rounded-2xl border border-gray-100">
                                     <FileText className="mx-auto text-gray-300 mb-2" size={32} />
-                                    <p className="text-gray-400 font-medium">No cases assigned to or reported by you yet.</p>
+                                    <p className="text-gray-400 font-medium">No incidents assigned to or reported by you yet.</p>
                                 </div>
                             ) : (
                                 <DataTable data={myCases.slice(0, 5)} columns={myCasesColumns} keyField="id" selectable={false} selectedIds={[]} onSelectionChange={() => { }} />
