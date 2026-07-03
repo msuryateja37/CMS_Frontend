@@ -179,7 +179,7 @@ export const OHS_SIDEBAR = [
         isSingle: true
     },
     {
-        label: 'My Incidents',
+        label: 'Assigned Incidents',
         path: '/ohs/my-cases',
         icon: Folder,
         isSingle: true
@@ -212,14 +212,14 @@ export const FIRST_AIDER_SIDEBAR = [
         isSingle: true
     },
     {
-        label: 'My Incidents',
+        label: 'Assigned Incidents',
         path: '/first-aider/my-cases',
         icon: Folder,
         isSingle: true
     },
     {
-        label: 'Incidents Under Review',
-        path: '/first-aider/cases-review',
+        label: 'My Registry',
+        path: '/first-aider/my-registry',
         icon: FolderOpen,
         isSingle: true
     },

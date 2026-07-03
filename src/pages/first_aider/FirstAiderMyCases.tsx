@@ -26,7 +26,7 @@ const FirstAiderMyCases: React.FC = () => {
         isLoading: loading,
         error: casesError
     } = useIncidents({
-        reported_by: user?.id,
+        assignedToId: user?.id,
         take: itemsPerPage,
         skip: (currentPage - 1) * itemsPerPage,
         status: statusFilter !== 'all' ? statusFilter : undefined,
@@ -102,7 +102,7 @@ const FirstAiderMyCases: React.FC = () => {
     );
 
     return (
-        <DashboardLayout title="My Incidents" description="My Incidents" breadcrumbs={[{ label: "Dashboard", path: "/first-aider/dashboard" }, { label: "My Incidents" }]}>
+        <DashboardLayout title="Assigned Incidents" description="Incidents currently assigned to you" breadcrumbs={[{ label: "Dashboard", path: "/first-aider/dashboard" }, { label: "Assigned Incidents" }]}>
             <div className="flex flex-col gap-6">
                 <div className="flex justify-end mb-1">
                     <button onClick={() => navigate('/first-aider/report-breach')} className="flex items-center gap-2 px-4 py-2 bg-brown text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm">

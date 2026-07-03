@@ -5,13 +5,27 @@ import { Pill } from '../../components/common/Pill';
 import { Select } from '../../components/common/Select';
 import { DataTable, type Column } from '../../components/common/DataTable';
 import { type Case } from '../../services/cases.service';
-import { Eye, Loader2, FilePlus } from 'lucide-react';
+import { Eye, Loader2, ArrowUpRight, CheckCircle, Folder } from 'lucide-react';
 import { STATUS_FILTER_OPTIONS, CATEGORY_FILTER_OPTIONS, PRIORITY_FILTER_OPTIONS, getStatusLabel } from '../../data/constants';
 import { formatCategory } from '../../utils/formatters';
 import { useIncidents } from '../../hooks/useIncidents';
 import { useAuthStore } from '../../store/auth.store';
 
-const MyCases: React.FC = () => {
+const hrStatusLabel: Record<string, string> = {
+    HR_UNASSIGNED: 'HR Unassigned',
+    HR_ASSIGNED: 'HR Assigned',
+    HR_UNDER_REVIEW: 'HR Under Review',
+    HR_APPROVED: 'HR Approved',
+};
+
+const hrStatusColor: Record<string, string> = {
+    HR_UNASSIGNED: 'bg-gray-100 text-gray-600',
+    HR_ASSIGNED: 'bg-blue-100 text-blue-700',
+    HR_UNDER_REVIEW: 'bg-amber-100 text-amber-700',
+    HR_APPROVED: 'bg-green-100 text-green-700',
+};
+
+const FirstAiderMyRegistry: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuthStore();
     const [searchTerm, setSearchTerm] = useState('');
@@ -21,6 +35,8 @@ const MyCases: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
 
+    // Fetch ALL incidents ever assigned to this first aider (no status filter by default)
+    // assignedToId covers historical assignments via IncidentAssignment records
     const {
         data: casesData,
         isLoading: loading,
@@ -36,7 +52,7 @@ const MyCases: React.FC = () => {
 
     const cases = casesData?.data || [];
     const totalItems = casesData?.total || 0;
-    const error = casesError ? (casesError as any).message || 'Failed to load incidents' : null;
+    const error = casesError ? (casesError as any).message || 'Failed to load registry' : null;
 
     const handleStatusFilterChange = (val: string) => {
         setStatusFilter(val);
@@ -51,6 +67,12 @@ const MyCases: React.FC = () => {
     const handlePriorityFilterChange = (val: string) => {
         setPriorityFilter(val);
         setCurrentPage(1);
+    };
+
+    const getStatusBadgeIcon = (status: string) => {
+        if (status === 'FORWARDED_TO_OHS_AND_HR') return <ArrowUpRight size={12} className="text-purple-600" />;
+        if (status === 'CLOSED' || status === 'RESOLVED') return <CheckCircle size={12} className="text-green-600" />;
+        return <Folder size={12} className="text-gray-500" />;
     };
 
     const columns: Column<Case>[] = [
@@ -68,7 +90,6 @@ const MyCases: React.FC = () => {
             sortable: true,
             cell: (item) => <span className="text-gray-700 font-medium">{formatCategory(item.category || 'N/A')}</span>
         },
-
         {
             header: 'Severity',
             accessorKey: 'severity',
@@ -82,9 +103,23 @@ const MyCases: React.FC = () => {
             header: 'Status',
             accessorKey: 'status',
             sortable: true,
+            cell: (item) => (
+                <div className="flex items-center gap-1.5">
+                    {getStatusBadgeIcon(item.status)}
+                    <Pill label={getStatusLabel(item.status)} variant={item.status.toLowerCase().replace(/_/g, ' ')} />
+                </div>
+            )
+        },
+        {
+            header: 'HR Track',
             cell: (item) => {
-                const statusLabel = getStatusLabel(item.status);
-                return <Pill label={statusLabel.toUpperCase()} variant={item.status.toLowerCase().replace(/_/g, ' ')} />;
+                const hrStatus = (item as any).hrStatus as string | undefined;
+                if (!hrStatus) return <span className="text-gray-300 text-xs">—</span>;
+                return (
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${hrStatusColor[hrStatus] ?? 'bg-gray-100 text-gray-600'}`}>
+                        {hrStatusLabel[hrStatus] ?? hrStatus}
+                    </span>
+                );
             }
         },
         {
@@ -101,7 +136,7 @@ const MyCases: React.FC = () => {
             header: 'Actions',
             cell: (item) => (
                 <button
-                    onClick={() => navigate(`/ohs/cases/${item.id}`)}
+                    onClick={() => navigate(`/first-aider/cases/${item.id}`)}
                     className="flex items-center gap-1.5 px-4 py-1.5 bg-light-gold text-brown text-xs font-bold rounded-lg hover:bg-gold/10 transition-colors whitespace-nowrap"
                 >
                     <Eye size={14} />
@@ -120,28 +155,56 @@ const MyCases: React.FC = () => {
         return matchesSearch;
     });
 
+    // Stats for the summary bar
+    const forwardedCount = cases.filter(c => c.status === 'FORWARDED_TO_OHS_AND_HR').length;
+    const closedCount = cases.filter(c => c.status === 'CLOSED' || c.status === 'RESOLVED').length;
+    const activeCount = cases.filter(c => c.status !== 'CLOSED' && c.status !== 'RESOLVED' && c.status !== 'FORWARDED_TO_OHS_AND_HR').length;
+
     return (
         <DashboardLayout
-            title="Assigned Incidents"
-            description="Incidents currently assigned to you for investigation"
-            breadcrumbs={[{ label: "Dashboard", path: "/ohs/dashboard" }, { label: "Assigned Incidents" }]}
+            title="My Registry"
+            description="All incidents you have ever handled — including those forwarded to OHS & HR and closed ones"
+            breadcrumbs={[{ label: "Dashboard", path: "/first-aider/dashboard" }, { label: "My Registry" }]}
         >
             <div className="flex flex-col gap-6">
-                {/* Top Actions */}
-                <div className="flex justify-end mb-1">
-                    <button
-                        onClick={() => navigate('/ohs/report-incident')}
-                        className="flex items-center gap-2 px-4 py-2 bg-brown text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm"
-                    >
-                        <FilePlus size={16} />
-                        Report New Incident
-                    </button>
-                </div>
+
+                {/* Summary Stats */}
+                {!loading && !error && (
+                    <div className="grid grid-cols-3 gap-4">
+                        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center">
+                                <Folder size={18} className="text-orange-500" />
+                            </div>
+                            <div>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Active</p>
+                                <p className="text-xl font-bold text-gray-900">{activeCount}</p>
+                            </div>
+                        </div>
+                        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center">
+                                <ArrowUpRight size={18} className="text-purple-500" />
+                            </div>
+                            <div>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Forwarded to OHS & HR</p>
+                                <p className="text-xl font-bold text-gray-900">{forwardedCount}</p>
+                            </div>
+                        </div>
+                        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center">
+                                <CheckCircle size={18} className="text-green-500" />
+                            </div>
+                            <div>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Closed</p>
+                                <p className="text-xl font-bold text-gray-900">{closedCount}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {loading && (
                     <div className="flex items-center justify-center py-12">
                         <Loader2 className="w-8 h-8 text-gold animate-spin" />
-                        <span className="ml-3 text-gray-600">Loading incidents...</span>
+                        <span className="ml-3 text-gray-600">Loading registry...</span>
                     </div>
                 )}
 
@@ -159,7 +222,7 @@ const MyCases: React.FC = () => {
                         onSelectionChange={() => { }}
                         searchable={true}
                         onSearch={setSearchTerm}
-                        searchPlaceholder="Search your incidents..."
+                        searchPlaceholder="Search registry by ID, category or description..."
                         filterable={true}
                         totalItems={totalItems}
                         paginatable={true}
@@ -171,6 +234,9 @@ const MyCases: React.FC = () => {
                             setCurrentPage(1);
                         }}
                         totalPages={Math.ceil(totalItems / itemsPerPage)}
+                        emptyMessage={searchTerm || statusFilter !== 'all' || categoryFilter || priorityFilter
+                            ? 'No incidents found matching your criteria.'
+                            : 'No incidents in your registry yet.'}
                         filterOptions={
                             <div className="flex gap-2">
                                 <Select
@@ -200,4 +266,4 @@ const MyCases: React.FC = () => {
     );
 };
 
-export default MyCases;
+export default FirstAiderMyRegistry;
