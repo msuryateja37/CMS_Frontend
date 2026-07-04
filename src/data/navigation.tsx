@@ -15,7 +15,8 @@ import {
     CheckCircle,
     Home,
     MessageSquare,
-    User
+    User,
+    AlertTriangle
 } from 'lucide-react';
 
 
@@ -146,6 +147,12 @@ export const SUPERVISOR_SIDEBAR = [
         isSingle: true
     },
     {
+        label: 'Logged Incidents',
+        path: '/supervisor/logged-incidents',
+        icon: AlertTriangle,
+        isSingle: true
+    },
+    {
         label: 'Report New Incident',
         path: '/supervisor/submit-case',
         icon: FilePlus,
@@ -155,6 +162,12 @@ export const SUPERVISOR_SIDEBAR = [
         label: 'Facilities Management Services',
         path: '/supervisor/invoices',
         icon: FileText,
+        isSingle: true
+    },
+    {
+        label: 'AI Assistant',
+        path: '/supervisor/ai-assistant',
+        icon: MessageSquare,
         isSingle: true
     },
     {

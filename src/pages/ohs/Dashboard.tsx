@@ -16,12 +16,16 @@ import {
     Loader2,
     ChevronRight,
     TrendingUp,
-    FileText,
     FilePlus,
     Inbox,
     Users
 } from 'lucide-react';
 import { formatCategory } from '../../utils/formatters';
+
+interface DashboardCase extends Case {
+    hrStatus?: string;
+    hrAssignedTo?: { name: string };
+}
 
 const OHSDashboard: React.FC = () => {
     const navigate = useNavigate();
@@ -83,7 +87,7 @@ const OHSDashboard: React.FC = () => {
     };
 
     // Columns for "Unassigned Incidents"
-    const poolColumns: Column<Case>[] = [
+    const poolColumns: Column<DashboardCase>[] = [
         {
             header: 'Incident ID',
             accessorKey: 'incidentNumber',
@@ -123,7 +127,7 @@ const OHSDashboard: React.FC = () => {
         {
             header: 'HR Status',
             cell: (item) => {
-                const hrStatus = (item as any).hrStatus as string | undefined;
+                const hrStatus = item.hrStatus;
                 if (!hrStatus) return <span className="text-gray-400 text-xs">—</span>;
                 const colorMap: Record<string, string> = {
                     HR_UNASSIGNED: 'bg-gray-100 text-gray-600',
@@ -141,7 +145,7 @@ const OHSDashboard: React.FC = () => {
         {
             header: 'HR Assignee',
             cell: (item) => {
-                const hr = (item as any).hrAssignedTo as { name: string } | undefined;
+                const hr = item.hrAssignedTo;
                 return hr ? (
                     <span className="flex items-center gap-1 text-xs text-gray-600">
                         <Users size={12} /> {hr.name}
@@ -153,7 +157,7 @@ const OHSDashboard: React.FC = () => {
             header: '',
             cell: (item) => (
                 <button
-                    onClick={() => navigate(`/ohs/cases/${item.id}`)}
+                    onClick={() => navigate(`/ohs/cases/${item.id}`, { state: { from: 'dashboard' } })}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 text-orange-750 text-xs font-bold rounded-lg hover:bg-orange-100 transition-colors"
                 >
                     <Eye size={14} />
@@ -201,7 +205,7 @@ const OHSDashboard: React.FC = () => {
             header: '',
             cell: (item) => (
                 <button
-                    onClick={() => navigate(`/ohs/cases/${item.id}`)}
+                    onClick={() => navigate(`/ohs/cases/${item.id}`, { state: { from: 'dashboard' } })}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-light-gold text-brown text-xs font-bold rounded-lg hover:bg-gold/10 transition-colors"
                 >
                     <Eye size={14} />
@@ -219,12 +223,11 @@ const OHSDashboard: React.FC = () => {
         >
 
             <div className="flex flex-col gap-4">
-
                 {/* Top Actions */}
-                <div className="flex justify-end gap-3 mb-1">
+                <div className="flex justify-end mb-1">
                     <button
                         onClick={() => navigate('/ohs/submit-case')}
-                        className="flex items-center gap-2 px-4 py-2 bg-brown text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm text-sm"
+                        className="flex items-center gap-2 px-4 py-2 bg-brown text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm text-sm shrink-0"
                     >
                         <FilePlus size={16} />
                         Report New Incident
@@ -342,7 +345,7 @@ const OHSDashboard: React.FC = () => {
                             </div>
                         ) : (
                             <DataTable
-                                data={poolCases.slice(0, 5)}
+                                data={(poolCases as DashboardCase[]).slice(0, 5)}
                                 columns={poolColumns}
                                 keyField="id"
                                 selectable={false}

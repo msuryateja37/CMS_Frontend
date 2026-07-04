@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, Check, ChevronRight, Menu } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Bell, Check, Menu } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth.store';
-import { useSearchStore } from '../../store/search.store';
 import { useUIStore } from '../../store/ui.store';
-import { SearchInput, type SearchOption } from '../common/SearchInput';
 
 import { useNotifications } from '../../hooks/useNotifications';
 
@@ -35,25 +33,71 @@ const TopBar: React.FC<TopBarProps> = ({
     children,
     title,
     description,
-    breadcrumbs,
-    searchPlaceholder = "Search cases, incident, invoices..",
     actionButton,
     userProfile
 }) => {
-    const { user, logout } = useAuthStore();
-    const { searchQuery, setSearchQuery, searchResults, isSearching, performSearch } = useSearchStore();
+    const { user } = useAuthStore();
     const { toggleSidebar } = useUIStore();
     const navigate = useNavigate();
+    const location = useLocation();
+    const pathname = location.pathname;
 
-    // Debounce search
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (searchQuery) {
-                performSearch(searchQuery);
+    const isSupervisor = user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'supervisor';
+
+    const getDisplayTitle = () => {
+        const path = pathname.toLowerCase();
+        
+        if (isSupervisor) {
+            if (path.includes('/submit-case')) {
+                return 'National Oversight';
             }
-        }, 300);
-        return () => clearTimeout(timer);
-    }, [searchQuery, performSearch]);
+            if (path.includes('/logged-incidents')) {
+                return 'Logged Incidents';
+            }
+            if (path.includes('/ai-assistant')) {
+                return 'AI Assistant';
+            }
+            if (path.includes('/dashboard')) {
+                return 'Dashboard';
+            }
+        }
+        
+        // General mapping for other roles (like employee, ohs, etc.)
+        if (path.endsWith('/dashboard')) {
+            return 'Dashboard';
+        }
+        if (path.endsWith('/submit-case')) {
+            return 'Report New Incident';
+        }
+        if (path.includes('/ai-assistant')) {
+            return 'AI Assistant';
+        }
+        if (path.includes('/logged-incidents')) {
+            return 'Logged Incidents';
+        }
+        if (path.includes('/my-cases')) {
+            return 'My Incidents';
+        }
+        if (path.includes('/profile')) {
+            return 'My Profile';
+        }
+        
+        // Fallback or mapping for default titles
+        if (title === 'OHS Incident Management' || title === 'OHS Incident Management System') {
+            return 'Dashboard';
+        }
+        return title;
+    };
+
+    const isOHS = user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'ohs_practitioner' || 
+                  user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'ohs_national_office';
+
+    const displayTitle = getDisplayTitle();
+    let displayDescription = (isSupervisor || isOHS) ? undefined : description;
+
+    if (displayTitle && displayDescription && displayTitle.toLowerCase().trim() === displayDescription.toLowerCase().trim()) {
+        displayDescription = undefined;
+    }
 
     // Use notifications hook
     const { 
@@ -65,18 +109,13 @@ const TopBar: React.FC<TopBarProps> = ({
         fetchNotifications 
     } = useNotifications();
     const [showNotifications, setShowNotifications] = useState(false);
-    const [showProfileDropdown, setShowProfileDropdown] = useState(false);
     const notifRef = useRef<HTMLDivElement>(null);
-    const profileRef = useRef<HTMLDivElement>(null);
 
     // Close dropdown on outside click
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
                 setShowNotifications(false);
-            }
-            if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
-                setShowProfileDropdown(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -96,7 +135,7 @@ const TopBar: React.FC<TopBarProps> = ({
         } catch { /* silent */ }
     };
 
-    const handleNotificationClick = async (notif: any) => {
+    const handleNotificationClick = async (notif: { id: string; title: string; message: string; isRead: boolean; referenceId?: string; createdAt: string }) => {
         if (!notif.isRead) {
             await markAsRead(notif.id);
         }
@@ -154,43 +193,7 @@ const TopBar: React.FC<TopBarProps> = ({
             .join(' ');
     };
 
-    // Convert search results to SearchOption format
-    const searchSuggestions: SearchOption[] = searchResults.map(result => ({
-        value: result.id,
-        label: result.incidentNumber || result.title,
-        secondaryLabel: `${result.category || 'Case'} - ${result.severity || result.status || 'N/A'}`,
-        metadata: result,
-    }));
 
-    // Handle search result selection
-    const handleSearchSelect = (option: SearchOption) => {
-        const result = option.metadata as typeof searchResults[0] | undefined;
-
-        if (!result) return;
-
-        // Navigate based on result type and user role
-        if (result.type === 'case') {
-            // Check user role and navigate to appropriate path
-            const roleName = user?.role?.name;
-
-            if (roleName === 'Employee') {
-                navigate(`/employee/cases/${result.id}`);
-            } else if (roleName === 'Supervisor') {
-                navigate(`/supervisor/cases/${result.id}`);
-            } else if (roleName === 'OHS Practitioner') {
-                navigate(`/ohs/cases/${result.id}`);
-            } else if (roleName === 'Security Practitioner') {
-                navigate(`/security/cases/${result.id}`);
-            } else if (roleName === 'Finance Official') {
-                navigate(`/finance/cases/${result.id}`);
-            } else if (roleName === 'System Administrator' || roleName === 'Manager') {
-                navigate(`/admin/cases/${result.id}`);
-            } else {
-                // Default fallback
-                navigate(`/cases/${result.id}`);
-            }
-        }
-    };
 
     return (
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 transition-all duration-300">
@@ -206,9 +209,14 @@ const TopBar: React.FC<TopBarProps> = ({
                 </button>
 
                 <div className="flex flex-col sm:flex-row sm:items-center w-full lg:w-auto gap-2.5 sm:gap-4">
-                    {title && title !== "OHS Incident Management" && title !== "OHS Incident Management System" && (
-                        <div>
-                            <h1 className="text-[19px] font-bold text-gray-800 leading-tight">{title}</h1>
+                    {displayTitle && (
+                        <div className="flex items-baseline gap-2">
+                            <h1 className="text-[19px] font-bold text-gray-800 leading-tight">{displayTitle}</h1>
+                            {displayDescription && (
+                                <span className="text-[11px] text-gray-400 font-semibold ml-1.5 hidden sm:inline">
+                                    {displayDescription}
+                                </span>
+                            )}
                         </div>
                     )}
                     {actionButton && (
@@ -295,12 +303,12 @@ const TopBar: React.FC<TopBarProps> = ({
                     </div>
 
                     {/* Profile */}
-                    <div className="flex items-center gap-1.5 pl-2 p-0.5 select-none">
-                        <div className="flex flex-col text-right hidden sm:block">
-                            <p className="text-[11px] font-bold text-gray-800 leading-none">{getFullName()}</p>
-                            <p className="text-[9px] font-semibold text-gray-400 mt-0">{getUserRole()}</p>
+                    <div className="flex items-center gap-1.5 pl-2 p-0.5 select-none shrink-0">
+                        <div className="flex flex-col text-right hidden sm:block gap-0.5">
+                            <p className="text-[11px] font-bold text-gray-800 leading-normal whitespace-nowrap">{getFullName()}</p>
+                            <p className="text-[9px] font-semibold text-gray-400 whitespace-nowrap">{getUserRole()}</p>
                         </div>
-                        <div className="w-[28px] h-[28px] rounded-full bg-gold flex items-center justify-center text-white font-bold text-[11px] shadow-inner border-2 border-white">
+                        <div className="w-[28px] h-[28px] rounded-full bg-gold flex items-center justify-center text-white font-bold text-[11px] shadow-inner border-2 border-white shrink-0">
                             {getUserInitials()}
                         </div>
                     </div>

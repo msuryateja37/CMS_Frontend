@@ -381,6 +381,8 @@ export function DataTable<T extends Record<string, any>>({
                         <button
                             onClick={() => onPageChange?.(currentPage - 1)}
                             disabled={currentPage === 1}
+                            title="Previous page"
+                            aria-label="Previous page"
                             className="w-10 h-10 flex items-center justify-center rounded-lg text-brown hover:bg-light-gold transition-all disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                         >
                             <ChevronLeft size={20} />
@@ -430,6 +432,8 @@ export function DataTable<T extends Record<string, any>>({
                         <button
                             onClick={() => onPageChange?.(currentPage + 1)}
                             disabled={currentPage === totalPages || totalPages === 0}
+                            title="Next page"
+                            aria-label="Next page"
                             className="w-10 h-10 flex items-center justify-center rounded-lg text-brown hover:bg-light-gold transition-all disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                         >
                             <ChevronRight size={20} />

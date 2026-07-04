@@ -6,7 +6,7 @@ import StepBasicInfo from '../../components/report-incident/StepBasicInfo';
 import StepPeopleImpact from '../../components/report-incident/StepPeopleImpact';
 import StepAttachment from '../../components/report-incident/StepAttachment';
 import StepReview from '../../components/report-incident/StepReview';
-import casesService from '../../services/cases.service';
+import casesService, { type CreateCaseDto } from '../../services/cases.service';
 import { useAuthStore } from '../../store/auth.store';
 import { Check } from 'lucide-react';
 import { INCIDENT_CATEGORIES } from '../../data/constants';
@@ -75,7 +75,7 @@ const ReportIncident: React.FC = () => {
             setSubmitting(true);
 
             // Prepare the case data
-            const caseData: any = {
+            const caseData: CreateCaseDto = {
                 type: formData.type,
                 categoryId: formData.categoryId,
                 severity: formData.severity,
@@ -102,9 +102,10 @@ const ReportIncident: React.FC = () => {
                     caseNumber: newCase?.incidentNumber
                 }
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error submitting incident:', error);
-            alert(error.response?.data?.message || 'Failed to submit incident. Please try again.');
+            const err = error as { response?: { data?: { message?: string } } };
+            alert(err.response?.data?.message || 'Failed to submit incident. Please try again.');
         } finally {
             setSubmitting(false);
         }

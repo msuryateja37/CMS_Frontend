@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import { type EmployeeCase } from '../../services/employeeService';
 import { useMyCases } from '../../hooks/useEmployee';
-import { Search, AlertCircle } from 'lucide-react';
+import { Search, AlertCircle, ArrowLeft } from 'lucide-react';
 import { getStatusLabel } from '../../data/constants';
 
 const MyCases: React.FC = () => {
@@ -19,7 +19,7 @@ const MyCases: React.FC = () => {
     });
 
     const cases = casesData?.data || [];
-    const error = queryError ? (queryError as any).message : null;
+    const error = queryError ? (queryError as { message?: string }).message : null;
 
     // Normalize category keys to match DB categories
     const getCategoryLabel = (category: string) => {
@@ -93,11 +93,21 @@ const MyCases: React.FC = () => {
         <DashboardLayout title="OHS Incident Management">
             <div className="space-y-6 max-w-[1400px] mx-auto">
                 {/* Header section */}
-                <div>
-                    <h1 className="text-xl font-bold text-gray-900">Incidents</h1>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                        {isLoading ? 'Loading incidents...' : `${filteredCases.length} of ${cases.length} incidents`}
-                    </p>
+                <div className="flex items-start gap-4">
+                    <button
+                        onClick={() => navigate('/employee/dashboard')}
+                        className="p-2 -ml-2 hover:bg-gray-200 hover:text-gray-950 rounded-xl text-gray-400 active:scale-95 transition-all duration-200 shrink-0 mt-0.5 focus:outline-none"
+                        title="Back to Dashboard"
+                        aria-label="Back to Dashboard"
+                    >
+                        <ArrowLeft size={18} strokeWidth={2.5} />
+                    </button>
+                    <div>
+                        <h1 className="text-xl font-bold text-gray-900">Incidents</h1>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                            {isLoading ? 'Loading incidents...' : `${filteredCases.length} of ${cases.length} incidents`}
+                        </p>
+                    </div>
                 </div>
 
                 {/* Filter and Search Bar */}
@@ -116,6 +126,7 @@ const MyCases: React.FC = () => {
                     <div className="flex items-center gap-3 w-full md:w-auto">
                         <div className="relative w-full md:w-44 shrink-0">
                             <select
+                                title="Filter incidents by status"
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
                                 className="w-full pl-3 pr-8 py-2 rounded-xl bg-gray-50/50 border border-gray-200 text-xs font-semibold text-gray-700 outline-none focus:border-[#884616] transition appearance-none cursor-pointer"
@@ -137,6 +148,7 @@ const MyCases: React.FC = () => {
 
                         <div className="relative w-full md:w-44 shrink-0">
                             <select
+                                title="Filter incidents by category"
                                 value={categoryFilter}
                                 onChange={(e) => setCategoryFilter(e.target.value)}
                                 className="w-full pl-3 pr-8 py-2 rounded-xl bg-gray-50/50 border border-gray-200 text-xs font-semibold text-gray-700 outline-none focus:border-[#884616] transition appearance-none cursor-pointer"
@@ -186,18 +198,20 @@ const MyCases: React.FC = () => {
                                     <tr key={item.id} className="hover:bg-gray-50/50 transition">
                                         <td className="py-3.5 px-5 font-mono font-bold text-gray-700">{item.incidentNumber}</td>
                                         <td className="py-3.5 px-5 text-gray-500 whitespace-nowrap">
-                                            {new Date(item.occurredAt).toLocaleDateString('en-GB', {
-                                                day: 'numeric',
-                                                month: 'short',
-                                                year: 'numeric'
-                                            })}
+                                            {item.occurredAt
+                                                ? new Date(item.occurredAt).toLocaleDateString('en-GB', {
+                                                      day: 'numeric',
+                                                      month: 'short',
+                                                      year: 'numeric'
+                                                  })
+                                                : 'N/A'}
                                         </td>
                                         <td className="py-3.5 px-5 font-semibold text-gray-800">
                                             {item.reportedBy?.fullName || item.reportedBy?.name || 'John Doe'}
                                         </td>
                                         <td className="py-3.5 px-5 font-semibold text-gray-800">{getCategoryLabel(item.category)}</td>
                                         <td className="py-3.5 px-5 text-gray-500">
-                                            {(item.province?.name || item.building?.province?.name || 'Gauteng')} · {(item.building?.name || 'Pretoria Head Office')}
+                                            {(item.building?.province?.name || 'Gauteng')} · {(item.building?.name || 'Pretoria Head Office')}
                                         </td>
                                         <td className="py-3.5 px-5">
                                             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${

@@ -130,11 +130,13 @@ These incidents are auto-reported directly to the **Deputy Director-General (DDG
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isTyping]);
 
+    const dashboardPath = user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'supervisor' ? '/supervisor/dashboard' : '/employee/dashboard';
+
     return (
         <DashboardLayout
             title="OHS Safety Assistant"
             description="AI Assistant"
-            breadcrumbs={[{ label: "Dashboard", path: "/employee/dashboard" }, { label: "AI Assistant" }]}
+            breadcrumbs={[{ label: "Dashboard", path: dashboardPath }, { label: "AI Assistant" }]}
         >
             <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-140px)] min-h-[500px]">
                 {/* Main Chat Interface */}
@@ -225,6 +227,8 @@ These incidents are auto-reported directly to the **Deputy Director-General (DDG
                             <button
                                 type="submit"
                                 disabled={!inputValue.trim()}
+                                title="Send message"
+                                aria-label="Send message"
                                 className="bg-[#884616] text-white p-3 rounded-xl hover:bg-opacity-95 disabled:opacity-50 transition shrink-0 shadow-sm"
                             >
                                 <Send size={15} />

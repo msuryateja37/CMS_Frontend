@@ -168,9 +168,9 @@ const SafeWorkProcedures: React.FC = () => {
             header: 'Actions',
             cell: () => (
                 <div className="flex items-center justify-center gap-2 text-gray-400">
-                    <button className="hover:text-[#004D40] transition-colors"><Eye size={16} /></button>
-                    <button className="hover:text-[#004D40] transition-colors"><Edit size={16} /></button>
-                    <button className="hover:text-[#004D40] transition-colors"><Download size={16} /></button>
+                    <button title="View procedure" aria-label="View procedure" className="hover:text-[#004D40] transition-colors"><Eye size={16} /></button>
+                    <button title="Edit procedure" aria-label="Edit procedure" className="hover:text-[#004D40] transition-colors"><Edit size={16} /></button>
+                    <button title="Download procedure" aria-label="Download procedure" className="hover:text-[#004D40] transition-colors"><Download size={16} /></button>
                 </div>
             ),
             className: "text-center"

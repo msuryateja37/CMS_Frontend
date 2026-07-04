@@ -6,14 +6,8 @@ import { useCreateCase } from '../../hooks/useIncidents';
 import { useUsers } from '../../hooks/useUsers';
 import locationService, { type Province, type Building } from '../../services/location.service';
 import casesService from '../../services/cases.service';
-import { Trash2, Loader2, CheckCircle, AlertCircle, FileUp, Sparkles, HelpCircle, X } from 'lucide-react';
-
-interface Person {
-    id: string;
-    name: string;
-    phone: string;
-    email: string;
-}
+import { Trash2, Loader2, CheckCircle, AlertCircle, FileUp, HelpCircle, X, ArrowLeft, AlertTriangle } from 'lucide-react';
+import { type User } from '../../services/auth.service';
 
 interface FormData {
     id: string;
@@ -46,7 +40,7 @@ const ReportIncident: React.FC = () => {
 
     // On-Behalf-Of States
     const [isBehalfOf, setIsBehalfOf] = useState(false);
-    const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
+    const [selectedEmployee, setSelectedEmployee] = useState<User | null>(null);
     const [employeeSearch, setEmployeeSearch] = useState('');
     const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -99,11 +93,11 @@ const ReportIncident: React.FC = () => {
     // Province & Office Lists
     const [provinces, setProvinces] = useState<Province[]>([]);
     const [buildings, setBuildings] = useState<Building[]>([]);
-    const [loadingLocations, setLoadingLocations] = useState(false);
 
     // Confirm & Modal States
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [showDiscardConfirmModal, setShowDiscardConfirmModal] = useState(false);
 
     // File uploads states
     const [files, setFiles] = useState<File[]>([]);
@@ -115,19 +109,16 @@ const ReportIncident: React.FC = () => {
         userProvinceId ? { provinceId: userProvinceId, role: 'SUPERVISOR' } : undefined
     );
     // If on-behalf-of, their supervisor is the logged-in supervisor
-    const supervisorName = isBehalfOf ? (user?.fullName || user?.name || 'Sarah Mokae') : (supervisors && supervisors.length > 0 ? supervisors[0].name : 'Sarah Mokae');
+    const supervisorName = isBehalfOf ? (user?.fullName || 'Sarah Mokae') : (supervisors && supervisors.length > 0 ? supervisors[0].name : 'Sarah Mokae');
 
     // Fetch Provinces on mount
     useEffect(() => {
         const fetchProvinces = async () => {
-            setLoadingLocations(true);
             try {
                 const list = await locationService.getProvinces();
                 setProvinces(list);
             } catch (e) {
                 console.error('Failed to load provinces', e);
-            } finally {
-                setLoadingLocations(false);
             }
         };
         fetchProvinces();
@@ -187,7 +178,7 @@ const ReportIncident: React.FC = () => {
     useEffect(() => {
         if (formData.id) {
             const drafts = JSON.parse(localStorage.getItem('incident_drafts') || '[]');
-            const existingIndex = drafts.findIndex((d: any) => d.id === formData.id);
+            const existingIndex = drafts.findIndex((d: { id: string }) => d.id === formData.id);
             const currentDraft = {
                 ...formData,
                 occurredAtDate,
@@ -252,13 +243,26 @@ const ReportIncident: React.FC = () => {
         }));
     };
 
+    const isFormDirty = !!(
+        (formData.categoryId && formData.categoryId !== '') ||
+        (formData.location && formData.location.trim() !== '') ||
+        (formData.description && formData.description.trim() !== '') ||
+        (formData.buildingId && formData.buildingId !== '') ||
+        natureOfInjury.trim() !== '' ||
+        (formData.media && formData.media.length > 0) ||
+        isConfirmed ||
+        isBehalfOf
+    );
+
     const handleDiscard = () => {
-        if (window.confirm('Are you sure you want to discard this report? All changes will be lost.')) {
-            // Remove draft from local storage
+        if (isFormDirty) {
+            setShowDiscardConfirmModal(true);
+        } else {
+            // Remove draft from local storage anyway
             const drafts = JSON.parse(localStorage.getItem('incident_drafts') || '[]');
-            const updatedDrafts = drafts.filter((d: any) => d.id !== formData.id);
+            const updatedDrafts = drafts.filter((d: { id: string }) => d.id !== formData.id);
             localStorage.setItem('incident_drafts', JSON.stringify(updatedDrafts));
-            navigate('/employee/dashboard');
+            navigate(dashboardPath);
         }
     };
 
@@ -306,7 +310,7 @@ const ReportIncident: React.FC = () => {
 
             // Clear draft
             const drafts = JSON.parse(localStorage.getItem('incident_drafts') || '[]');
-            const updatedDrafts = drafts.filter((d: any) => d.id !== formData.id);
+            const updatedDrafts = drafts.filter((d: { id: string }) => d.id !== formData.id);
             localStorage.setItem('incident_drafts', JSON.stringify(updatedDrafts));
 
             const roleSlug = userRole === 'supervisor' ? 'supervisor' : userRole === 'ohs practitioner' ? 'ohs' : 'employee';
@@ -316,9 +320,10 @@ const ReportIncident: React.FC = () => {
                     caseNumber: response.incidentNumber
                 }
             });
-        } catch (e: any) {
+        } catch (e: unknown) {
             console.error('Failed to submit incident', e);
-            alert(e.response?.data?.message || 'Failed to submit incident. Please check all fields.');
+            const err = e as { response?: { data?: { message?: string } } };
+            alert(err.response?.data?.message || 'Failed to submit incident. Please check all fields.');
         }
     };
 
@@ -361,11 +366,21 @@ const ReportIncident: React.FC = () => {
         >
             <div className="max-w-[850px] mx-auto space-y-6 pb-12 animate-fadeIn">
                 {/* Form Header */}
-                <div>
-                    <h1 className="text-xl font-bold text-gray-900">Report New Incident</h1>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                        Complete every field accurately — this information starts the routing and notification process.
-                    </p>
+                <div className="flex items-start gap-4 mb-2">
+                    <button
+                        type="button"
+                        onClick={handleDiscard}
+                        className="p-2 -ml-2 hover:bg-gray-200 hover:text-gray-950 rounded-xl text-gray-400 active:scale-95 transition-all duration-200 shrink-0 mt-0.5 focus:outline-none"
+                        title="Back to Dashboard"
+                    >
+                        <ArrowLeft size={18} strokeWidth={2.5} />
+                    </button>
+                    <div>
+                        <h1 className="text-xl font-bold text-gray-900">Report New Incident</h1>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                            Complete every field accurately — this information starts the routing and notification process.
+                        </p>
+                    </div>
                 </div>
 
                 <form onSubmit={handleOpenConfirmModal} className="space-y-6">
@@ -391,10 +406,11 @@ const ReportIncident: React.FC = () => {
 
                         {isSupervisor && isBehalfOf && (
                             <div className="pt-1 pb-2 border-b border-gray-100 animate-fadeIn">
-                                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Search Employee *</label>
+                                <label htmlFor="employee-search" className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Search Employee *</label>
                                 <div className="relative">
                                     <input
                                         type="text"
+                                        id="employee-search"
                                         value={employeeSearch}
                                         onChange={(e) => {
                                             setEmployeeSearch(e.target.value);
@@ -418,7 +434,7 @@ const ReportIncident: React.FC = () => {
                                                             setFormData(prev => ({
                                                                 ...prev,
                                                                 provinceId: emp.provinceId || undefined,
-                                                                buildingId: emp.department?.building?.id || emp.buildingId || undefined,
+                                                                buildingId: emp.buildingId || undefined,
                                                                 departmentId: emp.departmentId || undefined
                                                             }));
                                                         }}
@@ -439,27 +455,30 @@ const ReportIncident: React.FC = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Name</label>
+                                <label htmlFor="reporter-name" className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Name</label>
                                 <input
                                     type="text"
-                                    value={isBehalfOf && selectedEmployee ? selectedEmployee.name : (user?.fullName || user?.name || 'N/A')}
+                                    id="reporter-name"
+                                    value={isBehalfOf && selectedEmployee ? selectedEmployee.name : (user?.fullName || 'N/A')}
                                     disabled
                                     className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-500 cursor-not-allowed"
                                 />
                             </div>
                             <div>
-                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Employee #</label>
+                                <label htmlFor="reporter-emp-num" className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Employee #</label>
                                 <input
                                     type="text"
+                                    id="reporter-emp-num"
                                     value={isBehalfOf && selectedEmployee ? (selectedEmployee.employeeNumber || 'N/A') : (user?.employeeNumber || 'N/A')}
                                     disabled
                                     className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-500 cursor-not-allowed"
                                 />
                             </div>
                             <div>
-                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Supervisor</label>
+                                <label htmlFor="reporter-supervisor" className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Supervisor</label>
                                 <input
                                     type="text"
+                                    id="reporter-supervisor"
                                     value={supervisorName}
                                     disabled
                                     className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-500 cursor-not-allowed"
@@ -474,9 +493,10 @@ const ReportIncident: React.FC = () => {
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Date *</label>
+                                <label htmlFor="incident-date" className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Date *</label>
                                 <input
                                     type="date"
+                                    id="incident-date"
                                     value={occurredAtDate}
                                     onChange={(e) => setOccurredAtDate(e.target.value)}
                                     required
@@ -484,9 +504,10 @@ const ReportIncident: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Time *</label>
+                                <label htmlFor="incident-time" className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Time *</label>
                                 <input
                                     type="time"
+                                    id="incident-time"
                                     value={occurredAtTime}
                                     onChange={(e) => setOccurredAtTime(e.target.value)}
                                     required
@@ -497,17 +518,19 @@ const ReportIncident: React.FC = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Province</label>
+                                <label htmlFor="incident-province" className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Province</label>
                                 <input
                                     type="text"
+                                    id="incident-province"
                                     value={provinces.find(p => p.id === formData.provinceId)?.name || provinces.find(p => p.id === user?.province?.id)?.name || 'Gauteng'}
                                     disabled
                                     className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-500 cursor-not-allowed"
                                 />
                             </div>
                             <div>
-                                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Office / Building *</label>
+                                <label htmlFor="incident-building" className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Office / Building *</label>
                                 <select
+                                    id="incident-building"
                                     value={formData.buildingId || ''}
                                     onChange={(e) => setFormData(prev => ({ ...prev, buildingId: e.target.value }))}
                                     required
@@ -523,9 +546,10 @@ const ReportIncident: React.FC = () => {
                         </div>
 
                         <div>
-                            <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Specific Location *</label>
+                            <label htmlFor="incident-location" className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Specific Location *</label>
                             <input
                                 type="text"
+                                id="incident-location"
                                 placeholder="e.g. Stairwell, Block B, 2nd floor"
                                 value={formData.location || ''}
                                 onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
@@ -582,9 +606,10 @@ const ReportIncident: React.FC = () => {
 
                         {(category === 'health' || category === 'safety') && (
                             <div className="pt-2 animate-fadeIn">
-                                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Nature of Injury / Medical Complaint *</label>
+                                <label htmlFor="incident-nature" className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Nature of Injury / Medical Complaint *</label>
                                 <input
                                     type="text"
+                                    id="incident-nature"
                                     placeholder="e.g. Chest pain, deep cut on left index finger"
                                     value={natureOfInjury}
                                     onChange={(e) => setNatureOfInjury(e.target.value)}
@@ -592,17 +617,17 @@ const ReportIncident: React.FC = () => {
                                     className="w-full px-3.5 py-2 bg-white border border-gray-200 rounded-lg text-xs font-semibold outline-none focus:border-[#884616] focus:ring-1 focus:ring-[#884616] transition"
                                 />
                             </div>
-                          )}
-
+                        )}
                     </div>
 
                     {/* Description Panel (Bordered Card) */}
                     <div className="bg-white rounded-2xl border border-gray-150 p-5 shadow-sm space-y-3">
                         <div>
-                            <h2 className="text-xs font-bold text-gray-700 uppercase tracking-wider">Description *</h2>
+                            <label htmlFor="incident-description" className="block text-xs font-bold text-gray-700 uppercase tracking-wider">Description *</label>
                             <p className="text-[10px] text-gray-400 mt-0.5">Include what, where, when, and how.</p>
                         </div>
                         <textarea
+                            id="incident-description"
                             placeholder="Describe what happened..."
                             rows={4}
                             value={formData.description || ''}
@@ -615,10 +640,11 @@ const ReportIncident: React.FC = () => {
                     {/* Immediate Action Taken (Bordered Card) */}
                     <div className="bg-white rounded-2xl border border-gray-150 p-5 shadow-sm space-y-3">
                         <div>
-                            <h2 className="text-xs font-bold text-gray-700 uppercase tracking-wider">Immediate action taken</h2>
+                            <label htmlFor="incident-immediate-actions" className="block text-xs font-bold text-gray-700 uppercase tracking-wider">Immediate action taken</label>
                             <p className="text-[10px] text-gray-400 mt-0.5">Optional — what was done immediately after?</p>
                         </div>
                         <textarea
+                            id="incident-immediate-actions"
                             placeholder="Optional — what was done immediately after?"
                             rows={3}
                             value={formData.immediateActions || ''}
@@ -743,6 +769,45 @@ const ReportIncident: React.FC = () => {
                                 className="px-5 py-2 bg-[#2E7D32] hover:bg-[#1B5E20] text-white rounded-lg text-xs font-bold transition shadow-md"
                             >
                                 Confirm Submission
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Discard Confirmation Dialog Modal */}
+            {showDiscardConfirmModal && (
+                <div className="fixed inset-0 bg-black/55 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl border border-gray-100 overflow-hidden animate-fadeIn">
+                        <div className="p-5 text-center">
+                            <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-3.5">
+                                <AlertTriangle size={22} />
+                            </div>
+                            <h3 className="font-bold text-sm text-gray-800">Discard Report?</h3>
+                            <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
+                                Are you sure you want to discard this report? All changes will be lost.
+                            </p>
+                        </div>
+                        <div className="px-4 py-3 bg-gray-50 flex items-center justify-end gap-2 border-t border-gray-150">
+                            <button
+                                type="button"
+                                onClick={() => setShowDiscardConfirmModal(false)}
+                                className="px-4 py-2 border border-gray-250 hover:bg-gray-100 text-gray-600 rounded-lg text-xs font-bold transition"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowDiscardConfirmModal(false);
+                                    const drafts = JSON.parse(localStorage.getItem('incident_drafts') || '[]');
+                                    const updatedDrafts = drafts.filter((d: { id: string }) => d.id !== formData.id);
+                                    localStorage.setItem('incident_drafts', JSON.stringify(updatedDrafts));
+                                    navigate(dashboardPath);
+                                }}
+                                className="px-5 py-2 bg-[#E63D4B] hover:bg-[#E63D4B]/95 text-white rounded-lg text-xs font-bold transition shadow-md"
+                            >
+                                OK
                             </button>
                         </div>
                     </div>

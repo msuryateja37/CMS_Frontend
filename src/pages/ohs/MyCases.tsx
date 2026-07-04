@@ -5,7 +5,7 @@ import { Pill } from '../../components/common/Pill';
 import { Select } from '../../components/common/Select';
 import { DataTable, type Column } from '../../components/common/DataTable';
 import { type Case } from '../../services/cases.service';
-import { Eye, Loader2, FilePlus } from 'lucide-react';
+import { ArrowLeft, Eye, Loader2, FilePlus } from 'lucide-react';
 import { STATUS_FILTER_OPTIONS, CATEGORY_FILTER_OPTIONS, PRIORITY_FILTER_OPTIONS, getStatusLabel } from '../../data/constants';
 import { formatCategory } from '../../utils/formatters';
 import { useIncidents } from '../../hooks/useIncidents';
@@ -36,7 +36,7 @@ const MyCases: React.FC = () => {
 
     const cases = casesData?.data || [];
     const totalItems = casesData?.total || 0;
-    const error = casesError ? (casesError as any).message || 'Failed to load incidents' : null;
+    const error = casesError ? (casesError as { message?: string }).message || 'Failed to load incidents' : null;
 
     const handleStatusFilterChange = (val: string) => {
         setStatusFilter(val);
@@ -101,7 +101,7 @@ const MyCases: React.FC = () => {
             header: 'Actions',
             cell: (item) => (
                 <button
-                    onClick={() => navigate(`/ohs/cases/${item.id}`)}
+                    onClick={() => navigate(`/ohs/cases/${item.id}`, { state: { from: 'my-cases' } })}
                     className="flex items-center gap-1.5 px-4 py-1.5 bg-light-gold text-brown text-xs font-bold rounded-lg hover:bg-gold/10 transition-colors whitespace-nowrap"
                 >
                     <Eye size={14} />
@@ -127,11 +127,19 @@ const MyCases: React.FC = () => {
             breadcrumbs={[{ label: "Dashboard", path: "/ohs/dashboard" }, { label: "Assigned Incidents" }]}
         >
             <div className="flex flex-col gap-6">
-                {/* Top Actions */}
-                <div className="flex justify-end mb-1">
+                {/* Actions Row */}
+                <div className="flex justify-between items-center mb-1">
+                    <button
+                        onClick={() => navigate('/ohs/dashboard')}
+                        className="p-2 hover:bg-gray-200 rounded-lg text-gray-500 hover:text-gray-700 transition-colors shrink-0"
+                        title="Back"
+                        aria-label="Back"
+                    >
+                        <ArrowLeft size={20} />
+                    </button>
                     <button
                         onClick={() => navigate('/ohs/report-incident')}
-                        className="flex items-center gap-2 px-4 py-2 bg-brown text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm"
+                        className="flex items-center gap-2 px-4 py-2 bg-brown text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm text-sm shrink-0"
                     >
                         <FilePlus size={16} />
                         Report New Incident

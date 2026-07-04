@@ -147,7 +147,7 @@ const HazardReports: React.FC = () => {
                     <button className="flex items-center gap-2 px-3 py-1.5 bg-[#F1E3D3] text-[#884616] rounded-lg text-xs font-bold hover:bg-[#d4eabc] transition-colors">
                         <Eye size={14} /> View
                     </button>
-                    <button className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg">
+                    <button title="More options" aria-label="More options" className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg">
                         <MoreHorizontal size={18} />
                     </button>
                 </div>

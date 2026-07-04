@@ -65,8 +65,9 @@ const Profile: React.FC = () => {
             setIsEditing(false);
             setSuccess(true);
             setTimeout(() => setSuccess(false), 3000);
-        } catch (err: any) {
-            setError(err?.response?.data?.message || 'Failed to update profile');
+        } catch (err) {
+            const errorResponse = err as { response?: { data?: { message?: string } } };
+            setError(errorResponse?.response?.data?.message || 'Failed to update profile');
         } finally {
             setSaving(false);
         }
@@ -105,7 +106,7 @@ const Profile: React.FC = () => {
     return (
         <DashboardLayout
             title="My Profile"
-            description="Profile"
+            description="My Profile"
             breadcrumbs={[{ label: "Dashboard" }, { label: "Profile" }]}
         >
             <div className="max-w-3xl mx-auto flex flex-col gap-6">

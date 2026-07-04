@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Input } from 'antd';
 import DashboardLayout from '../../layouts/DashboardLayout';
-import casesService, { type Case, type CaseApproval } from '../../services/cases.service';
+import casesService, { type Case } from '../../services/cases.service';
 import { Pill } from '../../components/common/Pill';
 import { getStatusLabel } from '../../data/constants';
 import { formatCategory } from '../../utils/formatters';
@@ -22,17 +22,6 @@ const severityConfig: Record<string, { bg: string; text: string; dot: string }> 
     medium: { bg: 'bg-light-yellow', text: 'text-yellow-800', dot: 'bg-brand-yellow' },
     low: { bg: 'bg-light-gold', text: 'text-brown', dot: 'bg-[#21FC95]' },
 };
-
-const provincialNames = [
-    "Eastern Cape",
-    "Gauteng",
-    "KwaZulu-Natal",
-    "Limpopo",
-    "Mpumalanga",
-    "Northern Cape",
-    "North West",
-    "Western Cape"
-];
 
 interface TimelineActivity {
     id?: string;
@@ -84,11 +73,22 @@ function timelineDotClass(a: TimelineActivity): string {
     return 'bg-gold';
 }
 
+interface ActionCase extends Case {
+    hrStatus?: string;
+    hrAssignedTo?: { name: string };
+}
+
 const CaseAction: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
     const { user } = useAuthStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const state = location.state as Record<string, unknown> | null;
+    const fromPath = state?.from as string | undefined;
+    const backTarget = fromPath === 'pool' ? '/ohs/pool' : fromPath === 'my-cases' ? '/ohs/my-cases' : '/ohs/dashboard';
+    const backLabel = fromPath === 'pool' ? 'Back' : fromPath === 'my-cases' ? 'Back to Assigned Incidents' : 'Back to Dashboard';
 
     const [caseData, setCaseData] = useState<Case | null>(null);
     const [loading, setLoading] = useState(true);
@@ -133,6 +133,7 @@ const CaseAction: React.FC = () => {
     const [activeTab, setActiveTab] = useState('details');
 
     // Annexure 1 form states
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [annexData, setAnnexData] = useState<any>(null);
     const [loadingAnnex, setLoadingAnnex] = useState(false);
     const [savingAnnex, setSavingAnnex] = useState(false);
@@ -308,11 +309,11 @@ const CaseAction: React.FC = () => {
                 const isOHS = userRole === 'ohs practitioner';
                 const isSecurity = userRole === 'security practitioner';
                 const isAdmin = userRole === 'admin' || userRole === 'system administrator';
-                
-                const roleName = isSupervisor ? 'Supervisor' : 
-                                 isOHS ? 'OHS Practitioner' : 
-                                 isSecurity ? 'Security Practitioner' : 
-                                 isAdmin ? 'Admin' : 'Employee';
+
+                const roleName = isSupervisor ? 'Supervisor' :
+                    isOHS ? 'OHS Practitioner' :
+                        isSecurity ? 'Security Practitioner' :
+                            isAdmin ? 'Admin' : 'Employee';
 
                 const row = await casesService.addEvidence(id, {
                     fileUrl: uploaded.url,
@@ -434,8 +435,6 @@ const CaseAction: React.FC = () => {
     const isSupervisor = userRole === 'supervisor';
     const isAdmin = userRole === 'admin' || userRole === 'system administrator';
     const isOHS = userRole === 'ohs practitioner';
-    const isSecurity = userRole === 'security practitioner';
-    const isPractitioner = isOHS || isSecurity;
     const isCurrentAssignee = user?.id === caseData.assignedTo?.id;
     const canEdit = !isClosed && (isCurrentAssignee || isSupervisor || isAdmin);
 
@@ -473,11 +472,11 @@ const CaseAction: React.FC = () => {
                 {/* Top Bar: Back + Action */}
                 <div className="flex items-center justify-between mb-6">
                     <button
-                        onClick={() => navigate('/ohs/cases-review')}
+                        onClick={() => navigate(backTarget)}
                         className="flex items-center gap-2 text-gray-500 hover:text-gray-700 transition-colors font-medium text-sm"
                     >
                         <ArrowLeft size={18} />
-                        <span>Back to Incidents</span>
+                        <span>{backLabel}</span>
                     </button>
 
                     {!isClosed && !isUnderReview && isCurrentAssignee && (
@@ -515,7 +514,7 @@ const CaseAction: React.FC = () => {
                                         showSuccess('Case self-assigned successfully.');
                                         fetchCaseDetails(caseData.id);
                                         fetchTimeline(caseData.id);
-                                    } catch (err) {
+                                    } catch {
                                         setError('Failed to self-assign incident.');
                                     } finally {
                                         setLoading(false);
@@ -616,8 +615,9 @@ const CaseAction: React.FC = () => {
                                 <p className="text-[11px] text-gray-400 font-bold uppercase tracking-wide mb-2">HR Documentation Track</p>
                                 <div className="flex items-center gap-3">
                                     {(() => {
-                                        const hrStatus = (caseData as any).hrStatus as string | undefined;
-                                        const hrAssignedTo = (caseData as any).hrAssignedTo as { name: string } | undefined;
+                                        const extCase = caseData as ActionCase | null;
+                                        const hrStatus = extCase?.hrStatus;
+                                        const hrAssignedTo = extCase?.hrAssignedTo;
                                         const colorMap: Record<string, string> = {
                                             HR_UNASSIGNED: 'bg-gray-100 text-gray-600',
                                             HR_ASSIGNED: 'bg-blue-100 text-blue-700',
@@ -1179,7 +1179,7 @@ const CaseAction: React.FC = () => {
                                     <div className="flex justify-between items-center mb-6">
                                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Tracked corrective actions</h3>
                                         {canAddAction && (
-                                            <button 
+                                            <button
                                                 onClick={() => setShowActionForm(!showActionForm)}
                                                 className="flex items-center gap-2 px-4 py-2 bg-brown text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all"
                                             >
@@ -1317,7 +1317,7 @@ const CaseAction: React.FC = () => {
                                     <div className="flex justify-between items-center mb-6">
                                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Incident Plan</h3>
                                         {canEdit && (
-                                            <button 
+                                            <button
                                                 onClick={() => setEditingPlan(!editingPlan)}
                                                 className="flex items-center gap-2 px-4 py-2 bg-brown text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all"
                                             >
@@ -1373,7 +1373,7 @@ const CaseAction: React.FC = () => {
                                     <div className="flex justify-between items-center mb-6">
                                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Uploaded Attachments</h3>
                                         {canAddEvidence && (
-                                            <button 
+                                            <button
                                                 onClick={() => setShowEvidenceForm(!showEvidenceForm)}
                                                 className="flex items-center gap-2 px-4 py-2 bg-brown text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all"
                                             >
@@ -1456,7 +1456,7 @@ const CaseAction: React.FC = () => {
                                                         .join(' ');
                                                 };
 
-                                                const roles = Array.from(new Set(caseData.evidence?.map(e => 
+                                                const roles = Array.from(new Set(caseData.evidence?.map(e =>
                                                     normalizeRoleName(e.uploaderRole)
                                                 ) || []));
                                                 // Sort roles to have a consistent order
@@ -1474,14 +1474,13 @@ const CaseAction: React.FC = () => {
                                                     return (
                                                         <div key={role} className="mb-6 last:mb-0">
                                                             <div className="flex items-center gap-2 mb-3">
-                                                                <span className={`px-2.5 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider ${
-                                                                    role === 'Employee' ? 'bg-blue-50 text-blue-700' :
-                                                                    role === 'Supervisor' ? 'bg-gray-200 text-gray-700' :
-                                                                    role === 'OHS Practitioner' ? 'bg-amber-50 text-amber-700' :
-                                                                    role === 'Security Practitioner' ? 'bg-indigo-50 text-indigo-700' :
-                                                                    role === 'Admin' ? 'bg-purple-50 text-purple-700' :
-                                                                    'bg-gray-100 text-gray-600'
-                                                                }`}>
+                                                                <span className={`px-2.5 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider ${role === 'Employee' ? 'bg-blue-50 text-blue-700' :
+                                                                        role === 'Supervisor' ? 'bg-gray-200 text-gray-700' :
+                                                                            role === 'OHS Practitioner' ? 'bg-amber-50 text-amber-700' :
+                                                                                role === 'Security Practitioner' ? 'bg-indigo-50 text-indigo-700' :
+                                                                                    role === 'Admin' ? 'bg-purple-50 text-purple-700' :
+                                                                                        'bg-gray-100 text-gray-600'
+                                                                    }`}>
                                                                     {role}
                                                                 </span>
                                                                 <div className="h-px flex-1 bg-gray-200" />
@@ -1552,9 +1551,9 @@ const CaseAction: React.FC = () => {
                                             )}
                                         </div>
                                         {canEdit && (
-                                            <button 
+                                            <button
 
-                                            onClick={() => setShowCommentForm(!showCommentForm)}
+                                                onClick={() => setShowCommentForm(!showCommentForm)}
                                                 className="flex items-center gap-2 px-4 py-2 bg-brown text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all"
                                             >
                                                 <Plus size={16} />
@@ -1577,7 +1576,7 @@ const CaseAction: React.FC = () => {
                                                 />
                                                 <div className="flex justify-end mt-3">
                                                     <button
-                                                onClick={() => void handleAddComment()}
+                                                        onClick={() => void handleAddComment()}
                                                         disabled={!comment.trim() || submittingComment}
                                                         className="flex items-center gap-2 px-4 py-2 bg-brown text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >

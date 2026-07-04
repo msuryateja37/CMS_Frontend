@@ -5,10 +5,7 @@ import {
     Plus,
     Search,
     AlertTriangle,
-    Eye,
-    TrendingDown,
-    X,
-    Filter
+    X
 } from 'lucide-react';
 
 interface RiskRecord {
@@ -170,8 +167,8 @@ const OHSHira: React.FC = () => {
             activity: newRisk.activity || '',
             hazard: newRisk.hazard || '',
             task: newRisk.task || '',
-            riskType: newRisk.riskType as any,
-            activityType: newRisk.activityType as any,
+            riskType: newRisk.riskType || 'Ergonomic',
+            activityType: newRisk.activityType || 'Routine',
             riskOwner: newRisk.riskOwner || 'All staff',
             initialLikelihood: initL,
             initialConsequence: initC,
@@ -328,7 +325,7 @@ const OHSHira: React.FC = () => {
                                         <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Risk Type *</label>
                                         <select
                                             value={newRisk.riskType}
-                                            onChange={(e) => setNewRisk({ ...newRisk, riskType: e.target.value as any })}
+                                            onChange={(e) => setNewRisk({ ...newRisk, riskType: e.target.value as RiskRecord['riskType'] })}
                                             className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
                                         >
                                             <option value="Ergonomic">Ergonomic</option>
@@ -341,7 +338,7 @@ const OHSHira: React.FC = () => {
                                         <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Activity Type *</label>
                                         <select
                                             value={newRisk.activityType}
-                                            onChange={(e) => setNewRisk({ ...newRisk, activityType: e.target.value as any })}
+                                            onChange={(e) => setNewRisk({ ...newRisk, activityType: e.target.value as RiskRecord['activityType'] })}
                                             className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
                                         >
                                             <option value="Routine">Routine</option>

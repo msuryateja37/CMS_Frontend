@@ -6,7 +6,7 @@ import { Pill } from '../../components/common/Pill';
 import { getStatusLabel } from '../../data/constants';
 import {
     FileText, Users, ArrowLeft, Clock, UserPlus, CheckCircle,
-    ArrowUpRight, MapPin, Calendar, Building2, User,
+    MapPin, Calendar, Building2, User,
     Shield, MessageSquare, Send, Loader2, Plus, Upload, X, AlertCircle
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
@@ -98,14 +98,11 @@ const CaseDetails: React.FC = () => {
     const isAdmin = userRole === 'admin' || userRole === 'system administrator';
     const isOHS = userRole === 'ohs practitioner';
     const isSecurity = userRole === 'security practitioner';
-    const isPractitioner = isOHS || isSecurity;
-
     const isAssigned = caseData?.status === 'ASSIGNED' || !!caseData?.assignedTo;
     const isClosed = caseData?.status === 'CLOSED' || caseData?.status === 'RESOLVED' || caseData?.status === 'COMPLETED';
     const isEscalatedToAdmin = caseData?.status === 'ESCALATED_TO_ADMIN';
     const isCurrentAssignee = user?.id === caseData?.assignedTo?.id;
     const isHR = userRole === 'hr';
-    const canEdit = !isClosed && (isCurrentAssignee || isSupervisor || isAdmin);
     const isUnderReview = caseData?.status === 'UNDER_REVIEW';
     const canAdd = !isClosed && (isCurrentAssignee || isSupervisor || isAdmin);
 
@@ -132,7 +129,16 @@ const CaseDetails: React.FC = () => {
         }
     };
 
-    const patchCorrectiveActionRow = async (actionId: string, patch: any) => {
+    const patchCorrectiveActionRow = async (
+        actionId: string,
+        patch: {
+            actionText?: string;
+            status?: string;
+            dueDate?: string | null;
+            notes?: string | null;
+            completedAt?: string | null;
+        }
+    ) => {
         if (!id) return;
         try {
             setActionPatchingId(actionId);
@@ -211,7 +217,7 @@ const CaseDetails: React.FC = () => {
             <DashboardLayout title="Incident Details" description="Error" breadcrumbs={[{ label: "Dashboard" }, { label: "Error" }]}>
                 <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl">
                     <p className="font-bold">Error</p>
-                    <p className="text-sm mt-1">{(caseError as any)?.message || 'Incident not found.'}</p>
+                    <p className="text-sm mt-1">{(caseError as { message?: string })?.message || 'Incident not found.'}</p>
                     <button onClick={() => navigate(-1)} className="mt-3 bg-red-100 px-4 py-2 rounded-lg text-red-800 font-bold text-sm">Go Back</button>
                 </div>
             </DashboardLayout>
@@ -251,41 +257,15 @@ const CaseDetails: React.FC = () => {
                         <span>Back</span>
                     </button>
 
-                    {isSupervisor && !isClosed && (
+                    {isSupervisor && !isClosed && !isAssigned && (
                         <div className="flex items-center gap-2">
-                            {!isAssigned && (
-                                <button
-                                    onClick={() => setIsAssignModalOpen(true)}
-                                    className="flex items-center gap-2 px-4 py-2.5 bg-brown text-white rounded-lg hover:bg-opacity-90 transition-all font-semibold text-sm shadow-sm"
-                                >
-                                    <UserPlus size={16} />
-                                    Assign Practitioner
-                                </button>
-                            )}
-                            {isAssigned && (
-                                <span
-                                    className="flex items-center gap-2 px-4 py-2.5 bg-gold-50 border border-gold-200 text-gold-700 rounded-lg font-semibold text-sm cursor-default select-none"
-                                >
-                                    <CheckCircle size={16} />
-                                    Assigned
-                                </span>
-                            )}
                             <button
-                                onClick={() => navigate(`/supervisor/cases/${caseData.id}/approve`)}
-                                className="flex items-center gap-2 px-4 py-2.5 bg-gold text-white rounded-lg hover:bg-opacity-90 transition-all font-semibold text-sm shadow-sm"
+                                onClick={() => setIsAssignModalOpen(true)}
+                                className="flex items-center gap-2 px-4 py-2.5 bg-brown text-white rounded-lg hover:bg-opacity-90 transition-all font-semibold text-sm shadow-sm"
                             >
-                                <CheckCircle size={16} />
-                                Review
+                                <UserPlus size={16} />
+                                Assign Practitioner
                             </button>
-                            {isAssigned && (
-                                <button
-                                    onClick={() => setShowEscalation(true)}
-                                    className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition-all font-semibold text-sm"
-                                >
-                                    <ArrowUpRight size={16} />
-                                    Escalate
-                                </button>
-                            )}
                         </div>
                     )}
 
@@ -316,7 +296,7 @@ const CaseDetails: React.FC = () => {
                                     showSuccess('Incident self-assigned successfully.');
                                     refetchDetails();
                                     refetchTimeline();
-                                } catch (err) {
+                                } catch {
                                     showError('Failed to self-assign incident.');
                                 }
                             }}

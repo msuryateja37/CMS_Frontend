@@ -112,7 +112,7 @@ export const ApprovalsTab: React.FC<ApprovalsTabProps> = ({
 
     const openNewApprovalForm = (roleName: string) => {
         setNewApprovalForRole(roleName);
-        setNewApprRecommender(user?.fullName || user?.name || '');
+        setNewApprRecommender(user?.fullName || '');
         setNewApprText('');
         setNewApprFile(null);
     };
