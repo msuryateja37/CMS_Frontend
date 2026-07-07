@@ -117,6 +117,13 @@ export interface Case {
     user: { id: string; name: string; email?: string };
     createdAt: string;
   }>;
+
+  hrStatus?: string;
+  hrAssignedTo?: {
+    id: string;
+    name: string;
+    email: string;
+  };
 }
 
 export interface CaseApprovalAttachment {
@@ -241,6 +248,14 @@ class CasesService {
    */
   async assignCase(id: string, assignedToId: string): Promise<Case> {
     const response = await api.put<Case>(`/cases/${id}/assign`, { assignedToId });
+    return response.data;
+  }
+
+  /**
+   * OHS practitioner pulls a case out of their province pool.
+   */
+  async pickupCase(id: string): Promise<Case> {
+    const response = await api.put<Case>(`/cases/${id}/pickup`);
     return response.data;
   }
 
@@ -400,6 +415,46 @@ class CasesService {
         'Content-Type': 'multipart/form-data',
       },
     });
+    return response.data;
+  }
+
+  /**
+   * Get Annexure 1 details for a case
+   */
+  async getAnnexureOne(id: string): Promise<any> {
+    const response = await api.get(`/cases/${id}/annexure1`);
+    return response.data;
+  }
+
+  /**
+   * Update/save Annexure 1 details for a case
+   */
+  async updateAnnexureOne(id: string, data: any): Promise<any> {
+    const response = await api.put(`/cases/${id}/annexure1`, data);
+    return response.data;
+  }
+
+  /**
+   * Forward a health case to OHS pool due to hospitalization
+   */
+  async forwardToOhs(id: string): Promise<Case> {
+    const response = await api.put<Case>(`/cases/${id}/forward-ohs`);
+    return response.data;
+  }
+
+  /**
+   * HR Officer picks up a forwarded health incident.
+   */
+  async hrPickupCase(id: string): Promise<Case> {
+    const response = await api.put<Case>(`/cases/${id}/hr-pickup`);
+    return response.data;
+  }
+
+  /**
+   * HR Officer updates the status of the HR parallel track.
+   */
+  async hrUpdateStatus(id: string, hrStatus: string): Promise<Case> {
+    const response = await api.put<Case>(`/cases/${id}/hr-status`, { hrStatus });
     return response.data;
   }
 }

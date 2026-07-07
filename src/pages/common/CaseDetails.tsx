@@ -6,7 +6,7 @@ import { Pill } from '../../components/common/Pill';
 import { getStatusLabel } from '../../data/constants';
 import {
     FileText, Users, ArrowLeft, Clock, UserPlus, CheckCircle,
-    ArrowUpRight, MapPin, Calendar, Building2, User,
+    MapPin, Calendar, Building2, User,
     Shield, MessageSquare, Send, Loader2, Plus, Upload, X, AlertCircle
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
@@ -18,7 +18,7 @@ import { formatCategory } from '../../utils/formatters';
 
 
 const TABS = [
-    { id: 'details', label: 'Details of the case' },
+    { id: 'details', label: 'Details of the incident' },
     { id: 'actions', label: 'Corrective actions' },
     { id: 'evidence', label: 'Attachments / evidence' },
     { id: 'approvals', label: 'Approvals / recommendations' },
@@ -98,18 +98,18 @@ const CaseDetails: React.FC = () => {
     const isAdmin = userRole === 'admin' || userRole === 'system administrator';
     const isOHS = userRole === 'ohs practitioner';
     const isSecurity = userRole === 'security practitioner';
-    const isPractitioner = isOHS || isSecurity;
-
     const isAssigned = caseData?.status === 'ASSIGNED' || !!caseData?.assignedTo;
-    const isClosed = caseData?.status === 'CLOSED' || caseData?.status === 'RESOLVED';
-    const canEdit = !isClosed && (isSupervisor || isAdmin || isPractitioner);
+    const isClosed = caseData?.status === 'CLOSED' || caseData?.status === 'RESOLVED' || caseData?.status === 'COMPLETED';
+    const isEscalatedToAdmin = caseData?.status === 'ESCALATED_TO_ADMIN';
+    const isCurrentAssignee = user?.id === caseData?.assignedTo?.id;
+    const isHR = userRole === 'hr';
     const isUnderReview = caseData?.status === 'UNDER_REVIEW';
-    const canAdd = !isClosed && (isSupervisor || isAdmin || isPractitioner);
+    const canAdd = !isClosed && (isCurrentAssignee || isSupervisor || isAdmin);
 
     // Practitioner-only actions
-    const canAddAction = !isClosed && isOHS;
-    const canAddEvidence = !isClosed && isOHS;
-    const canAddApproval = !isClosed && isOHS;
+    const canAddAction = !isClosed && isOHS && isCurrentAssignee;
+    const canAddEvidence = !isClosed && isOHS && isCurrentAssignee;
+    const canAddApproval = !isClosed && isOHS && isCurrentAssignee;
 
     const handleAddCorrectiveAction = async () => {
         if (!newActionText.trim() || !id) return;
@@ -129,7 +129,16 @@ const CaseDetails: React.FC = () => {
         }
     };
 
-    const patchCorrectiveActionRow = async (actionId: string, patch: any) => {
+    const patchCorrectiveActionRow = async (
+        actionId: string,
+        patch: {
+            actionText?: string;
+            status?: string;
+            dueDate?: string | null;
+            notes?: string | null;
+            completedAt?: string | null;
+        }
+    ) => {
         if (!id) return;
         try {
             setActionPatchingId(actionId);
@@ -195,7 +204,7 @@ const CaseDetails: React.FC = () => {
 
     if (caseLoading) {
         return (
-            <DashboardLayout title="Case Details" description="Loading..." breadcrumbs={[{ label: "Dashboard" }, { label: "Case Details" }]}>
+            <DashboardLayout title="Incident Details" description="Loading..." breadcrumbs={[{ label: "Dashboard" }, { label: "Incident Details" }]}>
                 <div className="flex items-center justify-center h-96">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div>
                 </div>
@@ -205,10 +214,10 @@ const CaseDetails: React.FC = () => {
 
     if (caseError || !caseData) {
         return (
-            <DashboardLayout title="Case Details" description="Error" breadcrumbs={[{ label: "Dashboard" }, { label: "Error" }]}>
+            <DashboardLayout title="Incident Details" description="Error" breadcrumbs={[{ label: "Dashboard" }, { label: "Error" }]}>
                 <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl">
                     <p className="font-bold">Error</p>
-                    <p className="text-sm mt-1">{(caseError as any)?.message || 'Case not found.'}</p>
+                    <p className="text-sm mt-1">{(caseError as { message?: string })?.message || 'Incident not found.'}</p>
                     <button onClick={() => navigate(-1)} className="mt-3 bg-red-100 px-4 py-2 rounded-lg text-red-800 font-bold text-sm">Go Back</button>
                 </div>
             </DashboardLayout>
@@ -219,9 +228,9 @@ const CaseDetails: React.FC = () => {
 
     return (
         <DashboardLayout
-            title={`Case ${caseData.incidentNumber}`}
-            description="Case Details"
-            breadcrumbs={[{ label: "Dashboard" }, { label: "Case Details" }]}
+            title={`Incident ${caseData.incidentNumber}`}
+            description="Incident Details"
+            breadcrumbs={[{ label: "Dashboard" }, { label: "Incident Details" }]}
         >
             <div className="max-w-7xl mx-auto">
                 {/* Status Messages */}
@@ -248,49 +257,54 @@ const CaseDetails: React.FC = () => {
                         <span>Back</span>
                     </button>
 
-                    {isSupervisor && !isClosed && (
+                    {isSupervisor && !isClosed && !isAssigned && (
                         <div className="flex items-center gap-2">
-                            {!isAssigned && (
-                                <button
-                                    onClick={() => setIsAssignModalOpen(true)}
-                                    className="flex items-center gap-2 px-4 py-2.5 bg-brown text-white rounded-lg hover:bg-opacity-90 transition-all font-semibold text-sm shadow-sm"
-                                >
-                                    <UserPlus size={16} />
-                                    Assign Practitioner
-                                </button>
-                            )}
-                            {isAssigned && (
-                                <span
-                                    className="flex items-center gap-2 px-4 py-2.5 bg-gold-50 border border-gold-200 text-gold-700 rounded-lg font-semibold text-sm cursor-default select-none"
-                                >
-                                    <CheckCircle size={16} />
-                                    Assigned
-                                </span>
-                            )}
                             <button
-                                onClick={() => navigate(`/supervisor/cases/${caseData.id}/approve`)}
-                                className="flex items-center gap-2 px-4 py-2.5 bg-gold text-white rounded-lg hover:bg-opacity-90 transition-all font-semibold text-sm shadow-sm"
+                                onClick={() => setIsAssignModalOpen(true)}
+                                className="flex items-center gap-2 px-4 py-2.5 bg-brown text-white rounded-lg hover:bg-opacity-90 transition-all font-semibold text-sm shadow-sm"
                             >
-                                <CheckCircle size={16} />
-                                Review
+                                <UserPlus size={16} />
+                                Assign Practitioner
                             </button>
-                            {isAssigned && (
-                                <button
-                                    onClick={() => setShowEscalation(true)}
-                                    className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition-all font-semibold text-sm"
-                                >
-                                    <ArrowUpRight size={16} />
-                                    Escalate
-                                </button>
-                            )}
                         </div>
                     )}
 
                     {isSupervisor && isClosed && (
                         <span className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-500 rounded-lg font-semibold text-sm">
                             <CheckCircle size={16} />
-                            Case Closed
+                            Incident Closed
                         </span>
+                    )}
+
+                    {/* Admin: reassign a 3-day-escalated case to another province's OHS practitioner */}
+                    {isAdmin && isEscalatedToAdmin && (
+                        <button
+                            onClick={() => setIsAssignModalOpen(true)}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-brown text-white rounded-lg hover:bg-opacity-90 transition-all font-semibold text-sm shadow-sm"
+                        >
+                            <UserPlus size={16} />
+                            Reassign to OHS (another province)
+                        </button>
+                    )}
+
+                    {/* Self Assign button for unassigned cases when viewed by any practitioner role */}
+                    {!isClosed && !isUnderReview && !caseData.assignedTo && (isOHS || isSecurity || isHR || isAdmin || userRole === 'first aider') && (
+                        <button
+                            onClick={async () => {
+                                try {
+                                    await casesService.pickupCase(caseData.id);
+                                    showSuccess('Incident self-assigned successfully.');
+                                    refetchDetails();
+                                    refetchTimeline();
+                                } catch {
+                                    showError('Failed to self-assign incident.');
+                                }
+                            }}
+                            className="flex items-center gap-2 px-5 py-2.5 bg-[#2E7D32] hover:bg-[#1B5E20] text-white rounded-lg font-semibold text-sm shadow-md transition"
+                        >
+                            <CheckCircle size={16} />
+                            Self Assign Incident
+                        </button>
                     )}
                 </div>
 
@@ -300,6 +314,7 @@ const CaseDetails: React.FC = () => {
                     onClose={() => setIsAssignModalOpen(false)}
                     incidentId={caseData.id}
                     provinceId={caseData.building?.province?.id}
+                    crossProvince={isAdmin && isEscalatedToAdmin}
                     onSuccess={() => refetchDetails()}
                 />
 
@@ -341,7 +356,7 @@ const CaseDetails: React.FC = () => {
 
                         <div className="flex items-center justify-between flex-wrap gap-4 mt-2 w-full">
                             <h1 className="text-xl font-bold text-gray-900">
-                                {formatCategory(caseData.category || caseData.type || 'Untitled Case')}
+                                {formatCategory(caseData.category || caseData.type || 'Untitled Incident')}
                             </h1>
 
                             <div className="flex items-center gap-4 text-sm text-gray-500">
@@ -399,7 +414,7 @@ const CaseDetails: React.FC = () => {
 
                                     {/* Details Grid */}
                                     <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
-                                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Case Details</h3>
+                                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Incident Details</h3>
                                         <div className="grid grid-cols-2 md:grid-cols-3 gap-y-5 gap-x-6">
                                             <div>
                                                 <label className="flex items-center gap-1.5 text-xs text-gray-400 font-semibold mb-1">
@@ -432,7 +447,13 @@ const CaseDetails: React.FC = () => {
                                                     <Shield size={12} /> Assigned To
                                                 </label>
                                                 <p className="text-sm font-medium text-gray-800">
-                                                    {caseData.assignedTo?.name || <span className="text-gray-400 italic">Unassigned</span>}
+                                                    {caseData.assignedTo?.name || (
+                                                        ['North West', 'Eastern Cape', 'Northern Cape'].includes(caseData.province?.name || '') && caseData.category?.toLowerCase() !== 'health' ? (
+                                                            <span className="text-gold font-bold text-[13px]">Serviced by National Office (ASD OHS)</span>
+                                                        ) : (
+                                                            <span className="text-gray-400 italic">Unassigned</span>
+                                                        )
+                                                    )}
                                                 </p>
                                             </div>
                                             <div>
@@ -496,7 +517,13 @@ const CaseDetails: React.FC = () => {
                                             <div className="flex justify-between items-center py-2 border-b border-gray-100">
                                                 <span className="text-xs text-gray-500 font-semibold">Assigned To</span>
                                                 <span className="text-sm font-medium text-gray-800">
-                                                    {caseData.assignedTo?.name || <span className="text-gray-400 italic text-xs">Unassigned</span>}
+                                                    {caseData.assignedTo?.name || (
+                                                        ['North West', 'Eastern Cape', 'Northern Cape'].includes(caseData.province?.name || '') && caseData.category?.toLowerCase() !== 'health' ? (
+                                                            <span className="text-gold font-bold text-xs">Serviced by National Office (ASD OHS)</span>
+                                                        ) : (
+                                                            <span className="text-gray-400 italic text-xs">Unassigned</span>
+                                                        )
+                                                    )}
                                                 </span>
                                             </div>
                                             <div className="flex justify-between items-center py-2 border-b border-gray-100">
@@ -878,7 +905,7 @@ const CaseDetails: React.FC = () => {
                                                 <textarea
                                                     value={comment}
                                                     onChange={(e) => setComment(e.target.value)}
-                                                    placeholder="Document your findings, actions taken, or notes about this case..."
+                                                    placeholder="Document your findings, actions taken, or notes about this incident..."
                                                     className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold resize-none bg-gray-50"
                                                     rows={4}
                                                 />

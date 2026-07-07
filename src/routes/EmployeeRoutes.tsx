@@ -5,6 +5,7 @@ import MyCases from '../pages/employee/MyCases';
 import ReportIncident from '../pages/employee/ReportIncident';
 import CaseSubmissionSuccess from '../pages/common/CaseSubmissionSuccess';
 import EmployeeCaseDetails from '../pages/employee/EmployeeCaseDetails';
+import OHSSafetyAiAssistant from '../pages/employee/OHSSafetyAiAssistant';
 
 const EmployeeRoutes = () => {
     return (
@@ -15,6 +16,7 @@ const EmployeeRoutes = () => {
             <Route path="my-cases/:id" element={<ProtectedRoute><EmployeeCaseDetails /></ProtectedRoute>} />
             <Route path="submit-case" element={<ProtectedRoute><ReportIncident /></ProtectedRoute>} />
             <Route path="submit-case/success" element={<ProtectedRoute><CaseSubmissionSuccess /></ProtectedRoute>} />
+            <Route path="ai-assistant" element={<ProtectedRoute><OHSSafetyAiAssistant /></ProtectedRoute>} />
         </Routes>
     );
 };

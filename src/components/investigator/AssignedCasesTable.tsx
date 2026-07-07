@@ -44,7 +44,7 @@ export const AssignedCasesTable: React.FC<AssignedCasesTableProps> = ({ cases })
                     <tr>
                         <th className="px-6 py-4 font-medium"><input type="checkbox" className="rounded border-gray-300" /></th>
                         <th className="px-6 py-4 font-medium cursor-pointer">
-                            <div className="flex items-center gap-1">Case ID <ArrowUpDown size={14} /></div>
+                            <div className="flex items-center gap-1">Incident ID <ArrowUpDown size={14} /></div>
                         </th>
                         <th className="px-6 py-4 font-medium cursor-pointer">
                             <div className="flex items-center gap-1">Type <ArrowUpDown size={14} /></div>

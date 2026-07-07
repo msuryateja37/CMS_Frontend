@@ -27,14 +27,14 @@ const normalizeRoleName = (role?: string): string => {
     if (lower === 'other' || lower === 'employee') return 'Employee';
     if (lower === 'supervisor') return 'Supervisor';
     if (lower.includes('ohs')) return 'OHS Practitioner';
-    if (lower.includes('security')) return 'Security Practitioner';
+    if (lower.includes('security')) return 'First Aider';
     if (lower === 'admin') return 'Admin';
     return role.split(' ')
         .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
         .join(' ');
 };
 
-const SecurityCaseAction: React.FC = () => {
+const FirstAiderCaseAction: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { user } = useAuthStore();
@@ -63,6 +63,9 @@ const SecurityCaseAction: React.FC = () => {
 
     // Escalation modal
     const [showEscalation, setShowEscalation] = useState(false);
+    
+    // Forwarding state
+    const [forwarding, setForwarding] = useState(false);
 
     useEffect(() => {
         if (id) {
@@ -135,7 +138,7 @@ const SecurityCaseAction: React.FC = () => {
                     fileUrl: uploaded.url,
                     fileType: file.type,
                     fileName: file.name,
-                    uploaderRole: 'Security Practitioner',
+                    uploaderRole: 'First Aider',
                 });
             }
             setSelectedFiles([]);
@@ -166,6 +169,22 @@ const SecurityCaseAction: React.FC = () => {
         }
     };
 
+    const handleForwardToOhsAndHr = async () => {
+        if (!id) return;
+        try {
+            setForwarding(true);
+            await casesService.forwardToOhs(id);
+            showSuccess('Case forwarded to OHS & HR successfully due to hospitalization.');
+            fetchCaseDetails(id);
+            fetchTimeline(id);
+        } catch (err) {
+            console.error('Error forwarding case:', err);
+            setError('Failed to forward case.');
+        } finally {
+            setForwarding(false);
+        }
+    };
+
     const getSeverityStyle = (severity?: string) => {
         if (!severity) return severityConfig.medium;
         return severityConfig[severity.toLowerCase()] || severityConfig.medium;
@@ -173,7 +192,7 @@ const SecurityCaseAction: React.FC = () => {
 
     if (loading) {
         return (
-            <DashboardLayout title="Case Details" description="Loading..." breadcrumbs={[{ label: "Dashboard", path: "/security/dashboard" }, { label: "Cases Under Review", path: "/security/cases-review" }, { label: "Loading..." }]}>
+            <DashboardLayout title="Case Details" description="Loading..." breadcrumbs={[{ label: "Dashboard", path: "/first-aider/dashboard" }, { label: "Cases Under Review", path: "/first-aider/cases-review" }, { label: "Loading..." }]}>
                 <div className="flex items-center justify-center h-96">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div>
                 </div>
@@ -183,7 +202,7 @@ const SecurityCaseAction: React.FC = () => {
 
     if (error && !caseData) {
         return (
-            <DashboardLayout title="Case Details" description="Error" breadcrumbs={[{ label: "Dashboard", path: "/security/dashboard" }, { label: "Cases Under Review", path: "/security/cases-review" }, { label: "Error" }]}>
+            <DashboardLayout title="Case Details" description="Error" breadcrumbs={[{ label: "Dashboard", path: "/first-aider/dashboard" }, { label: "Cases Under Review", path: "/first-aider/cases-review" }, { label: "Error" }]}>
                 <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl">
                     <p className="font-bold">Error</p>
                     <p className="text-sm mt-1">{error}</p>
@@ -197,6 +216,7 @@ const SecurityCaseAction: React.FC = () => {
 
     const sevStyle = getSeverityStyle(caseData.severity);
     const isClosed = caseData.status === 'CLOSED' || caseData.status === 'RESOLVED';
+    const isForwarded = caseData.status === 'FORWARDED_TO_OHS_AND_HR';
     const isUnderReview = caseData.status === 'UNDER_REVIEW';
     const isCurrentAssignee = user?.id === caseData.assignedTo?.id;
 
@@ -204,7 +224,7 @@ const SecurityCaseAction: React.FC = () => {
         <DashboardLayout
             title={`Case ${caseData.incidentNumber}`}
             description="Case Details"
-            breadcrumbs={[{ label: "Dashboard", path: "/security/dashboard" }, { label: "Cases Under Review", path: "/security/cases-review" }, { label: caseData?.incidentNumber || "Case Details" }]}
+            breadcrumbs={[{ label: "Dashboard", path: "/first-aider/dashboard" }, { label: "Cases Under Review", path: "/first-aider/cases-review" }, { label: caseData?.incidentNumber || "Case Details" }]}
         >
             <div className="max-w-7xl mx-auto">
                 {/* Success Banner */}
@@ -227,15 +247,25 @@ const SecurityCaseAction: React.FC = () => {
                 {/* Top Bar: Back + Action */}
                 <div className="flex items-center justify-between mb-6">
                     <button
-                        onClick={() => navigate('/security/cases-review')}
+                        onClick={() => navigate('/first-aider/cases-review')}
                         className="flex items-center gap-2 text-gray-500 hover:text-gray-700 transition-colors font-medium text-sm"
                     >
                         <ArrowLeft size={18} />
-                        <span>Back to Cases</span>
+                        <span>Back to Incidents</span>
                     </button>
 
-                    {!isClosed && !isUnderReview && isCurrentAssignee && (
+                    {!isClosed && !isUnderReview && !isForwarded && isCurrentAssignee && (
                         <div className="flex items-center gap-3">
+                            {caseData.category === 'health' && (
+                                <button
+                                    onClick={handleForwardToOhsAndHr}
+                                    disabled={forwarding}
+                                    className="flex items-center gap-2 px-4 py-2.5 bg-red-50 border border-red-200 text-red-750 rounded-lg hover:bg-red-100 transition-all font-semibold text-sm disabled:opacity-50"
+                                >
+                                    {forwarding ? <Loader2 size={16} className="animate-spin" /> : <ArrowUpRight size={16} />}
+                                    Forward to HR & OHS (Hospitalized)
+                                </button>
+                            )}
                             <button
                                 onClick={() => setShowEscalation(true)}
                                 className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition-all font-semibold text-sm"
@@ -254,11 +284,40 @@ const SecurityCaseAction: React.FC = () => {
                         </div>
                     )}
 
-                    {!isClosed && !isUnderReview && !isCurrentAssignee && (
-                        <span className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-500 rounded-lg font-semibold text-sm">
-                            <Shield size={16} />
-                            Assigned to {caseData.assignedTo?.name || 'another practitioner'}
+                    {isForwarded && (
+                        <span className="flex items-center gap-2 px-4 py-2.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg font-semibold text-sm">
+                            <ArrowUpRight size={16} />
+                            Forwarded to OHS &amp; HR
                         </span>
+                    )}
+
+                    {!isClosed && !isUnderReview && !isForwarded && !isCurrentAssignee && (
+                        caseData.assignedTo ? (
+                            <span className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-500 rounded-lg font-semibold text-sm">
+                                <Shield size={16} />
+                                Assigned to {caseData.assignedTo?.name || 'another practitioner'}
+                            </span>
+                        ) : (
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        setLoading(true);
+                                        await casesService.pickupCase(caseData.id);
+                                        showSuccess('Case self-assigned successfully.');
+                                        fetchCaseDetails(caseData.id);
+                                        fetchTimeline(caseData.id);
+                                    } catch (err) {
+                                        setError('Failed to self-assign incident.');
+                                    } finally {
+                                        setLoading(false);
+                                    }
+                                }}
+                                className="flex items-center gap-2 px-5 py-2.5 bg-[#2E7D32] hover:bg-[#1B5E20] text-white rounded-lg font-semibold text-sm shadow-md transition"
+                            >
+                                <CheckCircle size={16} />
+                                Self Assign Incident
+                            </button>
+                        )
                     )}
 
                     {isUnderReview && (
@@ -439,58 +498,7 @@ const SecurityCaseAction: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* Upload Evidence */}
-                                <div>
-                                    <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 mb-2">
-                                        <Paperclip size={13} /> Upload Evidence
-                                    </label>
 
-                                    <input
-                                        ref={fileInputRef}
-                                        type="file"
-                                        multiple
-                                        onChange={handleFileSelect}
-                                        className="hidden"
-                                        accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
-                                    />
-
-                                    <div
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center cursor-pointer hover:border-gold/40 hover:bg-gold/5 transition-all"
-                                    >
-                                        <Upload className="mx-auto text-gray-300 mb-2" size={28} />
-                                        <p className="text-sm text-gray-500 font-medium">Click to select files</p>
-                                        <p className="text-xs text-gray-400 mt-1">Images, PDF, Word, Excel supported</p>
-                                    </div>
-
-                                    {/* Selected Files List */}
-                                    {selectedFiles.length > 0 && (
-                                        <div className="mt-3 space-y-2">
-                                            {selectedFiles.map((file, idx) => (
-                                                <div key={idx} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg border border-gray-100">
-                                                    <div className="flex items-center gap-2 overflow-hidden">
-                                                        <FileText size={14} className="text-gray-400 shrink-0" />
-                                                        <span className="text-sm text-gray-700 truncate">{file.name}</span>
-                                                        <span className="text-xs text-gray-400 shrink-0">({(file.size / 1024).toFixed(1)} KB)</span>
-                                                    </div>
-                                                    <button onClick={() => removeFile(idx)} className="text-gray-400 hover:text-red-500 shrink-0 ml-2">
-                                                        <X size={14} />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                            <div className="flex justify-end mt-2">
-                                                <button
-                                                    onClick={handleUploadEvidence}
-                                                    disabled={uploadingFiles}
-                                                    className="flex items-center gap-2 px-4 py-2 bg-brown text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50"
-                                                >
-                                                    {uploadingFiles ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-                                                    Upload {selectedFiles.length} File{selectedFiles.length > 1 ? 's' : ''}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
                             </div>
                         )}
 
@@ -499,11 +507,11 @@ const SecurityCaseAction: React.FC = () => {
                             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Evidence & Attachments</h3>
                             {caseData.evidence && caseData.evidence.length > 0 ? (
                                 <div className="space-y-6">
-                                    {['Employee', 'Supervisor', 'Security Practitioner', 'Other'].map(role => {
+                                    {['Employee', 'Supervisor', 'First Aider', 'Other'].map(role => {
                                         const roleDocs = caseData.evidence?.filter(e => {
                                             const normRole = normalizeRoleName(e.uploaderRole);
                                             return role === 'Other'
-                                                ? !e.uploaderRole || !['Employee', 'Supervisor', 'Security Practitioner'].includes(normRole)
+                                                ? !e.uploaderRole || !['Employee', 'Supervisor', 'First Aider'].includes(normRole)
                                                 : normRole === role;
                                         });
                                         if (!roleDocs || roleDocs.length === 0) return null;
@@ -513,7 +521,7 @@ const SecurityCaseAction: React.FC = () => {
                                                 <div className="flex items-center gap-2 mb-3">
                                                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${role === 'Employee' ? 'bg-blue-50 text-blue-700' :
                                                         role === 'Supervisor' ? 'bg-light-gold text-brown' :
-                                                            role === 'Security Practitioner' ? 'bg-purple-50 text-purple-700' :
+                                                            role === 'First Aider' ? 'bg-purple-50 text-purple-700' :
                                                                 'bg-gray-100 text-gray-600'
                                                         }`}>
                                                         {role}
@@ -732,4 +740,4 @@ const SecurityCaseAction: React.FC = () => {
     );
 };
 
-export default SecurityCaseAction;
+export default FirstAiderCaseAction;

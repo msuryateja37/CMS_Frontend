@@ -11,7 +11,7 @@ import { formatCategory } from '../../utils/formatters';
 import { useIncidents } from '../../hooks/useIncidents';
 import { useAuthStore } from '../../store/auth.store';
 
-const SecurityMyCases: React.FC = () => {
+const FirstAiderMyCases: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuthStore();
     const [searchTerm, setSearchTerm] = useState('');
@@ -26,7 +26,7 @@ const SecurityMyCases: React.FC = () => {
         isLoading: loading,
         error: casesError
     } = useIncidents({
-        reported_by: user?.id,
+        assignedToId: user?.id,
         take: itemsPerPage,
         skip: (currentPage - 1) * itemsPerPage,
         status: statusFilter !== 'all' ? statusFilter : undefined,
@@ -88,7 +88,7 @@ const SecurityMyCases: React.FC = () => {
         {
             header: 'Actions',
             cell: (item) => (
-                <button onClick={() => navigate(`/security/cases/${item.id}`)} className="flex items-center gap-1.5 px-4 py-1.5 bg-light-gold text-brown text-xs font-bold rounded-lg hover:bg-gold/10 transition-colors whitespace-nowrap">
+                <button onClick={() => navigate(`/first-aider/cases/${item.id}`)} className="flex items-center gap-1.5 px-4 py-1.5 bg-light-gold text-brown text-xs font-bold rounded-lg hover:bg-gold/10 transition-colors whitespace-nowrap">
                     <Eye size={14} /> View
                 </button>
             )
@@ -102,18 +102,18 @@ const SecurityMyCases: React.FC = () => {
     );
 
     return (
-        <DashboardLayout title="My Cases" description="My Cases" breadcrumbs={[{ label: "Dashboard", path: "/security/dashboard" }, { label: "My Cases" }]}>
+        <DashboardLayout title="Assigned Incidents" description="Incidents currently assigned to you" breadcrumbs={[{ label: "Dashboard", path: "/first-aider/dashboard" }, { label: "Assigned Incidents" }]}>
             <div className="flex flex-col gap-6">
                 <div className="flex justify-end mb-1">
-                    <button onClick={() => navigate('/security/report-breach')} className="flex items-center gap-2 px-4 py-2 bg-brown text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm">
-                        <FilePlus size={16} /> Report New Case
+                    <button onClick={() => navigate('/first-aider/report-breach')} className="flex items-center gap-2 px-4 py-2 bg-brown text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm">
+                        <FilePlus size={16} /> Report New Incident
                     </button>
                 </div>
 
                 {loading && (
                     <div className="flex items-center justify-center py-12">
                         <Loader2 className="w-8 h-8 text-gold animate-spin" />
-                        <span className="ml-3 text-gray-600">Loading cases...</span>
+                        <span className="ml-3 text-gray-600">Loading incidents...</span>
                     </div>
                 )}
                 {error && <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700">{error}</div>}
@@ -121,10 +121,10 @@ const SecurityMyCases: React.FC = () => {
                     <DataTable
                         data={filteredCases} columns={columns} keyField="id"
                         emptyMessage={(searchTerm || statusFilter !== 'all' || categoryFilter || priorityFilter)
-                            ? "No cases found matching your criteria."
-                            : "No cases found."}
+                            ? "No incidents found matching your criteria."
+                            : "No incidents found."}
                         selectable={false} selectedIds={[]} onSelectionChange={() => { }}
-                        searchable={true} onSearch={setSearchTerm} searchPlaceholder="Search your cases..."
+                        searchable={true} onSearch={setSearchTerm} searchPlaceholder="Search your incidents..."
                         filterable={true} totalItems={totalItems}
                         paginatable={true} currentPage={currentPage} onPageChange={setCurrentPage}
                         itemsPerPage={itemsPerPage} onItemsPerPageChange={(val) => { setItemsPerPage(val); setCurrentPage(1); }}
@@ -143,4 +143,4 @@ const SecurityMyCases: React.FC = () => {
     );
 };
 
-export default SecurityMyCases;
+export default FirstAiderMyCases;

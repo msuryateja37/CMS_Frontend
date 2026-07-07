@@ -36,7 +36,7 @@ const CasesReviewOHS: React.FC = () => {
 
     const cases = casesData?.data || [];
     const totalItems = casesData?.total || 0;
-    const error = casesError ? (casesError as any).message || 'Failed to load assigned cases' : null;
+    const error = casesError ? (casesError as any).message || 'Failed to load assigned incidents' : null;
 
     const handleStatusFilterChange = (val: string) => {
         setStatusFilter(val);
@@ -55,7 +55,7 @@ const CasesReviewOHS: React.FC = () => {
 
     const columns: Column<Case>[] = [
         {
-            header: 'Case ID',
+            header: 'Incident ID',
             accessorKey: 'incidentNumber',
             sortable: true,
             cell: (item) => (
@@ -123,15 +123,15 @@ const CasesReviewOHS: React.FC = () => {
 
     return (
         <DashboardLayout
-            title="Cases Under Review"
-            description="Cases Under Review"
-            breadcrumbs={[{ label: "Dashboard", path: "/ohs/dashboard" }, { label: "Cases Under Review" }]}
+            title="Incidents Under Review"
+            description="Incidents Under Review"
+            breadcrumbs={[{ label: "Dashboard", path: "/ohs/dashboard" }, { label: "Incidents Under Review" }]}
         >
             <div className="flex flex-col gap-6">
                 {loading && (
                     <div className="flex items-center justify-center py-12">
                         <Loader2 className="w-8 h-8 text-gold animate-spin" />
-                        <span className="ml-3 text-gray-600">Loading assigned cases...</span>
+                        <span className="ml-3 text-gray-600">Loading assigned incidents...</span>
                     </div>
                 )}
 
@@ -145,14 +145,14 @@ const CasesReviewOHS: React.FC = () => {
                         columns={columns}
                         keyField="id"
                         emptyMessage={(searchTerm || statusFilter !== 'all' || categoryFilter || priorityFilter)
-                            ? "No cases found matching your criteria."
-                            : "No cases assigned for review."}
+                            ? "No incidents found matching your criteria."
+                            : "No incidents assigned for review."}
                         selectable={false}
                         selectedIds={[]}
                         onSelectionChange={() => { }}
                         searchable={true}
                         onSearch={setSearchTerm}
-                        searchPlaceholder="Search assigned cases..."
+                        searchPlaceholder="Search assigned incidents..."
                         filterable={true}
                         totalItems={totalItems} // Note: This might be inaccurate if backend counts closed cases, but satisfactory for now.
                         paginatable={true}

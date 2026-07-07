@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Input } from 'antd';
 import DashboardLayout from '../../layouts/DashboardLayout';
-import casesService, { type Case, type CaseApproval } from '../../services/cases.service';
+import casesService, { type Case } from '../../services/cases.service';
 import { Pill } from '../../components/common/Pill';
 import { getStatusLabel } from '../../data/constants';
 import { formatCategory } from '../../utils/formatters';
@@ -22,17 +22,6 @@ const severityConfig: Record<string, { bg: string; text: string; dot: string }> 
     medium: { bg: 'bg-light-yellow', text: 'text-yellow-800', dot: 'bg-brand-yellow' },
     low: { bg: 'bg-light-gold', text: 'text-brown', dot: 'bg-[#21FC95]' },
 };
-
-const provincialNames = [
-    "Eastern Cape",
-    "Gauteng",
-    "KwaZulu-Natal",
-    "Limpopo",
-    "Mpumalanga",
-    "Northern Cape",
-    "North West",
-    "Western Cape"
-];
 
 interface TimelineActivity {
     id?: string;
@@ -84,11 +73,22 @@ function timelineDotClass(a: TimelineActivity): string {
     return 'bg-gold';
 }
 
+interface ActionCase extends Case {
+    hrStatus?: string;
+    hrAssignedTo?: { name: string };
+}
+
 const CaseAction: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
     const { user } = useAuthStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const state = location.state as Record<string, unknown> | null;
+    const fromPath = state?.from as string | undefined;
+    const backTarget = fromPath === 'pool' ? '/ohs/pool' : fromPath === 'my-cases' ? '/ohs/my-cases' : '/ohs/dashboard';
+    const backLabel = fromPath === 'pool' ? 'Back' : fromPath === 'my-cases' ? 'Back to Assigned Incidents' : 'Back to Dashboard';
 
     const [caseData, setCaseData] = useState<Case | null>(null);
     const [loading, setLoading] = useState(true);
@@ -132,6 +132,12 @@ const CaseAction: React.FC = () => {
     // Tab state
     const [activeTab, setActiveTab] = useState('details');
 
+    // Annexure 1 form states
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [annexData, setAnnexData] = useState<any>(null);
+    const [loadingAnnex, setLoadingAnnex] = useState(false);
+    const [savingAnnex, setSavingAnnex] = useState(false);
+
     // Form toggle states
     const [showActionForm, setShowActionForm] = useState(false);
     const [showEvidenceForm, setShowEvidenceForm] = useState(false);
@@ -142,6 +148,7 @@ const CaseAction: React.FC = () => {
 
     const TABS = [
         { id: 'details', label: 'Details of the case' },
+        ...(caseData?.category === 'health' ? [{ id: 'investigation', label: 'Investigation' }] : []),
         { id: 'actions', label: 'Corrective actions' },
         { id: 'evidence', label: 'Attachments / evidence' },
         { id: 'approvals', label: 'Approvals / recommendations' },
@@ -153,8 +160,23 @@ const CaseAction: React.FC = () => {
         if (id) {
             fetchCaseDetails(id);
             fetchTimeline(id);
+            if (activeTab === 'investigation') {
+                fetchAnnexDetails(id);
+            }
         }
-    }, [id]);
+    }, [id, activeTab, caseData?.category]);
+
+    const fetchAnnexDetails = async (caseId: string) => {
+        try {
+            setLoadingAnnex(true);
+            const data = await casesService.getAnnexureOne(caseId);
+            setAnnexData(data);
+        } catch (err) {
+            console.error('Error loading Annexure 1:', err);
+        } finally {
+            setLoadingAnnex(false);
+        }
+    };
 
     const fetchCaseDetails = async (caseId: string, showLoader = true) => {
         try {
@@ -182,6 +204,22 @@ const CaseAction: React.FC = () => {
     const showSuccess = (msg: string) => {
         setSuccessMsg(msg);
         setTimeout(() => setSuccessMsg(''), 4000);
+    };
+
+    const handleSaveAnnex = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!id || !annexData) return;
+        try {
+            setSavingAnnex(true);
+            await casesService.updateAnnexureOne(id, annexData);
+            showSuccess('Annexure 1 form details updated successfully.');
+            void fetchAnnexDetails(id);
+        } catch (err) {
+            console.error('Error saving Annexure 1:', err);
+            setError('Failed to save Annexure 1 details.');
+        } finally {
+            setSavingAnnex(false);
+        }
     };
 
     const handleAddComment = async () => {
@@ -271,11 +309,11 @@ const CaseAction: React.FC = () => {
                 const isOHS = userRole === 'ohs practitioner';
                 const isSecurity = userRole === 'security practitioner';
                 const isAdmin = userRole === 'admin' || userRole === 'system administrator';
-                
-                const roleName = isSupervisor ? 'Supervisor' : 
-                                 isOHS ? 'OHS Practitioner' : 
-                                 isSecurity ? 'Security Practitioner' : 
-                                 isAdmin ? 'Admin' : 'Employee';
+
+                const roleName = isSupervisor ? 'Supervisor' :
+                    isOHS ? 'OHS Practitioner' :
+                        isSecurity ? 'Security Practitioner' :
+                            isAdmin ? 'Admin' : 'Employee';
 
                 const row = await casesService.addEvidence(id, {
                     fileUrl: uploaded.url,
@@ -397,15 +435,13 @@ const CaseAction: React.FC = () => {
     const isSupervisor = userRole === 'supervisor';
     const isAdmin = userRole === 'admin' || userRole === 'system administrator';
     const isOHS = userRole === 'ohs practitioner';
-    const isSecurity = userRole === 'security practitioner';
-    const isPractitioner = isOHS || isSecurity;
     const isCurrentAssignee = user?.id === caseData.assignedTo?.id;
-    const canEdit = !isClosed && (isCurrentAssignee || isSupervisor || isAdmin || isPractitioner);
+    const canEdit = !isClosed && (isCurrentAssignee || isSupervisor || isAdmin);
 
     // Practitioner-only actions
-    const canAddAction = !isClosed && isOHS;
-    const canAddEvidence = !isClosed && isOHS;
-    const canAddApproval = !isClosed && isOHS;
+    const canAddAction = !isClosed && isOHS && isCurrentAssignee;
+    const canAddEvidence = !isClosed && isOHS && isCurrentAssignee;
+    const canAddApproval = !isClosed && isOHS && isCurrentAssignee;
 
 
 
@@ -436,11 +472,11 @@ const CaseAction: React.FC = () => {
                 {/* Top Bar: Back + Action */}
                 <div className="flex items-center justify-between mb-6">
                     <button
-                        onClick={() => navigate('/ohs/cases-review')}
+                        onClick={() => navigate(backTarget)}
                         className="flex items-center gap-2 text-gray-500 hover:text-gray-700 transition-colors font-medium text-sm"
                     >
                         <ArrowLeft size={18} />
-                        <span>Back to Cases</span>
+                        <span>{backLabel}</span>
                     </button>
 
                     {!isClosed && !isUnderReview && isCurrentAssignee && (
@@ -464,10 +500,32 @@ const CaseAction: React.FC = () => {
                     )}
 
                     {!isClosed && !isUnderReview && !isCurrentAssignee && (
-                        <span className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-500 rounded-lg font-semibold text-sm">
-                            <Shield size={16} />
-                            Assigned to {caseData.assignedTo?.name || 'another practitioner'}
-                        </span>
+                        caseData.assignedTo ? (
+                            <span className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-500 rounded-lg font-semibold text-sm">
+                                <Shield size={16} />
+                                Assigned to {caseData.assignedTo?.name || 'another practitioner'}
+                            </span>
+                        ) : (
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        setLoading(true);
+                                        await casesService.pickupCase(caseData.id);
+                                        showSuccess('Case self-assigned successfully.');
+                                        fetchCaseDetails(caseData.id);
+                                        fetchTimeline(caseData.id);
+                                    } catch {
+                                        setError('Failed to self-assign incident.');
+                                    } finally {
+                                        setLoading(false);
+                                    }
+                                }}
+                                className="flex items-center gap-2 px-5 py-2.5 bg-[#2E7D32] hover:bg-[#1B5E20] text-white rounded-lg font-semibold text-sm shadow-md transition"
+                            >
+                                <CheckCircle size={16} />
+                                Self Assign Incident
+                            </button>
+                        )
                     )}
 
                     {isUnderReview && (
@@ -531,6 +589,64 @@ const CaseAction: React.FC = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Parallel Flow Banner — visible for forwarded health incidents */}
+                {caseData.status === 'FORWARDED_TO_OHS_AND_HR' && (
+                    <div className="mb-6 bg-purple-50 border border-purple-200 rounded-2xl p-5">
+                        <p className="text-xs font-bold text-purple-700 uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <Users size={14} /> Parallel Processing — OHS &amp; HR Tracks
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* OHS Track */}
+                            <div className="bg-white rounded-xl border border-purple-100 p-4">
+                                <p className="text-[11px] text-gray-400 font-bold uppercase tracking-wide mb-2">OHS Investigation Track</p>
+                                <div className="flex items-center gap-3">
+                                    <Pill label={getStatusLabel(caseData.status)} variant={caseData.status.toLowerCase().replace(/_/g, ' ')} />
+                                    <span className="text-sm text-gray-700">
+                                        {caseData.assignedTo
+                                            ? <><span className="text-gray-400">Assigned to:</span> <strong>{caseData.assignedTo.name}</strong></>
+                                            : <span className="text-orange-600 font-semibold">Awaiting OHS pickup</span>
+                                        }
+                                    </span>
+                                </div>
+                            </div>
+                            {/* HR Track */}
+                            <div className="bg-white rounded-xl border border-purple-100 p-4">
+                                <p className="text-[11px] text-gray-400 font-bold uppercase tracking-wide mb-2">HR Documentation Track</p>
+                                <div className="flex items-center gap-3">
+                                    {(() => {
+                                        const extCase = caseData as ActionCase | null;
+                                        const hrStatus = extCase?.hrStatus;
+                                        const hrAssignedTo = extCase?.hrAssignedTo;
+                                        const colorMap: Record<string, string> = {
+                                            HR_UNASSIGNED: 'bg-gray-100 text-gray-600',
+                                            HR_ASSIGNED: 'bg-blue-100 text-blue-700',
+                                            HR_UNDER_REVIEW: 'bg-amber-100 text-amber-700',
+                                            HR_APPROVED: 'bg-green-100 text-green-700',
+                                        };
+                                        const labelMap: Record<string, string> = {
+                                            HR_UNASSIGNED: 'Unassigned',
+                                            HR_ASSIGNED: 'Assigned',
+                                            HR_UNDER_REVIEW: 'Under Review',
+                                            HR_APPROVED: 'Approved',
+                                        };
+                                        return <>
+                                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${colorMap[hrStatus ?? ''] ?? 'bg-gray-100 text-gray-600'}`}>
+                                                {labelMap[hrStatus ?? ''] ?? (hrStatus ?? 'Unknown')}
+                                            </span>
+                                            <span className="text-sm text-gray-700">
+                                                {hrAssignedTo
+                                                    ? <><span className="text-gray-400">Assigned to:</span> <strong>{hrAssignedTo.name}</strong></>
+                                                    : <span className="text-orange-600 font-semibold">Awaiting HR pickup</span>
+                                                }
+                                            </span>
+                                        </>;
+                                    })()}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Tabs Navigation */}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
@@ -684,6 +800,345 @@ const CaseAction: React.FC = () => {
                             </div>
                         )}
 
+                        {activeTab === 'investigation' && (
+                            <div className="space-y-6 max-w-4xl w-full">
+                                {loadingAnnex ? (
+                                    <div className="flex items-center justify-center py-12 text-sm text-gray-400">
+                                        <Loader2 className="animate-spin h-5 w-5 mr-2" />
+                                        Loading Annexure 1...
+                                    </div>
+                                ) : !annexData ? (
+                                    <div className="p-6 text-center text-gray-400 bg-gray-50 rounded-xl">
+                                        Failed to load Annexure 1 data.
+                                    </div>
+                                ) : (
+                                    <form onSubmit={handleSaveAnnex} className="space-y-6">
+                                        {/* Part A Card */}
+                                        <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm space-y-4 animate-fadeIn">
+                                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 pb-2">PART A: RECORDING OF INCIDENT</h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Name of Employer</label>
+                                                    <input
+                                                        type="text"
+                                                        value={annexData.employerName || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, employerName: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Name of Affected Person</label>
+                                                    <input
+                                                        type="text"
+                                                        value={annexData.affectedName || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, affectedName: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Identity Number of Affected Person</label>
+                                                    <input
+                                                        type="text"
+                                                        value={annexData.affectedIdNumber || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, affectedIdNumber: e.target.value })}
+                                                        placeholder="e.g. 8501015024083"
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                    />
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div>
+                                                        <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Date of Incident</label>
+                                                        <input
+                                                            type="date"
+                                                            value={annexData.dateOfIncident || ''}
+                                                            onChange={(e) => setAnnexData({ ...annexData, dateOfIncident: e.target.value })}
+                                                            className="w-full px-2 py-1.5 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Time of Incident</label>
+                                                        <input
+                                                            type="time"
+                                                            value={annexData.timeOfIncident || ''}
+                                                            onChange={(e) => setAnnexData({ ...annexData, timeOfIncident: e.target.value })}
+                                                            className="w-full px-2 py-1.5 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Parts of Body Affected</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="e.g. Neck, Eye, Finger, Hand, Foot, Leg"
+                                                        value={annexData.bodyPartsAffected || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, bodyPartsAffected: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Effect on Person</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="e.g. Sprains, Contusion, Fracture, Unconsciousness"
+                                                        value={annexData.effectOnPerson || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, effectOnPerson: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="pt-2">
+                                                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Expected Period of Disablement</label>
+                                                <div className="flex flex-wrap gap-4 mt-1">
+                                                    {['0-13 days', '2-4 weeks', '4-16 weeks', '16-52 weeks', 'Killed'].map(p => (
+                                                        <label key={p} className="flex items-center gap-2 text-xs font-medium text-gray-650 cursor-pointer">
+                                                            <input
+                                                                type="radio"
+                                                                name="disablementPeriod"
+                                                                value={p}
+                                                                checked={annexData.disablementPeriod === p}
+                                                                onChange={() => setAnnexData({ ...annexData, disablementPeriod: p })}
+                                                                className="h-3.5 w-3.5 text-[#884616] focus:ring-[#884616]"
+                                                            />
+                                                            <span>{p}</span>
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Description of Occupational Disease</label>
+                                                    <textarea
+                                                        rows={2}
+                                                        value={annexData.occupationalDiseaseDesc || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, occupationalDiseaseDesc: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Machine / Process Involved</label>
+                                                    <textarea
+                                                        rows={2}
+                                                        value={annexData.machineProcess || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, machineProcess: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Reported to Commissioner?</label>
+                                                    <select
+                                                        value={annexData.reportedToCommissioner === null ? '' : String(annexData.reportedToCommissioner)}
+                                                        onChange={(e) => setAnnexData({ ...annexData, reportedToCommissioner: e.target.value === 'true' })}
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none"
+                                                    >
+                                                        <option value="">Select Option</option>
+                                                        <option value="true">Yes</option>
+                                                        <option value="false">No</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Reported to Police (SAPS)?</label>
+                                                    <select
+                                                        value={annexData.reportedToPolice === null ? '' : String(annexData.reportedToPolice)}
+                                                        onChange={(e) => setAnnexData({ ...annexData, reportedToPolice: e.target.value === 'true' })}
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none"
+                                                    >
+                                                        <option value="">Select Option</option>
+                                                        <option value="true">Yes</option>
+                                                        <option value="false">No</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">SAPS Office & Reference</label>
+                                                    <input
+                                                        type="text"
+                                                        value={annexData.sapsOfficeRef || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, sapsOfficeRef: e.target.value })}
+                                                        placeholder="e.g. Pretoria CAS 123/05"
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Part B Card */}
+                                        <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm space-y-4 animate-fadeIn">
+                                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 pb-2">PART B: INVESTIGATION OF INCIDENT</h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Name of Investigator</label>
+                                                    <input
+                                                        type="text"
+                                                        value={annexData.investigatorName || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, investigatorName: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Designation</label>
+                                                    <input
+                                                        type="text"
+                                                        value={annexData.investigatorDesignation || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, investigatorDesignation: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Date of Investigation</label>
+                                                    <input
+                                                        type="date"
+                                                        value={annexData.investigationDate || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, investigationDate: e.target.value })}
+                                                        className="w-full px-3 py-1.5 border border-gray-250 rounded-lg text-xs font-semibold outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Short Description of Incident</label>
+                                                <textarea
+                                                    rows={2}
+                                                    value={annexData.incidentShortDesc || ''}
+                                                    onChange={(e) => setAnnexData({ ...annexData, incidentShortDesc: e.target.value })}
+                                                    className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Suspected Cause of Incident</label>
+                                                <textarea
+                                                    rows={2}
+                                                    value={annexData.suspectedCause || ''}
+                                                    onChange={(e) => setAnnexData({ ...annexData, suspectedCause: e.target.value })}
+                                                    className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Recommended Steps to Prevent Recurrence</label>
+                                                <textarea
+                                                    rows={2}
+                                                    value={annexData.recommendedSteps || ''}
+                                                    onChange={(e) => setAnnexData({ ...annexData, recommendedSteps: e.target.value })}
+                                                    className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                />
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Investigator Signature</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Type name to sign electronically"
+                                                        value={annexData.investigatorSignature || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, investigatorSignature: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold font-serif italic outline-none focus:border-[#884616]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Signature Date</label>
+                                                    <input
+                                                        type="date"
+                                                        value={annexData.investigatorSigDate || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, investigatorSigDate: e.target.value })}
+                                                        className="w-full px-3 py-1.5 border border-gray-250 rounded-lg text-xs font-semibold outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Part C Card */}
+                                        <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm space-y-4 animate-fadeIn">
+                                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 pb-2">PART C: ACTION TAKEN BY EMPLOYER</h3>
+                                            <div>
+                                                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Remarks & Actions Taken</label>
+                                                <textarea
+                                                    rows={2}
+                                                    value={annexData.employerRemarks || ''}
+                                                    onChange={(e) => setAnnexData({ ...annexData, employerRemarks: e.target.value })}
+                                                    className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                />
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Employer Signature</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Type name to sign"
+                                                        value={annexData.employerSignature || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, employerSignature: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold font-serif italic outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Date</label>
+                                                    <input
+                                                        type="date"
+                                                        value={annexData.employerSigDate || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, employerSigDate: e.target.value })}
+                                                        className="w-full px-3 py-1.5 border border-gray-250 rounded-lg text-xs font-semibold outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Part D Card */}
+                                        <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm space-y-4 animate-fadeIn">
+                                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 pb-2">PART D: SHE COMMITTEE REMARKS</h3>
+                                            <div>
+                                                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Committee Remarks</label>
+                                                <textarea
+                                                    rows={2}
+                                                    value={annexData.committeeRemarks || ''}
+                                                    onChange={(e) => setAnnexData({ ...annexData, committeeRemarks: e.target.value })}
+                                                    className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold outline-none focus:border-[#884616]"
+                                                />
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Chairperson Signature</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Type name to sign"
+                                                        value={annexData.committeeChairpersonSignature || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, committeeChairpersonSignature: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold font-serif italic outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Date</label>
+                                                    <input
+                                                        type="date"
+                                                        value={annexData.committeeChairpersonSigDate || ''}
+                                                        onChange={(e) => setAnnexData({ ...annexData, committeeChairpersonSigDate: e.target.value })}
+                                                        className="w-full px-3 py-1.5 border border-gray-250 rounded-lg text-xs font-semibold outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Action Bar */}
+                                        <div className="flex justify-end gap-3 pt-2">
+                                            <button
+                                                type="submit"
+                                                disabled={savingAnnex}
+                                                className="px-6 py-2.5 bg-brown text-white font-bold rounded-xl hover:bg-opacity-95 shadow-sm text-xs transition disabled:opacity-50 active:scale-[0.98]"
+                                            >
+                                                {savingAnnex ? 'Saving Details...' : 'Save Annexure 1 Details'}
+                                            </button>
+                                        </div>
+                                    </form>
+                                )}
+                            </div>
+                        )}
+
                         {activeTab === 'actions' && (
                             <div className="space-y-6 max-w-4xl w-full">
                                 {/* Immediate Actions */}
@@ -724,7 +1179,7 @@ const CaseAction: React.FC = () => {
                                     <div className="flex justify-between items-center mb-6">
                                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Tracked corrective actions</h3>
                                         {canAddAction && (
-                                            <button 
+                                            <button
                                                 onClick={() => setShowActionForm(!showActionForm)}
                                                 className="flex items-center gap-2 px-4 py-2 bg-brown text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all"
                                             >
@@ -862,7 +1317,7 @@ const CaseAction: React.FC = () => {
                                     <div className="flex justify-between items-center mb-6">
                                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Incident Plan</h3>
                                         {canEdit && (
-                                            <button 
+                                            <button
                                                 onClick={() => setEditingPlan(!editingPlan)}
                                                 className="flex items-center gap-2 px-4 py-2 bg-brown text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all"
                                             >
@@ -918,7 +1373,7 @@ const CaseAction: React.FC = () => {
                                     <div className="flex justify-between items-center mb-6">
                                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Uploaded Attachments</h3>
                                         {canAddEvidence && (
-                                            <button 
+                                            <button
                                                 onClick={() => setShowEvidenceForm(!showEvidenceForm)}
                                                 className="flex items-center gap-2 px-4 py-2 bg-brown text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all"
                                             >
@@ -1001,7 +1456,7 @@ const CaseAction: React.FC = () => {
                                                         .join(' ');
                                                 };
 
-                                                const roles = Array.from(new Set(caseData.evidence?.map(e => 
+                                                const roles = Array.from(new Set(caseData.evidence?.map(e =>
                                                     normalizeRoleName(e.uploaderRole)
                                                 ) || []));
                                                 // Sort roles to have a consistent order
@@ -1019,14 +1474,13 @@ const CaseAction: React.FC = () => {
                                                     return (
                                                         <div key={role} className="mb-6 last:mb-0">
                                                             <div className="flex items-center gap-2 mb-3">
-                                                                <span className={`px-2.5 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider ${
-                                                                    role === 'Employee' ? 'bg-blue-50 text-blue-700' :
-                                                                    role === 'Supervisor' ? 'bg-gray-200 text-gray-700' :
-                                                                    role === 'OHS Practitioner' ? 'bg-amber-50 text-amber-700' :
-                                                                    role === 'Security Practitioner' ? 'bg-indigo-50 text-indigo-700' :
-                                                                    role === 'Admin' ? 'bg-purple-50 text-purple-700' :
-                                                                    'bg-gray-100 text-gray-600'
-                                                                }`}>
+                                                                <span className={`px-2.5 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider ${role === 'Employee' ? 'bg-blue-50 text-blue-700' :
+                                                                        role === 'Supervisor' ? 'bg-gray-200 text-gray-700' :
+                                                                            role === 'OHS Practitioner' ? 'bg-amber-50 text-amber-700' :
+                                                                                role === 'Security Practitioner' ? 'bg-indigo-50 text-indigo-700' :
+                                                                                    role === 'Admin' ? 'bg-purple-50 text-purple-700' :
+                                                                                        'bg-gray-100 text-gray-600'
+                                                                    }`}>
                                                                     {role}
                                                                 </span>
                                                                 <div className="h-px flex-1 bg-gray-200" />
@@ -1097,9 +1551,9 @@ const CaseAction: React.FC = () => {
                                             )}
                                         </div>
                                         {canEdit && (
-                                            <button 
+                                            <button
 
-                                            onClick={() => setShowCommentForm(!showCommentForm)}
+                                                onClick={() => setShowCommentForm(!showCommentForm)}
                                                 className="flex items-center gap-2 px-4 py-2 bg-brown text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all"
                                             >
                                                 <Plus size={16} />
@@ -1122,7 +1576,7 @@ const CaseAction: React.FC = () => {
                                                 />
                                                 <div className="flex justify-end mt-3">
                                                     <button
-                                                onClick={() => void handleAddComment()}
+                                                        onClick={() => void handleAddComment()}
                                                         disabled={!comment.trim() || submittingComment}
                                                         className="flex items-center gap-2 px-4 py-2 bg-brown text-white text-sm font-semibold rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >

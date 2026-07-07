@@ -11,7 +11,7 @@ import { formatCategory } from '../../utils/formatters';
 import { useIncidents } from '../../hooks/useIncidents';
 import { useAuthStore } from '../../store/auth.store';
 
-const SecurityCasesReview: React.FC = () => {
+const FirstAiderCasesReview: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuthStore();
     const [searchTerm, setSearchTerm] = useState('');
@@ -88,7 +88,7 @@ const SecurityCasesReview: React.FC = () => {
         {
             header: 'Actions',
             cell: (item) => (
-                <button onClick={() => navigate(`/security/cases/${item.id}`)} className="flex items-center gap-1.5 px-4 py-1.5 bg-light-gold text-brown text-xs font-bold rounded-lg hover:bg-gold/10 transition-colors whitespace-nowrap">
+                <button onClick={() => navigate(`/first-aider/cases/${item.id}`)} className="flex items-center gap-1.5 px-4 py-1.5 bg-light-gold text-brown text-xs font-bold rounded-lg hover:bg-gold/10 transition-colors whitespace-nowrap">
                     <Eye size={14} /> Review
                 </button>
             )
@@ -102,12 +102,12 @@ const SecurityCasesReview: React.FC = () => {
     );
 
     return (
-        <DashboardLayout title="Cases Under Review" description="Cases Under Review" breadcrumbs={[{ label: "Dashboard", path: "/security/dashboard" }, { label: "Cases Under Review" }]}>
+        <DashboardLayout title="Incidents Under Review" description="Incidents Under Review" breadcrumbs={[{ label: "Dashboard", path: "/first-aider/dashboard" }, { label: "Incidents Under Review" }]}>
             <div className="flex flex-col gap-6">
                 {loading && (
                     <div className="flex items-center justify-center py-12">
                         <Loader2 className="w-8 h-8 text-gold animate-spin" />
-                        <span className="ml-3 text-gray-600">Loading assigned cases...</span>
+                        <span className="ml-3 text-gray-600">Loading assigned incidents...</span>
                     </div>
                 )}
                 {error && <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700">{error}</div>}
@@ -115,10 +115,10 @@ const SecurityCasesReview: React.FC = () => {
                     <DataTable
                         data={filteredCases} columns={columns} keyField="id"
                         emptyMessage={(searchTerm || statusFilter !== 'all' || categoryFilter || priorityFilter)
-                            ? "No cases found matching your criteria."
-                            : "No assigned cases found."}
+                            ? "No incidents found matching your criteria."
+                            : "No assigned incidents found."}
                         selectable={false} selectedIds={[]} onSelectionChange={() => { }}
-                        searchable={true} onSearch={setSearchTerm} searchPlaceholder="Search assigned cases..."
+                        searchable={true} onSearch={setSearchTerm} searchPlaceholder="Search assigned incidents..."
                         filterable={true} totalItems={totalItems}
                         paginatable={true} currentPage={currentPage} onPageChange={setCurrentPage}
                         itemsPerPage={itemsPerPage} onItemsPerPageChange={(val) => { setItemsPerPage(val); setCurrentPage(1); }}
@@ -137,4 +137,4 @@ const SecurityCasesReview: React.FC = () => {
     );
 };
 
-export default SecurityCasesReview;
+export default FirstAiderCasesReview;

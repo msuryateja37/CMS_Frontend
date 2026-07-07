@@ -63,8 +63,8 @@ const EscalationModal: React.FC<EscalationModalProps> = ({
             if (onSuccess) onSuccess();
             handleClose();
         } catch (err: any) {
-            console.error('Error escalating case:', err);
-            setError(err?.response?.data?.message || 'Failed to escalate case. Please try again.');
+            console.error('Error escalating incident:', err);
+            setError(err?.response?.data?.message || 'Failed to escalate incident. Please try again.');
         } finally {
             setIsEscalating(false);
         }
@@ -108,13 +108,13 @@ const EscalationModal: React.FC<EscalationModalProps> = ({
                     <div>
                         <p className="text-sm font-bold">Peer-to-Peer Escalation</p>
                         <p className="text-xs opacity-75">
-                            This case will be reassigned to another {roleLabel.toLowerCase()}
+                            This incident will be reassigned to another {roleLabel.toLowerCase()}
                         </p>
                     </div>
                 </div>
 
                 <p className="text-sm text-gray-500">
-                    Select a peer {roleLabel.toLowerCase()} to take over this case. They will be notified immediately.
+                    Select a peer {roleLabel.toLowerCase()} to take over this incident. They will be notified immediately.
                 </p>
 
                 <Select
@@ -144,7 +144,7 @@ const EscalationModal: React.FC<EscalationModalProps> = ({
                         onChange={(e) => setReason(e.target.value)}
                         rows={3}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 resize-none"
-                        placeholder="Explain why this case needs to be escalated to another practitioner..."
+                        placeholder="Explain why this incident needs to be escalated to another practitioner..."
                     />
                 </div>
 

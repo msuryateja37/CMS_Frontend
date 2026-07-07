@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth.store';
 import authService from '../../services/auth.service';
 import DashboardLayout from '../../layouts/DashboardLayout';
@@ -16,11 +17,13 @@ import {
     Save,
     X,
     CheckCircle2,
-    Loader2
+    Loader2,
+    LogOut
 } from 'lucide-react';
 
 const Profile: React.FC = () => {
-    const { user, refreshUser } = useAuthStore();
+    const { user, refreshUser, logout } = useAuthStore();
+    const navigate = useNavigate();
     const [isEditing, setIsEditing] = useState(false);
     const [saving, setSaving] = useState(false);
     const [success, setSuccess] = useState(false);
@@ -62,8 +65,9 @@ const Profile: React.FC = () => {
             setIsEditing(false);
             setSuccess(true);
             setTimeout(() => setSuccess(false), 3000);
-        } catch (err: any) {
-            setError(err?.response?.data?.message || 'Failed to update profile');
+        } catch (err) {
+            const errorResponse = err as { response?: { data?: { message?: string } } };
+            setError(errorResponse?.response?.data?.message || 'Failed to update profile');
         } finally {
             setSaving(false);
         }
@@ -99,10 +103,88 @@ const Profile: React.FC = () => {
 
     if (!user) return null;
 
+    const isOHSNational = user.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'ohs_national_office';
+
+    // Simplified read-only profile for OHS National Office
+    if (isOHSNational) {
+        return (
+            <DashboardLayout
+                title="Profile"
+                description="DLRRD Facilities Management Services"
+            >
+                <div className="max-w-3xl mx-auto flex flex-col gap-5">
+                    {/* Profile Header */}
+                    <div className="bg-white rounded-xl border border-gray-100 px-6 py-5 flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-full bg-light-gold flex items-center justify-center text-brown font-bold text-xl shrink-0 border-2 border-gold/20">
+                            {getUserInitials()}
+                        </div>
+                        <div className="flex-1">
+                            <h2 className="text-lg font-bold text-gray-800">{user.fullName}</h2>
+                            <p className="text-xs text-gray-400 font-medium">{formatRole(user.role?.name)}</p>
+                        </div>
+                        <button
+                            onClick={async () => {
+                                await logout();
+                                navigate('/');
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-semibold rounded-lg hover:bg-gray-50 transition-all text-xs shadow-sm"
+                        >
+                            <LogOut size={14} />
+                            Log Out
+                        </button>
+                    </div>
+
+                    {/* Account Information */}
+                    <div className="bg-white rounded-xl border border-gray-100 p-6">
+                        <h3 className="text-base font-bold text-gray-800 mb-5">Account information</h3>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+                            {/* Full name */}
+                            <div>
+                                <label className="text-xs font-bold text-gray-800 block mb-1.5">Full name</label>
+                                <div className="px-3.5 py-2.5 bg-subtle-grey rounded-lg text-sm text-gray-600">{user.fullName || '—'}</div>
+                            </div>
+
+                            {/* Employee ID */}
+                            <div>
+                                <label className="text-xs font-bold text-gray-800 block mb-1.5">Employee ID</label>
+                                <div className="px-3.5 py-2.5 bg-subtle-grey rounded-lg text-sm text-gray-600">{user.employeeNumber || '—'}</div>
+                            </div>
+
+                            {/* Email */}
+                            <div>
+                                <label className="text-xs font-bold text-gray-800 block mb-1.5">Email</label>
+                                <div className="px-3.5 py-2.5 bg-subtle-grey rounded-lg text-sm text-gray-600">{user.email || '—'}</div>
+                            </div>
+
+                            {/* Phone */}
+                            <div>
+                                <label className="text-xs font-bold text-gray-800 block mb-1.5">Phone</label>
+                                <div className="px-3.5 py-2.5 bg-subtle-grey rounded-lg text-sm text-gray-600">{user.phone || '—'}</div>
+                            </div>
+
+                            {/* Directorate */}
+                            <div>
+                                <label className="text-xs font-bold text-gray-800 block mb-1.5">Directorate</label>
+                                <div className="px-3.5 py-2.5 bg-subtle-grey rounded-lg text-sm text-gray-600">{user.department?.name || 'Rural Development and Land Reform'}</div>
+                            </div>
+
+                            {/* Office */}
+                            <div>
+                                <label className="text-xs font-bold text-gray-800 block mb-1.5">Office</label>
+                                <div className="px-3.5 py-2.5 bg-subtle-grey rounded-lg text-sm text-gray-600">{user.department?.building?.name || user.province?.name || '—'}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </DashboardLayout>
+        );
+    }
+
     return (
         <DashboardLayout
             title="My Profile"
-            description="Profile"
+            description="My Profile"
             breadcrumbs={[{ label: "Dashboard" }, { label: "Profile" }]}
         >
             <div className="max-w-3xl mx-auto flex flex-col gap-6">
@@ -280,6 +362,24 @@ const Profile: React.FC = () => {
                             <p className="text-sm font-medium text-gray-800 py-2.5">{user.department?.building?.name || '-'}</p>
                         </div>
                     </div>
+                </div>
+
+                {/* Account Actions / Logout */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="text-center sm:text-left">
+                        <h4 className="text-sm font-bold text-gray-800">Account Session</h4>
+                        <p className="text-xs text-gray-400 font-medium mt-1">Log out of your current session on this device.</p>
+                    </div>
+                    <button
+                        onClick={async () => {
+                            await logout();
+                            navigate('/');
+                        }}
+                        className="flex items-center justify-center gap-2 px-6 py-2.5 bg-white hover:bg-red-50/60 text-red-600 hover:text-red-600/90 font-semibold rounded-lg transition-all text-sm shadow-sm border border-red-100 hover:border-red-200/80 active:scale-[0.98] w-full sm:w-auto"
+                    >
+                        <LogOut size={16} />
+                        Log Out
+                    </button>
                 </div>
             </div>
         </DashboardLayout>

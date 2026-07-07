@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Settings, Bell, Check, ChevronRight, Menu } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Bell, Check, Menu } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth.store';
-import { useSearchStore } from '../../store/search.store';
 import { useUIStore } from '../../store/ui.store';
-import { SearchInput, type SearchOption } from '../common/SearchInput';
 
 import { useNotifications } from '../../hooks/useNotifications';
 
@@ -35,25 +33,81 @@ const TopBar: React.FC<TopBarProps> = ({
     children,
     title,
     description,
-    breadcrumbs,
-    searchPlaceholder = "Search cases, incident, invoices..",
     actionButton,
     userProfile
 }) => {
-    const user = useAuthStore((state) => state.user);
-    const { searchQuery, setSearchQuery, searchResults, isSearching, performSearch } = useSearchStore();
+    const { user } = useAuthStore();
     const { toggleSidebar } = useUIStore();
     const navigate = useNavigate();
+    const location = useLocation();
+    const pathname = location.pathname;
 
-    // Debounce search
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (searchQuery) {
-                performSearch(searchQuery);
+    const isSupervisor = user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'supervisor';
+
+    const isOHSNational = user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'ohs_national_office';
+
+    const getDisplayTitle = () => {
+        const path = pathname.toLowerCase();
+        
+        if (isOHSNational) {
+            if (path.includes('/ohs-national/dashboard')) return 'National Oversight';
+            if (path.includes('/ohs-national/logged-incidents')) return 'Logged Incidents';
+            if (path.includes('/ohs-national/administration')) return 'Administration';
+            if (path.includes('/ohs-national/ai-assistant')) return 'AI Assistant';
+            if (path.includes('/profile')) return 'Profile';
+        }
+
+        if (isSupervisor) {
+            if (path.includes('/submit-case')) {
+                return 'National Oversight';
             }
-        }, 300);
-        return () => clearTimeout(timer);
-    }, [searchQuery, performSearch]);
+            if (path.includes('/logged-incidents')) {
+                return 'Logged Incidents';
+            }
+            if (path.includes('/ai-assistant')) {
+                return 'AI Assistant';
+            }
+            if (path.includes('/dashboard')) {
+                return 'Dashboard';
+            }
+        }
+        
+        // General mapping for other roles (like employee, ohs, etc.)
+        if (path.endsWith('/dashboard')) {
+            return 'Dashboard';
+        }
+        if (path.endsWith('/submit-case')) {
+            return 'Report New Incident';
+        }
+        if (path.includes('/ai-assistant')) {
+            return 'AI Assistant';
+        }
+        if (path.includes('/logged-incidents')) {
+            return 'Logged Incidents';
+        }
+        if (path.includes('/my-cases')) {
+            return 'My Incidents';
+        }
+        if (path.includes('/profile')) {
+            return 'My Profile';
+        }
+        
+        // Fallback or mapping for default titles
+        if (title === 'OHS Incident Management' || title === 'OHS Incident Management System') {
+            return 'Dashboard';
+        }
+        return title;
+    };
+
+    const isOHS = user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'ohs_practitioner' || 
+                  user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'ohs_national_office';
+
+    const displayTitle = getDisplayTitle();
+    let displayDescription = (isSupervisor || isOHS || isOHSNational) ? 'DLRRD Facilities Management Services' : description;
+
+    if (displayTitle && displayDescription && displayTitle.toLowerCase().trim() === displayDescription.toLowerCase().trim()) {
+        displayDescription = undefined;
+    }
 
     // Use notifications hook
     const { 
@@ -91,17 +145,23 @@ const TopBar: React.FC<TopBarProps> = ({
         } catch { /* silent */ }
     };
 
-    const handleNotificationClick = async (notif: any) => {
+    const handleNotificationClick = async (notif: { id: string; title: string; message: string; isRead: boolean; referenceId?: string; createdAt: string }) => {
         if (!notif.isRead) {
             await markAsRead(notif.id);
         }
         if (notif.referenceId) {
-            const roleName = user?.role?.name;
-            let basePath = '/cases';
-            if (roleName === 'OHS Practitioner') basePath = '/ohs/cases';
-            else if (roleName === 'Security Practitioner') basePath = '/security/cases';
-            else if (roleName === 'Supervisor') basePath = '/supervisor/cases';
-            navigate(`${basePath}/${notif.referenceId}`);
+            const roleName = user?.role?.name?.toLowerCase().replace(/\s+/g, '_') || 'employee';
+            let path = `/employee/my-cases/${notif.referenceId}`;
+            if (roleName === 'first_aider') {
+                path = `/first-aider/cases/${notif.referenceId}`;
+            } else if (roleName === 'ohs_practitioner') {
+                path = `/ohs/cases/${notif.referenceId}`;
+            } else if (roleName === 'supervisor') {
+                path = `/supervisor/cases/${notif.referenceId}`;
+            } else if (roleName === 'system_administrator' || roleName === 'manager') {
+                path = `/admin/incidents/${notif.referenceId}`;
+            }
+            navigate(path);
             setShowNotifications(false);
         }
     };
@@ -143,46 +203,10 @@ const TopBar: React.FC<TopBarProps> = ({
             .join(' ');
     };
 
-    // Convert search results to SearchOption format
-    const searchSuggestions: SearchOption[] = searchResults.map(result => ({
-        value: result.id,
-        label: result.incidentNumber || result.title,
-        secondaryLabel: `${result.category || 'Case'} - ${result.severity || result.status || 'N/A'}`,
-        metadata: result,
-    }));
 
-    // Handle search result selection
-    const handleSearchSelect = (option: SearchOption) => {
-        const result = option.metadata as typeof searchResults[0] | undefined;
-
-        if (!result) return;
-
-        // Navigate based on result type and user role
-        if (result.type === 'case') {
-            // Check user role and navigate to appropriate path
-            const roleName = user?.role?.name;
-
-            if (roleName === 'Employee') {
-                navigate(`/employee/cases/${result.id}`);
-            } else if (roleName === 'Supervisor') {
-                navigate(`/supervisor/cases/${result.id}`);
-            } else if (roleName === 'OHS Practitioner') {
-                navigate(`/ohs/cases/${result.id}`);
-            } else if (roleName === 'Security Practitioner') {
-                navigate(`/security/cases/${result.id}`);
-            } else if (roleName === 'Finance Official') {
-                navigate(`/finance/cases/${result.id}`);
-            } else if (roleName === 'System Administrator' || roleName === 'Manager') {
-                navigate(`/admin/cases/${result.id}`);
-            } else {
-                // Default fallback
-                navigate(`/cases/${result.id}`);
-            }
-        }
-    };
 
     return (
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 mb-4 lg:mb-5 transition-all duration-300">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 transition-all duration-300">
             {/* Left: Title and Breadcrumbs */}
             <div className="shrink-0 flex items-center w-full lg:w-auto gap-2">
                 {/* Mobile hamburger menu toggle */}
@@ -195,34 +219,16 @@ const TopBar: React.FC<TopBarProps> = ({
                 </button>
 
                 <div className="flex flex-col sm:flex-row sm:items-center w-full lg:w-auto gap-2.5 sm:gap-4">
-                    <div>
-                        <h1 className="text-[19px] font-bold text-gray-800 leading-tight">{title}</h1>
-                        {breadcrumbs && breadcrumbs.length > 0 ? (
-                            <nav className="flex items-center gap-1 text-[11px] font-semibold mt-0">
-                                {breadcrumbs.map((crumb, idx) => {
-                                    const isLast = idx === breadcrumbs.length - 1;
-                                    return (
-                                        <React.Fragment key={idx}>
-                                            {idx > 0 && <ChevronRight size={10} className="text-gray-300 mx-0.5" />}
-                                            {crumb.path && !isLast ? (
-                                                <Link to={crumb.path} className="text-gold hover:text-brown hover:underline transition-colors">
-                                                    {crumb.label}
-                                                </Link>
-                                            ) : (
-                                                <span className={isLast ? 'text-gray-500' : 'text-gold'}>{crumb.label}</span>
-                                            )}
-                                        </React.Fragment>
-                                    );
-                                })}
-                            </nav>
-                        ) : description ? (
-                            <p className="text-[11px] font-semibold mt-0">
-                                <span className="text-gold">Dashboard </span>
-                                <span className="text-black">/ {description}</span>
-                            </p>
-                        ) : null}
-                    </div>
-
+                    {displayTitle && (
+                        <div className="flex items-baseline gap-2">
+                            <h1 className="text-[19px] font-bold text-gray-800 leading-tight">{displayTitle}</h1>
+                            {displayDescription && (
+                                <span className="text-[11px] text-gray-400 font-semibold ml-1.5 hidden sm:inline">
+                                    {displayDescription}
+                                </span>
+                            )}
+                        </div>
+                    )}
                     {actionButton && (
                         <button
                             onClick={actionButton.onClick}
@@ -239,29 +245,11 @@ const TopBar: React.FC<TopBarProps> = ({
             <div className="flex flex-col-reverse md:flex-row items-center gap-2.5 w-full lg:w-auto">
                 {children}
 
-                {/* Functional Search with Autocomplete */}
-                <div className="w-full md:w-48 lg:w-52">
-                    <SearchInput
-                        value={searchQuery}
-                        onChange={setSearchQuery}
-                        placeholder={searchPlaceholder}
-                        suggestions={searchSuggestions}
-                        onSuggestionSelect={handleSearchSelect}
-                        loading={isSearching}
-                        variant="bordered"
-                        filterMode="contains"
-                        maxSuggestions={8}
-                        className="w-full"
-                    />
-                </div>
 
-                {/* Icons & Profile Group */}
+
                 <div className="flex items-center justify-between md:justify-end w-full md:w-auto gap-2">
                     {/* Icons */}
                     <div className="flex items-center gap-1">
-                        <button className="p-1.5 text-gray-400 bg-light-gold hover:bg-gray-50 rounded-xl transition-all border border-transparent hover:border-gray-100">
-                            <Settings size={14} />
-                        </button>
                         <div className="relative" ref={notifRef}>
                             <button
                                 onClick={handleBellClick}
@@ -325,22 +313,14 @@ const TopBar: React.FC<TopBarProps> = ({
                     </div>
 
                     {/* Profile */}
-                    <div className="relative">
-                        <button
-                            onClick={() => navigate('/profile')}
-                            className="flex items-center gap-1.5 pl-2 hover:bg-gray-50 rounded-xl transition-all p-0.5"
-                        >
-                            <div className="flex flex-col text-right hidden sm:block">
-                                <p className="text-[11px] font-bold text-gray-800 leading-none">{getFullName()}</p>
-                                <p className="text-[9px] font-semibold text-gray-400 mt-0">{getUserRole()}</p>
-                            </div>
-                            <div className="w-[28px] h-[28px] rounded-full bg-gold flex items-center justify-center text-white font-bold text-[11px] shadow-inner border-2 border-white">
-                                {getUserInitials()}
-                            </div>
-                            {/* <ChevronDown size={16} className="text-gray-400" /> */}
-                        </button>
-
-                        {/* Profile Dropdown logic commented out in original file */}
+                    <div className="flex items-center gap-1.5 pl-2 p-0.5 select-none shrink-0">
+                        <div className="flex flex-col text-right hidden sm:block gap-0.5">
+                            <p className="text-[11px] font-bold text-gray-800 leading-normal whitespace-nowrap">{getFullName()}</p>
+                            <p className="text-[9px] font-semibold text-gray-400 whitespace-nowrap">{getUserRole()}</p>
+                        </div>
+                        <div className="w-[28px] h-[28px] rounded-full bg-gold flex items-center justify-center text-white font-bold text-[11px] shadow-inner border-2 border-white shrink-0">
+                            {getUserInitials()}
+                        </div>
                     </div>
                 </div>
             </div>

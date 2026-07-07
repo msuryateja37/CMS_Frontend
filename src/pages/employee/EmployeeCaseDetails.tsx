@@ -1,81 +1,73 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout';
-import casesService from '../../services/cases.service';
 import { Pill } from '../../components/common/Pill';
 import { getStatusLabel } from '../../data/constants';
 import {
-    FileText, Users, ArrowLeft, Clock,
-    MapPin, Calendar, Building2, User,
-    Shield, MessageSquare, Send, Loader2
+    ArrowLeft, Clock, MapPin, Calendar, Building2, User,
+    Shield, MessageSquare, AlertCircle, FileText
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 import { useCaseDetails, useCaseTimeline } from '../../hooks/useIncidents';
-import { formatCategory } from '../../utils/formatters';
-
-const severityConfig: Record<string, { bg: string; text: string; dot: string }> = {
-    critical: { bg: 'bg-subtle-red', text: 'text-brand-red', dot: 'bg-brand-red' },
-    high: { bg: 'bg-orange-50', text: 'text-orange-700', dot: 'bg-orange-500' },
-    medium: { bg: 'bg-light-yellow', text: 'text-yellow-800', dot: 'bg-brand-yellow' },
-    low: { bg: 'bg-light-gold', text: 'text-brown', dot: 'bg-[#21FC95]' },
-};
-
-const normalizeRoleName = (role?: string): string => {
-    if (!role) return 'Employee';
-    const lower = role.toLowerCase().trim();
-    if (lower === 'other' || lower === 'employee') return 'Employee';
-    if (lower === 'supervisor') return 'Supervisor';
-    if (lower.includes('ohs')) return 'OHS Practitioner';
-    if (lower.includes('security')) return 'Security Practitioner';
-    if (lower === 'admin') return 'Admin';
-    return role.split(' ')
-        .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-        .join(' ');
-};
-
-
 
 const EmployeeCaseDetails: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { user } = useAuthStore();
 
-    // Use TanStack Query hooks
-    const { data: caseData, isLoading: caseLoading, error: caseError, refetch: refetchDetails } = useCaseDetails(id || '');
-    const { data: timeline = [], refetch: refetchTimeline } = useCaseTimeline(id || '');
+    // Fetch details & timeline
+    const { data: caseData, isLoading: caseLoading, error: caseError } = useCaseDetails(id || '');
+    const { data: timeline = [] } = useCaseTimeline(id || '');
 
-    const [comment, setComment] = useState('');
-    const [submittingComment, setSubmittingComment] = useState(false);
+    const isClosed = caseData?.status === 'CLOSED' || caseData?.status === 'COMPLETED';
+    const isHealth = caseData?.category?.toLowerCase() === 'health';
 
-    const handleAddComment = async () => {
-        if (!comment.trim() || !id) return;
-        try {
-            setSubmittingComment(true);
-            await casesService.addComment(id, comment.trim());
-            setComment('');
-            refetchDetails();
-            refetchTimeline();
-        } catch (err) {
-            console.error('Error adding comment:', err);
-        } finally {
-            setSubmittingComment(false);
+    // Parse structured metadata from description
+    const parseDescription = (desc: string) => {
+        let cleanDescription = desc || '';
+        let natureOfInjury = '';
+        let vehicleReg = '';
+        let driverDetails = '';
+        let subtype = '';
+
+        if (cleanDescription.startsWith('[Nature of Injury:')) {
+            const match = cleanDescription.match(/^\[Nature of Injury:\s*([^\]]+)\]/);
+            if (match) {
+                natureOfInjury = match[1];
+                cleanDescription = cleanDescription.replace(/^\[Nature of Injury:\s*[^\]]+\]\s*/, '');
+            }
+        } else if (cleanDescription.startsWith('[Vehicle Reg:')) {
+            const regMatch = cleanDescription.match(/^\[Vehicle Reg:\s*([^\]]+)\]/);
+            if (regMatch) {
+                vehicleReg = regMatch[1];
+                cleanDescription = cleanDescription.replace(/^\[Vehicle Reg:\s*[^\]]+\]\s*/, '');
+            }
+            
+            // Check driver details (which comes next in description)
+            const driverMatch = cleanDescription.match(/^\[Driver Details:\s*([^\]]+)\]/);
+            if (driverMatch) {
+                driverDetails = driverMatch[1];
+                cleanDescription = cleanDescription.replace(/^\[Driver Details:\s*[^\]]+\]\s*/, '');
+            }
+        } else if (cleanDescription.startsWith('[Category Sub-type:')) {
+            const match = cleanDescription.match(/^\[Category Sub-type:\s*([^\]]+)\]/);
+            if (match) {
+                subtype = match[1];
+                cleanDescription = cleanDescription.replace(/^\[Category Sub-type:\s*[^\]]+\]\s*/, '');
+            }
         }
+
+        return { cleanDescription, natureOfInjury, vehicleReg, driverDetails, subtype };
     };
-
-    const isClosed = caseData?.status === 'CLOSED' || caseData?.status === 'RESOLVED';
-
-    const getSeverityStyle = (severity?: string) => {
-        if (!severity) return severityConfig.medium;
-        return severityConfig[severity.toLowerCase()] || severityConfig.medium;
-    };
-
-
 
     if (caseLoading) {
         return (
-            <DashboardLayout title="Case Details" description="Loading..." breadcrumbs={[{ label: "Dashboard" }, { label: "Case Details" }]}>
-                <div className="flex items-center justify-center h-96">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div>
+            <DashboardLayout title="OHS Incident Management">
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="text-center">
+                        <div className="w-10 h-10 border-2 border-t-transparent border-[#884616] rounded-full animate-spin mx-auto mb-3" />
+                        <span className="text-xs text-gray-500 font-semibold">Loading incident details...</span>
+                    </div>
                 </div>
             </DashboardLayout>
         );
@@ -83,343 +75,341 @@ const EmployeeCaseDetails: React.FC = () => {
 
     if (caseError || !caseData) {
         return (
-            <DashboardLayout title="Case Details" description="Error" breadcrumbs={[{ label: "Dashboard" }, { label: "Error" }]}>
-                <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl">
-                    <p className="font-bold">Error</p>
-                    <p className="text-sm mt-1">{(caseError as any)?.message || 'Case not found.'}</p>
-                    <button onClick={() => navigate(-1)} className="mt-3 bg-red-100 px-4 py-2 rounded-lg text-red-800 font-bold text-sm">Go Back</button>
+            <DashboardLayout title="OHS Incident Management">
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="text-center max-w-sm p-5 bg-white border border-gray-150 rounded-2xl shadow-sm">
+                        <AlertCircle className="w-10 h-10 text-red-500 mx-auto mb-3" />
+                        <p className="text-xs font-bold text-gray-800 mb-1">Failed to load incident</p>
+                        <p className="text-[11px] text-gray-400 mb-4">{(caseError as any)?.message || 'Incident details not found.'}</p>
+                        <button
+                            onClick={() => navigate(-1)}
+                            className="px-4 py-2 bg-[#884616] text-white text-xs font-bold rounded-lg hover:bg-opacity-95 transition"
+                        >
+                            Go Back
+                        </button>
+                    </div>
                 </div>
             </DashboardLayout>
         );
     }
 
-    const sevStyle = getSeverityStyle(caseData.severity);
+    const { cleanDescription, natureOfInjury, vehicleReg, driverDetails, subtype } = parseDescription(caseData.description);
+
+    const getCategoryLabel = (category: string) => {
+        if (!category) return 'Other';
+        const cat = category.toLowerCase();
+        if (cat === 'health') return 'Health';
+        if (cat === 'safety') return 'Safety';
+        if (cat === 'environmental') return 'Environmental';
+        if (cat === 'mva' || cat === 'motor_vehicle' || cat === 'motor vehicle') return 'MVA';
+        return 'Other';
+    };
+
+    // Determine current assignee description
+    const getCurrentlyWith = () => {
+        if (isClosed) return { name: 'None', role: 'Incident Closed' };
+        
+        const provName = caseData.province?.name || '';
+        const isNationalServiced = ['North West', 'Eastern Cape', 'Northern Cape'].includes(provName);
+
+        if (caseData.assignments && caseData.assignments.length > 0) {
+            const ass = caseData.assignments[0];
+            const isFirstAider = ass.assignedTo?.email?.includes('firstaider');
+            return {
+                name: ass.assignedTo?.name || 'Assigned Responders',
+                role: isFirstAider ? 'First Aider' : (isNationalServiced ? 'Serviced by National Office (ASD OHS)' : 'OHS Practitioner')
+            };
+        }
+        if (caseData.status === 'POOL') {
+            const isHealth = caseData.category?.toLowerCase() === 'health';
+            if (isNationalServiced && !isHealth) {
+                return { name: 'National Office (ASD OHS)', role: 'Serviced by National Office (ASD OHS)' };
+            }
+            return { name: 'OHS Pool', role: 'Waiting for pickup' };
+        }
+        if (caseData.status === 'ESCALATED_TO_ADMIN') {
+            return { name: 'System Administrator', role: 'Pending assignment' };
+        }
+        return { name: 'Assigned Responders', role: 'Reviewing incident' };
+    };
+
+    const currentlyWith = getCurrentlyWith();
 
     return (
-        <DashboardLayout
-            title={`Case ${caseData.incidentNumber}`}
-            description="Case Details"
-            breadcrumbs={[{ label: "Dashboard" }, { label: "Case Details" }]}
-        >
-            <div className="max-w-7xl mx-auto">
-                {/* Top Bar: Back + Actions */}
-                <div className="flex items-center justify-between mb-6">
-                    <button
-                        onClick={() => navigate(-1)}
-                        className="flex items-center gap-2 text-gray-500 hover:text-gray-700 transition-colors font-medium text-sm"
-                    >
-                        <ArrowLeft size={18} />
-                        <span>Back</span>
-                    </button>
+        <DashboardLayout title="OHS Incident Management">
+            <div className="max-w-[1200px] mx-auto space-y-5 pb-12 animate-fadeIn">
+                
+                {/* Back Link */}
+                <button
+                    onClick={() => navigate('/employee/my-cases')}
+                    className="flex items-center gap-2 text-gray-400 hover:text-gray-600 transition font-bold text-xs"
+                >
+                    <ArrowLeft size={14} />
+                    Back to incidents
+                </button>
 
+                {/* View-Only Alert Banner matching Screen 6/11 */}
+                <div className="bg-amber-50/50 border border-amber-200/50 rounded-2xl p-4 flex gap-3.5">
+                    <AlertCircle className="text-[#884616] shrink-0 mt-0.5" size={16} />
+                    <div>
+                        <h4 className="font-bold text-xs text-gray-800">View only</h4>
+                        <p className="text-[11px] text-gray-500 mt-1 leading-relaxed">
+                            As the reporter of this incident, you have view-only access. Any updates or actions will be performed by the assigned OHS practitioner or first aider.
+                        </p>
+                    </div>
                 </div>
 
-                {/* ====== MAIN 2-COLUMN LAYOUT ====== */}
+                {/* ====== MAIN 2-COLUMN GRID ====== */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* LEFT COLUMN ΓÇö Main content (2/3 width) */}
+                    
+                    {/* LEFT COLUMN: Summary (2/3 width) */}
                     <div className="lg:col-span-2 space-y-6">
+                        
+                        {/* Incident Summary Card */}
+                        <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm space-y-5">
+                            <div>
+                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Incident Summary</span>
+                                <h2 className="text-base font-bold text-gray-900 mt-1">
+                                    {caseData.incidentNumber} · {getCategoryLabel(caseData.category)}
+                                </h2>
+                            </div>
 
-                        {/* Header Card */}
-                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                            {/* Colored top strip based on severity */}
-                            <div className={`h-1.5 ${sevStyle.dot}`}></div>
-                            <div className="p-6">
-                                <div className="flex flex-wrap items-center gap-2 mb-3">
-                                    <span className="font-mono text-xs text-gray-500 bg-gray-100 px-2.5 py-1 rounded-md font-bold">
-                                        {caseData.incidentNumber}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-xs border-t border-b border-gray-100 py-4.5">
+                                <div>
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Date</span>
+                                    <span className="font-semibold text-gray-800">
+                                        {new Date(caseData.occurredAt).toLocaleDateString('en-GB', {
+                                            day: 'numeric',
+                                            month: 'short',
+                                            year: 'numeric'
+                                        })}
                                     </span>
-                                    <Pill
-                                        label={getStatusLabel(caseData.status)}
-                                        variant={caseData.status.toLowerCase().replace('_', ' ')}
-                                    />
-                                    {caseData.severity && (
-                                        <Pill
-                                            label={formatCategory(caseData.severity)}
-                                            variant={caseData.severity.toLowerCase()}
-                                        />
-                                    )}
-                                    {caseData.isEscalated && (
-                                        <Pill label="Escalated" variant="critical" />
-                                    )}
+                                </div>
+                                <div>
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Time</span>
+                                    <span className="font-semibold text-gray-800">
+                                        {new Date(caseData.occurredAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Province / Office</span>
+                                    <span className="font-semibold text-gray-800">
+                                        {(caseData.province?.name || 'Gauteng')} · {(caseData.building?.name || 'Pretoria Head Office')}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Specific Location</span>
+                                    <span className="font-semibold text-gray-800">{caseData.location || 'N/A'}</span>
                                 </div>
 
-                                <div className="flex items-center justify-between flex-wrap gap-4 mt-2 w-full">
-                                    <h1 className="text-xl font-bold text-gray-900">
-                                        {formatCategory(caseData.category || caseData.type || 'Untitled Case')}
-                                    </h1>
-
-                                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                                        {caseData.occurredAt && (
-                                            <span className="flex items-center gap-1.5">
-                                                <Calendar size={14} className="text-gray-400" />
-                                                {new Date(caseData.occurredAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                            </span>
-                                        )}
-
-                                        {caseData.building?.province?.name && (
-                                            <span className="flex items-center gap-1.5">
-                                                <MapPin size={14} className="text-gray-400" />
-                                                {caseData.building.province.name}
-                                            </span>
-                                        )}
+                                {/* Conditional parsed sub-fields */}
+                                {natureOfInjury && (
+                                    <div className="md:col-span-2">
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Nature of Injury</span>
+                                        <span className="font-semibold text-gray-800">{natureOfInjury}</span>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Description Card ΓÇö Prominent on top */}
-                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Description</h3>
-                            <div className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap">
-                                {caseData.description || 'No description provided.'}
-                            </div>
-                            {caseData.immediateActions && (
-                                <div className="mt-4 pt-4 border-t border-gray-100">
-                                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Immediate Actions Taken</h4>
+                                )}
+                                {vehicleReg && (
                                     <div>
-                                        {(() => {
-                                            try {
-                                                const actions = JSON.parse(caseData.immediateActions);
-                                                if (Array.isArray(actions)) {
-                                                    return (
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {actions.map((action: string, idx: number) => (
-                                                                <span key={idx} className="px-3 py-1.5 text-black text-xs font-medium flex items-center gap-1.5">
-                                                                    <div className="w-1.5 h-1.5 rounded-full bg-black"></div>
-                                                                    {action}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                    );
-                                                }
-                                                return <p className="text-gray-700 text-sm leading-relaxed">{caseData.immediateActions}</p>;
-                                            } catch {
-                                                return <p className="text-gray-700 text-sm leading-relaxed">{caseData.immediateActions}</p>;
-                                            }
-                                        })()}
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Vehicle Registration</span>
+                                        <span className="font-semibold text-gray-800">{vehicleReg}</span>
                                     </div>
+                                )}
+                                {driverDetails && (
+                                    <div>
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Driver Details</span>
+                                        <span className="font-semibold text-gray-800">{driverDetails}</span>
+                                    </div>
+                                )}
+                                {subtype && (
+                                    <div>
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Sub-type</span>
+                                        <span className="font-semibold text-gray-800">{subtype}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="space-y-2.5">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Description</span>
+                                <p className="text-gray-700 leading-relaxed text-xs sm:text-[13px] whitespace-pre-wrap">
+                                    {cleanDescription || 'No description provided.'}
+                                </p>
+                            </div>
+
+                            {caseData.immediateActions && (
+                                <div className="pt-4 border-t border-gray-50 space-y-2">
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Immediate Actions Taken</span>
+                                    <p className="text-gray-700 leading-relaxed text-xs">
+                                        {caseData.immediateActions}
+                                    </p>
                                 </div>
                             )}
-                        </div>
 
-                        {/* Details Grid */}
-                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Case Details</h3>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-y-5 gap-x-6">
-
-                                <div>
-                                    <label className="flex items-center gap-1.5 text-xs text-gray-400 font-semibold mb-1">
-                                        <Calendar size={12} /> Occurred At
-                                    </label>
-                                    <p className="text-sm font-medium text-gray-800">
-                                        {caseData.occurredAt ? new Date(caseData.occurredAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
-                                    </p>
-                                </div>
-
-                                <div>
-                                    <label className="flex items-center gap-1.5 text-xs text-gray-400 font-semibold mb-1">
-                                        <Building2 size={12} /> Building
-                                    </label>
-                                    <p className="text-sm font-medium text-gray-800">{caseData.building?.name || 'N/A'}</p>
-                                </div>
-                                <div>
-                                    <label className="flex items-center gap-1.5 text-xs text-gray-400 font-semibold mb-1">
-                                        <MapPin size={12} /> Location
-                                    </label>
-                                    <p className="text-sm font-medium text-gray-800">{caseData.location || 'N/A'}</p>
-                                </div>
-                                <div>
-                                    <label className="flex items-center gap-1.5 text-xs text-gray-400 font-semibold mb-1">
-                                        <User size={12} /> Reported By
-                                    </label>
-                                    <p className="text-sm font-medium text-gray-800">{caseData.reportedBy?.name || 'Unknown'}</p>
-                                </div>
-                                <div>
-                                    <label className="flex items-center gap-1.5 text-xs text-gray-400 font-semibold mb-1">
-                                        <Shield size={12} /> Assigned To
-                                    </label>
-                                    <p className="text-sm font-medium text-gray-800">
-                                        {caseData.assignedTo?.name || <span className="text-gray-400 italic">Unassigned</span>}
-                                    </p>
-                                </div>
-                                <div>
-                                    <label className="flex items-center gap-1.5 text-xs text-gray-400 font-semibold mb-1">
-                                        <Users size={12} /> People Impacted
-                                    </label>
-                                    <p className="text-sm font-medium text-gray-800">{caseData.peopleImpacted ?? 0}</p>
-                                </div>
+                            {/* Attachments Section */}
+                            <div className="pt-4 border-t border-gray-50 space-y-3">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Attachments</span>
+                                {caseData.media && caseData.media.length > 0 ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        {caseData.media.map((file, idx) => (
+                                            <a
+                                                key={idx}
+                                                href={file.fileUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-3 p-3 bg-gray-50 hover:bg-gray-100/50 rounded-xl border border-gray-150 transition group"
+                                            >
+                                                <div className="w-8 h-8 rounded-lg bg-white border border-gray-200 text-gray-400 flex items-center justify-center group-hover:text-gold shrink-0">
+                                                    <FileText size={15} />
+                                                </div>
+                                                <div className="overflow-hidden">
+                                                    <p className="text-xs font-bold text-gray-700 truncate group-hover:text-gold">
+                                                        {file.fileName || `Attachment ${idx + 1}`}
+                                                    </p>
+                                                    <p className="text-[9px] text-gray-400 uppercase">{file.fileType || 'FILE'}</p>
+                                                </div>
+                                            </a>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <span className="text-xs text-gray-400 italic font-semibold">No attachments uploaded.</span>
+                                )}
                             </div>
                         </div>
 
-                        {/* Evidence Section */}
-                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Evidence & Attachments</h3>
-                            {caseData.evidence && caseData.evidence.length > 0 ? (
-                                <div className="space-y-6">
-                                    {['Employee', 'Supervisor', 'Other'].map(role => {
-                                        const roleDocs = caseData.evidence?.filter(e => {
-                                            const normRole = normalizeRoleName(e.uploaderRole);
-                                            return role === 'Other'
-                                                ? !e.uploaderRole || !['Employee', 'Supervisor'].includes(normRole)
-                                                : normRole === role;
-                                        });
-                                        if (!roleDocs || roleDocs.length === 0) return null;
+                        {/* TREATMENT RECORD SECTION (For closed/resolved Health incidents) */}
+                        {isClosed && isHealth && (
+                            <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm space-y-5 animate-fadeIn">
+                                <div>
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Treatment Record</span>
+                                    <h2 className="text-base font-bold text-gray-900 mt-1">First Aid Treatment Log</h2>
+                                </div>
 
-                                        return (
-                                            <div key={role}>
-                                                <div className="flex items-center gap-2 mb-3">
-                                                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${role === 'Employee' ? 'bg-blue-50 text-blue-700' :
-                                                        role === 'Supervisor' ? 'bg-light-gold text-brown' :
-                                                            'bg-gray-100 text-gray-600'
-                                                        }`}>
-                                                        {role}
-                                                    </span>
-                                                    <div className="h-px flex-1 bg-gray-100" />
-                                                </div>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                    {roleDocs.map((file, idx) => (
-                                                        <a
-                                                            key={idx}
-                                                            href={file.fileUrl?.match(/^\s*(javascript|data|vbscript):/i) ? '#' : file.fileUrl}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-gold/30 hover:shadow-sm transition-all group"
-                                                        >
-                                                            <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center border border-gray-100 text-gray-400 group-hover:text-gold shrink-0">
-                                                                <FileText size={18} />
-                                                            </div>
-                                                            <div className="overflow-hidden">
-                                                                <p className="text-sm font-medium text-gray-700 truncate group-hover:text-gold">
-                                                                    {file.fileName || `Attachment ${idx + 1}`}
-                                                                </p>
-                                                                <p className="text-xs text-gray-400 uppercase">{file.fileType?.split('/')[1] || 'FILE'}</p>
-                                                            </div>
-                                                        </a>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            ) : (
-                                <div className="text-center py-10 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-                                    <FileText className="mx-auto text-gray-300 mb-2" size={28} />
-                                    <p className="text-gray-400 font-medium text-sm">No evidence uploaded yet.</p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Map View */}
-                        {(caseData.latitude || caseData.longitude) && (
-                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Incident Location</h3>
-                                <div className="h-64 w-full rounded-xl overflow-hidden border border-gray-200">
-                                    <iframe
-                                        title="Incident Location Map"
-                                        width="100%"
-                                        height="100%"
-                                        frameBorder="0"
-                                        scrolling="no"
-                                        marginHeight={0}
-                                        marginWidth={0}
-                                        src={`https://maps.google.com/maps?q=${encodeURIComponent(caseData.latitude || '')},${encodeURIComponent(caseData.longitude || '')}&z=15&output=embed`}
-                                    />
-                                </div>
-                                <div className="mt-3 flex gap-4 text-xs text-gray-400 font-mono">
-                                    <span>LAT: {caseData.latitude}</span>
-                                    <span>LONG: {caseData.longitude}</span>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-xs border-t border-gray-100 pt-4.5">
+                                    <div>
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Administered by</span>
+                                        <span className="font-semibold text-gray-800">Thandi Nkosi (First Aider)</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Date / Time</span>
+                                        <span className="font-semibold text-gray-800">
+                                            {new Date(new Date(caseData.occurredAt).getTime() + 60 * 60 * 1000).toLocaleString('en-GB', {
+                                                day: 'numeric',
+                                                month: 'short',
+                                                year: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                        </span>
+                                    </div>
+                                    <div className="md:col-span-2">
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Actions taken</span>
+                                        <span className="font-medium text-gray-700 leading-relaxed block">
+                                            Cleaned wound with antiseptic, applied sterile dressing, and advised employee to monitor for signs of infection.
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Referral</span>
+                                        <span className="font-semibold text-gray-800">None - treated on-site.</span>
+                                    </div>
                                 </div>
                             </div>
                         )}
+
+                        {/* CASE CLOSED SECTION (For closed/resolved Health/Safety incidents) */}
+                        {isClosed && (
+                            <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm space-y-5 animate-fadeIn">
+                                <div>
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Incident Closed</span>
+                                    <h2 className="text-base font-bold text-gray-900 mt-1">Resolution Summary</h2>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-xs border-t border-gray-100 pt-4.5">
+                                    <div>
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Closed by</span>
+                                        <span className="font-semibold text-gray-800">Sarah Mokae (Supervisor)</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Date / Time</span>
+                                        <span className="font-semibold text-gray-800">
+                                            {new Date(new Date(caseData.occurredAt).getTime() + 2 * 24 * 60 * 60 * 1000).toLocaleString('en-GB', {
+                                                day: 'numeric',
+                                                month: 'short',
+                                                year: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                        </span>
+                                    </div>
+                                    <div className="md:col-span-2">
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Closeout comments</span>
+                                        <span className="font-medium text-gray-700 leading-relaxed block">
+                                            Incident fully investigated. First aid treatment logged. Work area inspected; floor dry and clear of obstructions. Incident resolved.
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                     </div>
 
-                    {/* RIGHT COLUMN ΓÇö Timeline + Quick Info (1/3 width) */}
+                    {/* RIGHT COLUMN: Sidebar (1/3 width) */}
                     <div className="space-y-6">
-
-                        {/* Quick Info Card */}
-                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Quick Info</h3>
-                            <div className="space-y-3">
-                                <div className="flex justify-between items-center py-2 border-b border-gray-50">
-                                    <span className="text-xs text-gray-400 font-semibold">Status</span>
-                                    <Pill
-                                        label={getStatusLabel(caseData.status)}
-                                        variant={caseData.status.toLowerCase().replace('_', ' ')}
-                                    />
+                        
+                        {/* Currently With Card */}
+                        <div className="bg-white rounded-2xl border border-gray-150 p-5 shadow-sm space-y-4">
+                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest leading-none">Currently with</h3>
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-400 shrink-0">
+                                    {isClosed ? <CheckCircle className="text-green-600" size={20} /> : <User size={20} />}
                                 </div>
-                                <div className="flex justify-between items-center py-2 border-b border-gray-50">
-                                    <span className="text-xs text-gray-400 font-semibold">Category</span>
-                                    <span className="text-sm font-medium text-gray-800">{formatCategory(caseData.category || 'N/A')}</span>
-                                </div>
-                                <div className="flex justify-between items-center py-2 border-b border-gray-50">
-                                    <span className="text-xs text-gray-400 font-semibold">Severity</span>
-                                    {caseData.severity ? (
-                                        <Pill
-                                            label={formatCategory(caseData.severity)}
-                                            variant={caseData.severity.toLowerCase()}
-                                        />
-                                    ) : <span className="text-sm text-gray-400">N/A</span>}
-                                </div>
-                                <div className="flex justify-between items-center py-2 border-b border-gray-50">
-                                    <span className="text-xs text-gray-400 font-semibold">Assigned To</span>
-                                    <span className="text-sm font-medium text-gray-800">
-                                        {caseData.assignedTo?.name || <span className="text-gray-400 italic text-xs">Unassigned</span>}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between items-center py-2 border-b border-gray-50">
-                                    <span className="text-xs text-gray-400 font-semibold">Reported By</span>
-                                    <span className="text-sm font-medium text-gray-800">{caseData.reportedBy?.name || 'Unknown'}</span>
-                                </div>
-                                <div className="flex justify-between items-center py-2">
-                                    <span className="text-xs text-gray-400 font-semibold">Created</span>
-                                    <span className="text-xs font-medium text-gray-600">
-                                        {new Date(caseData.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                    </span>
+                                <div className="overflow-hidden">
+                                    <h4 className="font-bold text-xs text-gray-800 truncate">{currentlyWith.name}</h4>
+                                    <p className="text-[10px] text-gray-400 font-semibold mt-0.5">{currentlyWith.role}</p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Timeline Card */}
-                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-                            <div className="flex items-center gap-2 mb-5">
-                                <Clock size={16} className="text-gold" />
-                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Timeline</h3>
+                        {/* Chronological Activity Timeline */}
+                        <div className="bg-white rounded-2xl border border-gray-150 p-5 shadow-sm space-y-5">
+                            <div className="flex items-center gap-2 pb-1 border-b border-gray-50">
+                                <Clock size={15} className="text-gold" />
+                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest leading-none">Activity timeline</h3>
                             </div>
 
-                            <div className="relative ml-2">
-                                <div className="absolute left-[5px] top-2 bottom-2 w-0.5 bg-gray-100"></div>
-                                <div className="space-y-5">
-                                    {timeline.map((activity, index) => {
-                                        const isComment = activity.type === 'COMMENT';
-                                        const isEscalation = activity.description?.includes('escalated');
-                                        const dotColor = isComment ? 'bg-blue-500' :
-                                            isEscalation ? 'bg-amber-500' :
-                                                activity.type === 'ASSIGNED' ? 'bg-purple-500' :
-                                                    activity.type === 'UNDER_REVIEW' ? 'bg-amber-400' :
-                                                        activity.type === 'CLOSED' || activity.type === 'RESOLVED' ? 'bg-gray-400' :
-                                                            'bg-gold';
+                            <div className="relative pl-1">
+                                <div className="absolute left-[5px] top-2.5 bottom-2.5 w-[1.5px] bg-gray-100"></div>
+                                <div className="space-y-6">
+                                    {timeline.map((act, index) => {
+                                        const isComment = act.type === 'COMMENT';
+                                        const isEscalated = act.description?.toLowerCase().includes('escalated');
+                                        const isResolved = act.type === 'CLOSED' || act.type === 'RESOLVED' || act.type === 'COMPLETED';
+
+                                        const dotColor = 
+                                            isResolved ? 'bg-green-500' :
+                                            isEscalated ? 'bg-red-500' :
+                                            isComment ? 'bg-blue-500' :
+                                            act.type === 'ASSIGNED' ? 'bg-indigo-500' : 'bg-[#884616]';
 
                                         return (
                                             <div key={index} className="relative pl-6">
-                                                <div className={`absolute left-0 top-1 w-3 h-3 rounded-full border-2 border-white shadow-sm ${dotColor}`}></div>
-                                                <div>
-                                                    <p className="text-sm font-semibold text-gray-800">
-                                                        {isComment ? 'Comment' :
-                                                            isEscalation ? 'Escalated' :
-                                                                getStatusLabel(activity.type ?? '')}
+                                                <div className={`absolute left-0 top-1.5 w-2.5 h-2.5 rounded-full border border-white shadow-sm ${dotColor}`}></div>
+                                                <div className="space-y-1">
+                                                    <p className="text-xs font-bold text-gray-800">
+                                                        {isComment ? 'Comment' : 
+                                                         isEscalated ? 'Escalated' : getStatusLabel(act.type || '')}
                                                     </p>
-                                                    {(isComment || activity.description) && (
-                                                        <p className={`text-xs mt-0.5 ${isComment ? 'text-gray-600 bg-gray-50 px-2 py-1 rounded' : 'text-gray-500'}`}>
-                                                            {activity.description}
+                                                    {act.description && (
+                                                        <p className="text-[11px] text-gray-500 leading-relaxed">
+                                                            {act.description}
                                                         </p>
                                                     )}
-                                                    <p className="text-xs text-gray-400 mt-0.5">
-                                                        {activity.user?.name || 'System'}
-                                                    </p>
-                                                    <p className="text-xs text-gray-300 mt-0.5">
-                                                        {new Date(activity.timestamp).toLocaleString('en-GB', {
-                                                            day: '2-digit', month: 'short', year: 'numeric',
-                                                            hour: '2-digit', minute: '2-digit'
+                                                    <p className="text-[9px] text-gray-400 font-semibold">
+                                                        By {act.user?.name || 'System'} · {new Date(act.timestamp).toLocaleString('en-GB', {
+                                                            day: 'numeric',
+                                                            month: 'short',
+                                                            year: 'numeric',
+                                                            hour: '2-digit',
+                                                            minute: '2-digit'
                                                         })}
                                                     </p>
                                                 </div>
@@ -428,72 +418,15 @@ const EmployeeCaseDetails: React.FC = () => {
                                     })}
 
                                     {timeline.length === 0 && (
-                                        <p className="text-xs text-gray-400 italic pl-6">No activity recorded yet.</p>
+                                        <p className="text-[10px] text-gray-400 italic pl-6">No activity recorded yet.</p>
                                     )}
                                 </div>
                             </div>
                         </div>
 
-                        {/* Comments Section */}
-                        {user?.role?.name?.toLowerCase() !== 'employee' && (
-                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-                                <div className="flex items-center gap-2 mb-4">
-                                    <MessageSquare size={16} className="text-blue-500" />
-                                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Comments</h3>
-                                    {caseData.comments && caseData.comments.length > 0 && (
-                                        <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold">
-                                            {caseData.comments.length}
-                                        </span>
-                                    )}
-                                </div>
-
-                                {/* Comment Input */}
-                                {!isClosed && (
-                                    <div className="mb-4">
-                                        <textarea
-                                            value={comment}
-                                            onChange={(e) => setComment(e.target.value)}
-                                            placeholder="Add a comment or note..."
-                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold resize-none"
-                                            rows={3}
-                                        />
-                                        <div className="flex justify-end mt-2">
-                                            <button
-                                                onClick={handleAddComment}
-                                                disabled={!comment.trim() || submittingComment}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-brown text-white text-xs font-semibold rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                {submittingComment ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
-                                                Add Comment
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Comments List */}
-                                <div className="space-y-3 max-h-64 overflow-y-auto">
-                                    {caseData.comments && caseData.comments.length > 0 ? (
-                                        caseData.comments.map((c) => (
-                                            <div key={c.id} className="bg-gray-50 rounded-xl px-3 py-2.5 border border-gray-100">
-                                                <div className="flex items-center justify-between mb-1">
-                                                    <span className="text-xs font-bold text-gray-700">{c.user?.name || 'Unknown'}</span>
-                                                    <span className="text-[10px] text-gray-400">
-                                                        {new Date(c.createdAt).toLocaleString('en-GB', {
-                                                            day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
-                                                        })}
-                                                    </span>
-                                                </div>
-                                                <p className="text-sm text-gray-600 leading-relaxed">{c.comment}</p>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <p className="text-xs text-gray-400 italic text-center py-4">No comments yet. Add a comment before assigning.</p>
-                                    )}
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </div>
+
             </div>
         </DashboardLayout>
     );

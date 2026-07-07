@@ -153,13 +153,13 @@ const JSADocuments: React.FC = () => {
             header: 'Actions',
             cell: () => (
                 <div className="flex items-center gap-2">
-                    <button className="p-1.5 text-gray-400 hover:text-[#004D40] hover:bg-gray-50 rounded-lg transition-colors">
+                    <button title="View JSA" aria-label="View JSA" className="p-1.5 text-gray-400 hover:text-[#004D40] hover:bg-gray-50 rounded-lg transition-colors">
                         <Eye size={16} />
                     </button>
-                    <button className="p-1.5 text-gray-400 hover:text-[#004D40] hover:bg-gray-50 rounded-lg transition-colors">
+                    <button title="Edit JSA" aria-label="Edit JSA" className="p-1.5 text-gray-400 hover:text-[#004D40] hover:bg-gray-50 rounded-lg transition-colors">
                         <Edit size={16} />
                     </button>
-                    <button className="p-1.5 text-gray-400 hover:text-[#004D40] hover:bg-gray-50 rounded-lg transition-colors">
+                    <button title="Download JSA" aria-label="Download JSA" className="p-1.5 text-gray-400 hover:text-[#004D40] hover:bg-gray-50 rounded-lg transition-colors">
                         <Download size={16} />
                     </button>
                 </div>

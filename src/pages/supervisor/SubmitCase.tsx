@@ -127,7 +127,7 @@ const SubmitCase: React.FC = () => {
     };
 
     return (
-        <DashboardLayout title="Submit New Case" description="Submit New Case" breadcrumbs={[{ label: "Dashboard", path: "/supervisor/dashboard" }, { label: "Submit Case" }]}>
+        <DashboardLayout title="Submit New Incident" description="Submit New Incident" breadcrumbs={[{ label: "Dashboard", path: "/supervisor/dashboard" }, { label: "Submit Incident" }]}>
             <div className="max-w-[1400px] mx-auto px-4 py-8 relative">
                 {/* Stepper Section with Centered Navigation */}
                 <div className="flex items-center justify-center mb-12 ">

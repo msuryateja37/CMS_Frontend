@@ -21,32 +21,32 @@ const CaseSubmissionSuccess: React.FC = () => {
     let dashboardPath = '/employee/dashboard';
     let viewCasesPath = '/employee/my-cases';
     let submitAnotherPath = '/ohs/report-incident';
-    let viewCasesLabel = 'View My Cases';
+    let viewCasesLabel = 'View My Incidents';
     let nextSteps = [
         "Supervisor review within 48 hours",
         "Email updates on status changes",
-        "Track status under 'My Cases'"
+        "Track status under 'My Incidents'"
     ];
 
     if (userRole === 'SUPERVISOR') {
         dashboardPath = '/supervisor/dashboard';
-        viewCasesPath = '/supervisor/cases-review';
+        viewCasesPath = '/supervisor/dashboard';
         submitAnotherPath = '/supervisor/submit-case';
-        viewCasesLabel = 'View All Cases';
+        viewCasesLabel = 'View Incidents';
         nextSteps = [
-            "Your case will be reviewed within 48 hours",
+            "Your incident has been reported successfully",
             "You will receive email notifications on status updates",
-            "Track progress in the 'Cases for Review' section"
+            "Track progress directly in your dashboard"
         ];
     } else if (userRole === 'OHS_PRACTITIONER') {
         dashboardPath = '/ohs/dashboard';
         viewCasesPath = '/ohs/my-cases';
         submitAnotherPath = '/ohs/report-incident';
-        viewCasesLabel = 'View My Cases';
+        viewCasesLabel = 'View My Incidents';
         nextSteps = [
-            "Supervisor review within 48 hours",
+            "Your incident has been reported successfully",
             "Email updates on status changes",
-            "Track status under 'My Cases'"
+            "Track status under 'My Incidents'"
         ];
     }
 
@@ -59,9 +59,9 @@ const CaseSubmissionSuccess: React.FC = () => {
 
     return (
         <DashboardLayout
-            title={userRole === 'SUPERVISOR' ? 'Case Submitted' : 'Welcome back'}
-            description="Case Submitted"
-            breadcrumbs={[{ label: "Dashboard", path: dashboardPath }, { label: "Case Submitted" }]}
+            title={userRole === 'SUPERVISOR' ? 'Incident Reported' : 'Welcome back'}
+            description="Incident Reported"
+            breadcrumbs={[{ label: "Dashboard", path: dashboardPath }, { label: "Incident Reported" }]}
         >
             <div className="min-h-[500px] flex items-center justify-center py-8">
                 <div className="max-w-xl w-full px-4">
@@ -76,13 +76,13 @@ const CaseSubmissionSuccess: React.FC = () => {
 
                         {/* Success Title */}
                         <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                            Case Submitted Successfully!
+                            Incident Reported Successfully!
                         </h2>
 
                         <p className="text-gray-500 text-sm mb-6">
                             {userRole === 'SUPERVISOR'
-                                ? 'Your case has been created and assigned for review.'
-                                : 'Your case has been received and will be reviewed by a supervisor.'}
+                                ? 'Your incident has been created and reported.'
+                                : 'Your incident has been received and reported.'}
                         </p>
 
                         {/* Case Number Display */}
@@ -90,7 +90,7 @@ const CaseSubmissionSuccess: React.FC = () => {
                             <div className="bg-subtle-grey rounded-xl p-5 mb-6">
                                 <div className="flex items-center justify-center gap-2 mb-1.5">
                                     <FileText className="text-gold" size={18} />
-                                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Case Number</span>
+                                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Incident Number</span>
                                 </div>
                                 <div className="text-3xl font-bold text-brown mb-0.5">
                                     {state.caseNumber}
@@ -138,7 +138,7 @@ const CaseSubmissionSuccess: React.FC = () => {
                                 onClick={() => navigate(submitAnotherPath)}
                                 className="text-gold hover:text-brown font-semibold text-xs transition-colors underline"
                             >
-                                {userRole === 'SUPERVISOR' ? 'Submit Another Case' : 'Report Another Incident'}
+                                Report another incident
                             </button>
                         </div>
                     </div>

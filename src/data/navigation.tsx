@@ -13,7 +13,10 @@ import {
     FolderOpen,
     Clock,
     CheckCircle,
-    Home
+    Home,
+    MessageSquare,
+    User,
+    AlertTriangle
 } from 'lucide-react';
 
 
@@ -28,8 +31,8 @@ export const SIDEBAR_ITEMS = [
         label: 'Incidents',
         icon: AlertCircle,
         children: [
-            { path: '/admin/incidents', label: 'All Incident' },
-            { path: '/ohs/report-incident', label: 'Report Incident' },
+            { path: '/admin/incidents', label: 'All Incidents' },
+            { path: '/ohs/report-incident', label: 'Report New Incident' },
             { path: '/admin/incidents/assigned', label: 'My Assigned' }
         ]
     },
@@ -94,6 +97,12 @@ export const SIDEBAR_ITEMS = [
         label: 'ADMINISTRATION',
         icon: UserCog,
         isSingle: true
+    },
+    {
+        path: '/profile',
+        label: 'My Profile',
+        icon: User,
+        isSingle: true
     }
 ];
 
@@ -105,15 +114,27 @@ export const EMPLOYEE_SIDEBAR = [
         isSingle: true
     },
     {
+        path: '/employee/my-cases',
+        label: 'My Incidents',
+        icon: Folder,
+        isSingle: true
+    },
+    {
         path: '/employee/submit-case',
-        label: 'Submit Case',
+        label: 'Report New Incident',
         icon: FileText,
         isSingle: true
     },
     {
-        path: '/employee/my-cases',
-        label: 'My Case',
-        icon: Folder,
+        path: '/employee/ai-assistant',
+        label: 'AI Assistant',
+        icon: MessageSquare,
+        isSingle: true
+    },
+    {
+        path: '/profile',
+        label: 'My Profile',
+        icon: User,
         isSingle: true
     }
 ];
@@ -126,27 +147,33 @@ export const SUPERVISOR_SIDEBAR = [
         isSingle: true
     },
     {
-        label: 'Submit Case',
+        label: 'Logged Incidents',
+        path: '/supervisor/logged-incidents',
+        icon: AlertTriangle,
+        isSingle: true
+    },
+    {
+        label: 'Report New Incident',
         path: '/supervisor/submit-case',
         icon: FilePlus,
-        isSingle: true
-    },
-    {
-        label: 'Cases for Review',
-        path: '/supervisor/cases-review',
-        icon: FolderOpen,
-        isSingle: true
-    },
-    {
-        label: 'Approvals',
-        path: '/supervisor/approvals',
-        icon: CheckCircle,
         isSingle: true
     },
     {
         label: 'Facilities Management Services',
         path: '/supervisor/invoices',
         icon: FileText,
+        isSingle: true
+    },
+    {
+        label: 'AI Assistant',
+        path: '/supervisor/ai-assistant',
+        icon: MessageSquare,
+        isSingle: true
+    },
+    {
+        path: '/profile',
+        label: 'My Profile',
+        icon: User,
         isSingle: true
     }
 ];
@@ -159,60 +186,108 @@ export const OHS_SIDEBAR = [
         isSingle: true
     },
     {
-        label: 'Disability Assessment Checklist',
-        path: '/ohs/forms/disability',
-        icon: FileText,
+        label: 'Incident Pool',
+        path: '/ohs/pool',
+        icon: FolderOpen,
         isSingle: true
     },
     {
-        label: 'OHS Inspection Checklist',
-        path: '/ohs/forms/inspection',
-        icon: AlertCircle,
-        isSingle: true
-    },
-    {
-        label: 'New Building Assessment Checklist',
-        path: '/ohs/forms/building',
-        icon: Home,
-        isSingle: true
-    },
-    {
-        label: 'OHS Compliance Audit',
-        path: '/ohs/forms/audit',
-        icon: CheckCircle,
-        isSingle: true
-    },
-    {
-        label: 'Hazard Identification Risk Assessment',
-        path: '/ohs/forms/hazard',
-        icon: AlertCircle,
-        isSingle: true
-    },
-    {
-        label: 'Submissions History',
-        path: '/ohs/forms/submissions',
-        icon: Clock,
-        isSingle: true
-    }
-];
-
-export const SECURITY_SIDEBAR = [
-    {
-        label: 'Dashboard',
-        path: '/security/dashboard',
-        icon: LayoutDashboard,
-        isSingle: true
-    },
-    {
-        label: 'My Cases',
-        path: '/security/my-cases',
+        label: 'Assigned Incidents',
+        path: '/ohs/my-cases',
         icon: Folder,
         isSingle: true
     },
     {
-        label: 'Cases Under Review',
-        path: '/security/cases-review',
+        label: 'Inspections',
+        path: '/ohs/inspections',
+        icon: FileText,
+        isSingle: true
+    },
+    {
+        label: 'HIRA',
+        path: '/ohs/hira',
+        icon: Shield,
+        isSingle: true
+    },
+    {
+        path: '/profile',
+        label: 'My Profile',
+        icon: User,
+        isSingle: true
+    }
+];
+
+export const OHS_NATIONAL_SIDEBAR = [
+    {
+        label: 'Dashboard',
+        path: '/ohs-national/dashboard',
+        icon: LayoutDashboard,
+        isSingle: true
+    },
+    {
+        label: 'Logged Incidents',
+        path: '/ohs-national/logged-incidents',
+        icon: AlertTriangle,
+        isSingle: true
+    },
+    {
+        label: 'Administration',
+        path: '/ohs-national/administration',
+        icon: UserCog,
+        isSingle: true
+    },
+    {
+        label: 'AI Assistant',
+        path: '/ohs-national/ai-assistant',
+        icon: MessageSquare,
+        isSingle: true
+    },
+    {
+        label: 'My Profile',
+        path: '/profile',
+        icon: User,
+        isSingle: true
+    }
+];
+
+export const FIRST_AIDER_SIDEBAR = [
+    {
+        label: 'Dashboard',
+        path: '/first-aider/dashboard',
+        icon: LayoutDashboard,
+        isSingle: true
+    },
+    {
+        label: 'Assigned Incidents',
+        path: '/first-aider/my-cases',
+        icon: Folder,
+        isSingle: true
+    },
+    {
+        label: 'My Registry',
+        path: '/first-aider/my-registry',
         icon: FolderOpen,
+        isSingle: true
+    },
+    {
+        path: '/profile',
+        label: 'My Profile',
+        icon: User,
+        isSingle: true
+    }
+];
+
+export const HR_SIDEBAR = [
+    {
+        label: 'Incidents for Review',
+        path: '/hr/cases',
+        icon: FolderOpen,
+        isSingle: true
+    },
+    {
+        path: '/profile',
+        label: 'My Profile',
+        icon: User,
         isSingle: true
     }
 ];
@@ -225,7 +300,7 @@ export const INVESTIGATOR_SIDEBAR = [
         isSingle: true
     },
     {
-        label: 'Assigned Cases',
+        label: 'Assigned Incidents',
         path: '/investigator/assigned-cases',
         icon: Folder,
         isSingle: true
@@ -252,6 +327,12 @@ export const INVESTIGATOR_SIDEBAR = [
         label: 'SLA Tracking',
         path: '/investigator/sla-tracking',
         icon: Clock,
+        isSingle: true
+    },
+    {
+        path: '/profile',
+        label: 'My Profile',
+        icon: User,
         isSingle: true
     }
 ];
@@ -292,6 +373,12 @@ export const CHAIRPERSON_SIDEBAR = [
         path: '/chairperson/escalations',
         icon: AlertCircle,
         isSingle: true
+    },
+    {
+        path: '/profile',
+        label: 'My Profile',
+        icon: User,
+        isSingle: true
     }
 ];
 
@@ -330,6 +417,12 @@ export const EA_DA_SIDEBAR = [
         label: 'Escalations',
         path: '/ea-da/escalations',
         icon: AlertCircle,
+        isSingle: true
+    },
+    {
+        path: '/profile',
+        label: 'My Profile',
+        icon: User,
         isSingle: true
     }
 ];
