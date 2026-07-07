@@ -103,6 +103,84 @@ const Profile: React.FC = () => {
 
     if (!user) return null;
 
+    const isOHSNational = user.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'ohs_national_office';
+
+    // Simplified read-only profile for OHS National Office
+    if (isOHSNational) {
+        return (
+            <DashboardLayout
+                title="Profile"
+                description="DLRRD Facilities Management Services"
+            >
+                <div className="max-w-3xl mx-auto flex flex-col gap-5">
+                    {/* Profile Header */}
+                    <div className="bg-white rounded-xl border border-gray-100 px-6 py-5 flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-full bg-light-gold flex items-center justify-center text-brown font-bold text-xl shrink-0 border-2 border-gold/20">
+                            {getUserInitials()}
+                        </div>
+                        <div className="flex-1">
+                            <h2 className="text-lg font-bold text-gray-800">{user.fullName}</h2>
+                            <p className="text-xs text-gray-400 font-medium">{formatRole(user.role?.name)}</p>
+                        </div>
+                        <button
+                            onClick={async () => {
+                                await logout();
+                                navigate('/');
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-semibold rounded-lg hover:bg-gray-50 transition-all text-xs shadow-sm"
+                        >
+                            <LogOut size={14} />
+                            Log Out
+                        </button>
+                    </div>
+
+                    {/* Account Information */}
+                    <div className="bg-white rounded-xl border border-gray-100 p-6">
+                        <h3 className="text-base font-bold text-gray-800 mb-5">Account information</h3>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+                            {/* Full name */}
+                            <div>
+                                <label className="text-xs font-bold text-gray-800 block mb-1.5">Full name</label>
+                                <div className="px-3.5 py-2.5 bg-subtle-grey rounded-lg text-sm text-gray-600">{user.fullName || '—'}</div>
+                            </div>
+
+                            {/* Employee ID */}
+                            <div>
+                                <label className="text-xs font-bold text-gray-800 block mb-1.5">Employee ID</label>
+                                <div className="px-3.5 py-2.5 bg-subtle-grey rounded-lg text-sm text-gray-600">{user.employeeNumber || '—'}</div>
+                            </div>
+
+                            {/* Email */}
+                            <div>
+                                <label className="text-xs font-bold text-gray-800 block mb-1.5">Email</label>
+                                <div className="px-3.5 py-2.5 bg-subtle-grey rounded-lg text-sm text-gray-600">{user.email || '—'}</div>
+                            </div>
+
+                            {/* Phone */}
+                            <div>
+                                <label className="text-xs font-bold text-gray-800 block mb-1.5">Phone</label>
+                                <div className="px-3.5 py-2.5 bg-subtle-grey rounded-lg text-sm text-gray-600">{user.phone || '—'}</div>
+                            </div>
+
+                            {/* Directorate */}
+                            <div>
+                                <label className="text-xs font-bold text-gray-800 block mb-1.5">Directorate</label>
+                                <div className="px-3.5 py-2.5 bg-subtle-grey rounded-lg text-sm text-gray-600">{user.department?.name || 'Rural Development and Land Reform'}</div>
+                            </div>
+
+                            {/* Office */}
+                            <div>
+                                <label className="text-xs font-bold text-gray-800 block mb-1.5">Office</label>
+                                <div className="px-3.5 py-2.5 bg-subtle-grey rounded-lg text-sm text-gray-600">{user.department?.building?.name || user.province?.name || '—'}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </DashboardLayout>
+        );
+    }
+
     return (
         <DashboardLayout
             title="My Profile"

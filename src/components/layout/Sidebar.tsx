@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { ChevronDown, ChevronRight, ChevronLeft, LogOut } from 'lucide-react';
-import { SIDEBAR_ITEMS, EMPLOYEE_SIDEBAR, SUPERVISOR_SIDEBAR, OHS_SIDEBAR, FIRST_AIDER_SIDEBAR, HR_SIDEBAR, INVESTIGATOR_SIDEBAR, CHAIRPERSON_SIDEBAR, EA_DA_SIDEBAR } from '../../data/navigation';
+import { SIDEBAR_ITEMS, EMPLOYEE_SIDEBAR, SUPERVISOR_SIDEBAR, OHS_SIDEBAR, OHS_NATIONAL_SIDEBAR, FIRST_AIDER_SIDEBAR, HR_SIDEBAR, INVESTIGATOR_SIDEBAR, CHAIRPERSON_SIDEBAR, EA_DA_SIDEBAR } from '../../data/navigation';
 import clsx from 'clsx';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth.store';
@@ -18,7 +18,8 @@ const Sidebar: React.FC = () => {
         const role = user?.role?.name?.toLowerCase().replace(/\s+/g, '_');
         if (role === 'employee') return EMPLOYEE_SIDEBAR;
         if (role === 'supervisor') return SUPERVISOR_SIDEBAR;
-        if (role === 'ohs_practitioner' || role === 'ohs_national_office') return OHS_SIDEBAR;
+        if (role === 'ohs_practitioner') return OHS_SIDEBAR;
+        if (role === 'ohs_national_office') return OHS_NATIONAL_SIDEBAR;
         if (role === 'first_aider') return FIRST_AIDER_SIDEBAR;
         if (role === 'hr') return HR_SIDEBAR;
         if (role === 'investigator') return INVESTIGATOR_SIDEBAR;

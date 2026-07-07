@@ -47,6 +47,10 @@ import InvoiceInbox from '../pages/invoices/InvoiceInbox';
 import PendingApproval from '../pages/invoices/PendingApproval';
 import PaymentTracking from '../pages/invoices/PaymentTracking';
 import { AdminInvoiceList, AdminInvoiceDetail } from '../pages/admin/AdminInvoiceManagement';
+import NationalDashboard from '../pages/ohs_national/NationalDashboard';
+import NationalLoggedIncidents from '../pages/ohs_national/NationalLoggedIncidents';
+import NationalAdministration from '../pages/ohs_national/NationalAdministration';
+import NationalAIAssistant from '../pages/ohs_national/NationalAIAssistant';
 
 const AdminRoutes = () => {
     return (
@@ -78,6 +82,13 @@ const AdminRoutes = () => {
             <Route path="/ohs/forms/hazard" element={<ProtectedRoute><OHSHazardForm /></ProtectedRoute>} />
             <Route path="/ohs/forms/submissions" element={<ProtectedRoute><OHSFormSubmissions /></ProtectedRoute>} />
             <Route path="/ohs" element={<Navigate to="/ohs/dashboard" replace />} />
+
+            {/* OHS National Office Routes */}
+            <Route path="/ohs-national/dashboard" element={<ProtectedRoute><NationalDashboard /></ProtectedRoute>} />
+            <Route path="/ohs-national/logged-incidents" element={<ProtectedRoute><NationalLoggedIncidents /></ProtectedRoute>} />
+            <Route path="/ohs-national/administration" element={<ProtectedRoute><NationalAdministration /></ProtectedRoute>} />
+            <Route path="/ohs-national/ai-assistant" element={<ProtectedRoute><NationalAIAssistant /></ProtectedRoute>} />
+            <Route path="/ohs-national" element={<Navigate to="/ohs-national/dashboard" replace />} />
 
             {/* First Aider Routes (health cases) */}
             <Route path="/first-aider/dashboard" element={<ProtectedRoute><FirstAiderDashboard /></ProtectedRoute>} />

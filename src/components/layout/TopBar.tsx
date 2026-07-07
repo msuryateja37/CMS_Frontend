@@ -44,9 +44,19 @@ const TopBar: React.FC<TopBarProps> = ({
 
     const isSupervisor = user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'supervisor';
 
+    const isOHSNational = user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'ohs_national_office';
+
     const getDisplayTitle = () => {
         const path = pathname.toLowerCase();
         
+        if (isOHSNational) {
+            if (path.includes('/ohs-national/dashboard')) return 'National Oversight';
+            if (path.includes('/ohs-national/logged-incidents')) return 'Logged Incidents';
+            if (path.includes('/ohs-national/administration')) return 'Administration';
+            if (path.includes('/ohs-national/ai-assistant')) return 'AI Assistant';
+            if (path.includes('/profile')) return 'Profile';
+        }
+
         if (isSupervisor) {
             if (path.includes('/submit-case')) {
                 return 'National Oversight';
@@ -93,7 +103,7 @@ const TopBar: React.FC<TopBarProps> = ({
                   user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'ohs_national_office';
 
     const displayTitle = getDisplayTitle();
-    let displayDescription = (isSupervisor || isOHS) ? undefined : description;
+    let displayDescription = (isSupervisor || isOHS || isOHSNational) ? 'DLRRD Facilities Management Services' : description;
 
     if (displayTitle && displayDescription && displayTitle.toLowerCase().trim() === displayDescription.toLowerCase().trim()) {
         displayDescription = undefined;

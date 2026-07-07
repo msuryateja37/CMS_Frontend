@@ -217,6 +217,39 @@ export const OHS_SIDEBAR = [
     }
 ];
 
+export const OHS_NATIONAL_SIDEBAR = [
+    {
+        label: 'Dashboard',
+        path: '/ohs-national/dashboard',
+        icon: LayoutDashboard,
+        isSingle: true
+    },
+    {
+        label: 'Logged Incidents',
+        path: '/ohs-national/logged-incidents',
+        icon: AlertTriangle,
+        isSingle: true
+    },
+    {
+        label: 'Administration',
+        path: '/ohs-national/administration',
+        icon: UserCog,
+        isSingle: true
+    },
+    {
+        label: 'AI Assistant',
+        path: '/ohs-national/ai-assistant',
+        icon: MessageSquare,
+        isSingle: true
+    },
+    {
+        label: 'My Profile',
+        path: '/profile',
+        icon: User,
+        isSingle: true
+    }
+];
+
 export const FIRST_AIDER_SIDEBAR = [
     {
         label: 'Dashboard',
