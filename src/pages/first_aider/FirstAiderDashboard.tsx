@@ -86,20 +86,12 @@ const FirstAiderDashboard: React.FC = () => {
     const criticalCount = assignedCases.filter(c => c.severity?.toLowerCase() === 'critical' || c.severity?.toLowerCase() === 'high').length;
 
     const statusBadge = (status: string) => {
-        const statusColors: Record<string, string> = {
-            POOL: 'bg-orange-50 text-orange-700',
-            ASSIGNED: 'bg-purple-50 text-purple-700',
-            IN_PROGRESS: 'bg-cyan-50 text-cyan-700',
-            UNDER_REVIEW: 'bg-amber-50 text-amber-700',
-            OPEN: 'bg-blue-50 text-blue-700',
-            CLOSED: 'bg-gray-100 text-gray-600',
-            RESOLVED: 'bg-green-50 text-green-700',
+        const getLabel = (s: string) => {
+            if (s === 'RAISED') return 'Open';
+            if (s === 'POOL') return 'Unassigned';
+            return s.replace(/_/g, ' ');
         };
-        return (
-            <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${statusColors[status] || 'bg-gray-100 text-gray-600'}`}>
-                {status.replace(/_/g, ' ')}
-            </span>
-        );
+        return <Pill label={getLabel(status).toUpperCase()} variant={status.toLowerCase().replace(/_/g, ' ')} />;
     };
 
      // Pool (unassigned) cases columns
@@ -256,7 +248,7 @@ const FirstAiderDashboard: React.FC = () => {
                             <Inbox size={18} className="text-orange-500" />
                         </div>
                         <div>
-                            <p className="text-xs text-gray-400 font-semibold">Unassigned (Pool)</p>
+                            <p className="text-xs text-gray-400 font-semibold">Unassigned</p>
                             <p className="text-lg font-bold text-gray-900">{loading ? '...' : poolCases.length}</p>
                         </div>
                     </div>
@@ -289,7 +281,7 @@ const FirstAiderDashboard: React.FC = () => {
                             {poolCases.length === 0 ? (
                                 <div className="text-center py-10 bg-white rounded-2xl border border-gray-100">
                                     <Inbox className="mx-auto text-gray-300 mb-2" size={32} />
-                                    <p className="text-gray-400 font-medium">No unassigned incidents in your province pool.</p>
+                                    <p className="text-gray-400 font-medium">No unassigned incidents in your province.</p>
                                 </div>
                             ) : (
                                 <DataTable data={poolCases.slice(0, 5)} columns={poolColumns} keyField="id" selectable={false} selectedIds={[]} onSelectionChange={() => { }} />

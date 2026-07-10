@@ -5,7 +5,7 @@ import { Pill } from '../../components/common/Pill';
 import { getStatusLabel } from '../../data/constants';
 import {
     ArrowLeft, Clock, MapPin, Calendar, Building2, User,
-    Shield, MessageSquare, AlertCircle, FileText
+    Shield, MessageSquare, AlertCircle, FileText, CheckCircle
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 import { useCaseDetails, useCaseTimeline } from '../../hooks/useIncidents';
@@ -137,7 +137,7 @@ const EmployeeCaseDetails: React.FC = () => {
 
     return (
         <DashboardLayout title="OHS Incident Management">
-            <div className="max-w-[1200px] mx-auto space-y-5 pb-12 animate-fadeIn">
+            <div className="space-y-5 pb-12 animate-fadeIn">
                 
                 {/* Back Link */}
                 <button
@@ -148,16 +148,7 @@ const EmployeeCaseDetails: React.FC = () => {
                     Back to incidents
                 </button>
 
-                {/* View-Only Alert Banner matching Screen 6/11 */}
-                <div className="bg-amber-50/50 border border-amber-200/50 rounded-2xl p-4 flex gap-3.5">
-                    <AlertCircle className="text-[#884616] shrink-0 mt-0.5" size={16} />
-                    <div>
-                        <h4 className="font-bold text-xs text-gray-800">View only</h4>
-                        <p className="text-[11px] text-gray-500 mt-1 leading-relaxed">
-                            As the reporter of this incident, you have view-only access. Any updates or actions will be performed by the assigned OHS practitioner or first aider.
-                        </p>
-                    </div>
-                </div>
+
 
                 {/* ====== MAIN 2-COLUMN GRID ====== */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -167,14 +158,20 @@ const EmployeeCaseDetails: React.FC = () => {
                         
                         {/* Incident Summary Card */}
                         <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm space-y-5">
-                            <div>
-                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Incident Summary</span>
-                                <h2 className="text-base font-bold text-gray-900 mt-1">
-                                    {caseData.incidentNumber} · {getCategoryLabel(caseData.category)}
-                                </h2>
+                            <div className="flex items-start justify-between">
+                                <div>
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Incident Summary</span>
+                                    <h2 className="text-base font-bold text-gray-900 mt-1">
+                                        {caseData.incidentNumber} · {getCategoryLabel(caseData.category)}
+                                    </h2>
+                                </div>
+                                <Pill
+                                    label={getStatusLabel(caseData.status).toUpperCase()}
+                                    variant={caseData.status.toLowerCase().replace(/_/g, ' ')}
+                                />
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-xs border-t border-b border-gray-100 py-4.5">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-xs border-t border-b border-gray-100 pb-6 pt-5">
                                 <div>
                                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Date</span>
                                     <span className="font-semibold text-gray-800">
@@ -236,14 +233,35 @@ const EmployeeCaseDetails: React.FC = () => {
                                 </p>
                             </div>
 
-                            {caseData.immediateActions && (
-                                <div className="pt-4 border-t border-gray-50 space-y-2">
-                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Immediate Actions Taken</span>
-                                    <p className="text-gray-700 leading-relaxed text-xs">
-                                        {caseData.immediateActions}
-                                    </p>
-                                </div>
-                            )}
+                            <div className="pt-4 border-t border-gray-50 space-y-2">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Immediate Actions Taken</span>
+                                {(() => {
+                                    const rawActions = caseData.immediateActions;
+                                    const defaultMsg = <p className="text-gray-400 text-xs italic">No immediate actions are added</p>;
+                                    if (!rawActions || !rawActions.trim()) return defaultMsg;
+                                    try {
+                                        const parsed = JSON.parse(rawActions);
+                                        if (Array.isArray(parsed)) {
+                                            const cleanActions = parsed.map(a => typeof a === 'string' ? a.trim() : String(a).trim()).filter(Boolean);
+                                            if (cleanActions.length === 0) return defaultMsg;
+                                            return (
+                                                <ul className="list-disc pl-5 space-y-1 text-gray-750 text-xs sm:text-[13px] font-medium">
+                                                    {cleanActions.map((action, idx) => (
+                                                        <li key={idx}>{action}</li>
+                                                    ))}
+                                                </ul>
+                                            );
+                                        }
+                                    } catch {}
+                                    const singleAction = rawActions.trim();
+                                    if (singleAction === '[]' || !singleAction) return defaultMsg;
+                                    return (
+                                        <ul className="list-disc pl-5 space-y-1 text-gray-750 text-xs sm:text-[13px] font-medium">
+                                            <li>{singleAction}</li>
+                                        </ul>
+                                    );
+                                })()}
+                            </div>
 
                             {/* Attachments Section */}
                             <div className="pt-4 border-t border-gray-50 space-y-3">
@@ -284,7 +302,7 @@ const EmployeeCaseDetails: React.FC = () => {
                                     <h2 className="text-base font-bold text-gray-900 mt-1">First Aid Treatment Log</h2>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-xs border-t border-gray-100 pt-4.5">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-xs border-t border-gray-100 pt-5">
                                     <div>
                                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Administered by</span>
                                         <span className="font-semibold text-gray-800">Thandi Nkosi (First Aider)</span>
@@ -316,39 +334,54 @@ const EmployeeCaseDetails: React.FC = () => {
                         )}
 
                         {/* CASE CLOSED SECTION (For closed/resolved Health/Safety incidents) */}
-                        {isClosed && (
-                            <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm space-y-5 animate-fadeIn">
-                                <div>
-                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Incident Closed</span>
-                                    <h2 className="text-base font-bold text-gray-900 mt-1">Resolution Summary</h2>
-                                </div>
+                        {isClosed && (() => {
+                            const { closedByName, closedAt, commentsText } = (() => {
+                                const closedActivity = timeline.find(t => t.type === 'CLOSED' || t.type === 'RESOLVED');
+                                const closureComment = timeline.find(t => t.type === 'COMMENT' && t.description?.startsWith('[Closure Note]'));
+                                
+                                const closedByName = closedActivity?.user?.name || caseData?.assignments?.[0]?.assignedTo?.name || 'First Aider';
+                                const closedAt = closedActivity?.timestamp || caseData?.updatedAt;
+                                const commentsText = closureComment 
+                                    ? closureComment.description.replace('[Closure Note] ', '') 
+                                    : 'Incident resolved by First Aider. Treatment details logged.';
+                                    
+                                return { closedByName, closedAt, commentsText };
+                            })();
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-xs border-t border-gray-100 pt-4.5">
+                            return (
+                                <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm space-y-5 animate-fadeIn">
                                     <div>
-                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Closed by</span>
-                                        <span className="font-semibold text-gray-800">Sarah Mokae (Supervisor)</span>
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Incident Closed</span>
+                                        <h2 className="text-base font-bold text-gray-900 mt-1">Resolution Summary</h2>
                                     </div>
-                                    <div>
-                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Date / Time</span>
-                                        <span className="font-semibold text-gray-800">
-                                            {new Date(new Date(caseData.occurredAt).getTime() + 2 * 24 * 60 * 60 * 1000).toLocaleString('en-GB', {
-                                                day: 'numeric',
-                                                month: 'short',
-                                                year: 'numeric',
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            })}
-                                        </span>
-                                    </div>
-                                    <div className="md:col-span-2">
-                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Closeout comments</span>
-                                        <span className="font-medium text-gray-700 leading-relaxed block">
-                                            Incident fully investigated. First aid treatment logged. Work area inspected; floor dry and clear of obstructions. Incident resolved.
-                                        </span>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-xs border-t border-gray-100 pt-5">
+                                        <div>
+                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Closed by</span>
+                                            <span className="font-semibold text-gray-800">{closedByName}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Date / Time</span>
+                                            <span className="font-semibold text-gray-800">
+                                                {new Date(closedAt).toLocaleString('en-GB', {
+                                                    day: 'numeric',
+                                                    month: 'short',
+                                                    year: 'numeric',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                })}
+                                            </span>
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Closeout comments</span>
+                                            <span className="font-medium text-gray-700 leading-relaxed block whitespace-pre-wrap">
+                                                {commentsText}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
+                            );
+                        })()}
 
                     </div>
 

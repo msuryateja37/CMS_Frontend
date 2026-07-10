@@ -67,6 +67,11 @@ const FirstAiderCaseAction: React.FC = () => {
     // Forwarding state
     const [forwarding, setForwarding] = useState(false);
 
+    // Close modal states
+    const [showCloseModal, setShowCloseModal] = useState(false);
+    const [closureNote, setClosureNote] = useState('');
+    const [closing, setClosing] = useState(false);
+
     useEffect(() => {
         if (id) {
             fetchCaseDetails(id);
@@ -185,6 +190,31 @@ const FirstAiderCaseAction: React.FC = () => {
         }
     };
 
+    const handleCloseCase = async () => {
+        if (!id) return;
+        if (!closureNote.trim()) {
+            setError('Please enter a closure note.');
+            return;
+        }
+        setClosing(true);
+        try {
+            // 1. Add comment with the closure note prefix
+            await casesService.addComment(id, `[Closure Note] ${closureNote.trim()}`);
+            // 2. Call the close case API
+            await casesService.closeCase(id);
+            showSuccess('Incident closed successfully.');
+            setShowCloseModal(false);
+            // Refresh details and timeline
+            fetchCaseDetails(id);
+            fetchTimeline(id);
+        } catch (err) {
+            console.error('Error closing case:', err);
+            setError('Failed to close incident.');
+        } finally {
+            setClosing(false);
+        }
+    };
+
     const getSeverityStyle = (severity?: string) => {
         if (!severity) return severityConfig.medium;
         return severityConfig[severity.toLowerCase()] || severityConfig.medium;
@@ -267,19 +297,11 @@ const FirstAiderCaseAction: React.FC = () => {
                                 </button>
                             )}
                             <button
-                                onClick={() => setShowEscalation(true)}
-                                className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition-all font-semibold text-sm"
+                                onClick={() => setShowCloseModal(true)}
+                                className="flex items-center gap-2 px-5 py-2.5 bg-[#2E7D32] hover:bg-[#1B5E20] text-white rounded-lg transition-all font-semibold text-sm shadow-md"
                             >
-                                <ArrowUpRight size={16} />
-                                Escalate
-                            </button>
-                            <button
-                                onClick={handleSendBackToSupervisor}
-                                disabled={sendingBack}
-                                className="flex items-center gap-2 px-5 py-2.5 bg-brown text-white rounded-lg hover:bg-opacity-90 transition-all font-semibold text-sm shadow-sm disabled:opacity-50"
-                            >
-                                {sendingBack ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-                                Submit for Review
+                                <CheckCircle size={16} />
+                                Close Incident
                             </button>
                         </div>
                     )}
@@ -339,6 +361,54 @@ const FirstAiderCaseAction: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* LEFT COLUMN — Main content (2/3 width) */}
                     <div className="lg:col-span-2 space-y-6">
+                        {isClosed && (() => {
+                            const { closedByName, closedAt, commentsText } = (() => {
+                                const closedActivity = activities.find(t => t.type === 'CLOSED' || t.type === 'RESOLVED');
+                                const closureComment = activities.find(t => t.type === 'COMMENT' && t.description?.startsWith('[Closure Note]'));
+                                
+                                const closedByName = closedActivity?.user?.name || caseData.assignments?.[0]?.assignedTo?.name || 'First Aider';
+                                const closedAt = closedActivity?.timestamp || caseData.updatedAt;
+                                const commentsText = closureComment 
+                                    ? closureComment.description.replace('[Closure Note] ', '') 
+                                    : 'Incident resolved by First Aider. Treatment details logged.';
+                                    
+                                return { closedByName, closedAt, commentsText };
+                            })();
+
+                            return (
+                                <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm space-y-5 animate-fadeIn">
+                                    <div>
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Incident Closed</span>
+                                        <h2 className="text-base font-bold text-gray-900 mt-1">Resolution Summary</h2>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-xs border-t border-gray-100 pt-4.5">
+                                        <div>
+                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Closed by</span>
+                                            <span className="font-semibold text-gray-800">{closedByName}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Date / Time</span>
+                                            <span className="font-semibold text-gray-800">
+                                                {new Date(closedAt).toLocaleString('en-GB', {
+                                                    day: 'numeric',
+                                                    month: 'short',
+                                                    year: 'numeric',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                })}
+                                            </span>
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Closeout comments</span>
+                                            <span className="font-medium text-gray-700 leading-relaxed block whitespace-pre-wrap">
+                                                {commentsText}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })()}
 
                         {/* Header Card */}
                         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -392,34 +462,35 @@ const FirstAiderCaseAction: React.FC = () => {
                             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Description</h3>
                             <div className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap">
                                 {caseData.description || 'No description provided.'}
+                            </div>                            <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
+                                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Immediate Actions Taken</h4>
+                                {(() => {
+                                    const rawActions = caseData.immediateActions;
+                                    const defaultMsg = <p className="text-gray-400 text-xs italic">No immediate actions are added</p>;
+                                    if (!rawActions || !rawActions.trim()) return defaultMsg;
+                                    try {
+                                        const parsed = JSON.parse(rawActions);
+                                        if (Array.isArray(parsed)) {
+                                            const cleanActions = parsed.map(a => typeof a === 'string' ? a.trim() : String(a).trim()).filter(Boolean);
+                                            if (cleanActions.length === 0) return defaultMsg;
+                                            return (
+                                                <ul className="list-disc pl-5 space-y-1 text-gray-750 text-xs sm:text-[13px] font-medium">
+                                                    {cleanActions.map((action, idx) => (
+                                                        <li key={idx}>{action}</li>
+                                                    ))}
+                                                </ul>
+                                            );
+                                        }
+                                    } catch {}
+                                    const singleAction = rawActions.trim();
+                                    if (singleAction === '[]' || !singleAction) return defaultMsg;
+                                    return (
+                                        <ul className="list-disc pl-5 space-y-1 text-gray-750 text-xs sm:text-[13px] font-medium">
+                                            <li>{singleAction}</li>
+                                        </ul>
+                                    );
+                                })()}
                             </div>
-                            {caseData.immediateActions && (
-                                <div className="mt-4 pt-4 border-t border-gray-100">
-                                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Immediate Actions Taken</h4>
-                                    <div>
-                                        {(() => {
-                                            try {
-                                                const actions = JSON.parse(caseData.immediateActions);
-                                                if (Array.isArray(actions)) {
-                                                    return (
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {actions.map((action: string, idx: number) => (
-                                                                <span key={idx} className="px-3 py-1.5 text-black text-xs font-medium flex items-center gap-1.5">
-                                                                    <div className="w-1.5 h-1.5 rounded-full bg-black"></div>
-                                                                    {action}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                    );
-                                                }
-                                                return <p className="text-gray-700 text-sm leading-relaxed">{caseData.immediateActions}</p>;
-                                            } catch {
-                                                return <p className="text-gray-700 text-sm leading-relaxed">{caseData.immediateActions}</p>;
-                                            }
-                                        })()}
-                                    </div>
-                                </div>
-                            )}
                         </div>
 
                         {/* Details Grid */}
@@ -720,6 +791,77 @@ const FirstAiderCaseAction: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Close Incident Modal Popup */}
+            {showCloseModal && (
+                <div className="fixed inset-0 bg-black/55 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-gray-100 overflow-hidden animate-fadeIn text-left">
+                        {/* Modal Header */}
+                        <div className="bg-brown text-white px-5 py-4 flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+                                    <CheckCircle size={18} className="text-white" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-sm">Close Incident</h3>
+                                    <p className="text-[10px] text-white/80 mt-0.5">Submit closure notes and resolve the case</p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowCloseModal(false);
+                                    setClosureNote('');
+                                }}
+                                className="text-white/70 hover:text-white hover:bg-white/10 p-1.5 rounded-lg transition shrink-0"
+                                title="Close"
+                                aria-label="Close"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="p-5 space-y-4">
+                            <div>
+                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">
+                                    Closure Note / Treatment Details
+                                </label>
+                                <textarea
+                                    value={closureNote}
+                                    onChange={(e) => setClosureNote(e.target.value)}
+                                    placeholder="Enter details of treatment administered, patient condition, and resolution..."
+                                    rows={4}
+                                    className="w-full px-3.5 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-xs font-medium text-gray-800 outline-none focus:border-brown focus:ring-1 focus:ring-brown transition-all resize-none"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Modal Actions */}
+                        <div className="px-5 py-4 bg-gray-50 flex items-center justify-end gap-3 border-t border-gray-150">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowCloseModal(false);
+                                    setClosureNote('');
+                                }}
+                                className="px-4 py-2 border border-gray-200 hover:bg-gray-100 text-gray-600 rounded-lg text-xs font-bold transition"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleCloseCase}
+                                disabled={closing}
+                                className="flex items-center gap-1.5 px-5 py-2 bg-[#2E7D32] hover:bg-[#1B5E20] text-white rounded-lg text-xs font-bold transition shadow-sm disabled:opacity-50"
+                            >
+                                {closing ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
+                                Confirm Closure
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Escalation Modal */}
             <EscalationModal

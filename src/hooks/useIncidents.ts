@@ -23,6 +23,8 @@ export const useCreateCase = () => {
         mutationFn: (data: CreateCaseDto) => casesService.createCase(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['incidents'] });
+            queryClient.invalidateQueries({ queryKey: ['my-cases'] });
+            queryClient.invalidateQueries({ queryKey: ['employee-stats'] });
         },
     });
 };
@@ -34,6 +36,8 @@ export const useUpdateCaseStatus = () => {
             casesService.updateStatus(id, status),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['incidents'] });
+            queryClient.invalidateQueries({ queryKey: ['my-cases'] });
+            queryClient.invalidateQueries({ queryKey: ['employee-stats'] });
             queryClient.invalidateQueries({ queryKey: ['case', variables.id] });
         },
     });
@@ -46,6 +50,8 @@ export const useAssignCase = () => {
             casesService.assignCase(id, userId),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['incidents'] });
+            queryClient.invalidateQueries({ queryKey: ['my-cases'] });
+            queryClient.invalidateQueries({ queryKey: ['employee-stats'] });
             queryClient.invalidateQueries({ queryKey: ['case', variables.id] });
         },
     });

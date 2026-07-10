@@ -404,6 +404,54 @@ const CaseDetails: React.FC = () => {
                         {activeTab === 'details' && (
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                 <div className="lg:col-span-2 space-y-6">
+                                    {isClosed && (() => {
+                                        const { closedByName, closedAt, commentsText } = (() => {
+                                            const closedActivity = timeline.find(t => t.type === 'CLOSED' || t.type === 'RESOLVED');
+                                            const closureComment = timeline.find(t => t.type === 'COMMENT' && t.description?.startsWith('[Closure Note]'));
+                                            
+                                            const closedByName = closedActivity?.user?.name || caseData?.assignments?.[0]?.assignedTo?.name || 'First Aider';
+                                            const closedAt = closedActivity?.timestamp || caseData?.updatedAt;
+                                            const commentsText = closureComment 
+                                                ? closureComment.description.replace('[Closure Note] ', '') 
+                                                : 'Incident resolved by First Aider. Treatment details logged.';
+                                                
+                                            return { closedByName, closedAt, commentsText };
+                                        })();
+
+                                        return (
+                                            <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm space-y-5 animate-fadeIn">
+                                                <div>
+                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Incident Closed</span>
+                                                    <h2 className="text-base font-bold text-gray-900 mt-1">Resolution Summary</h2>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-xs border-t border-gray-100 pt-4.5">
+                                                    <div>
+                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Closed by</span>
+                                                        <span className="font-semibold text-gray-800">{closedByName}</span>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Date / Time</span>
+                                                        <span className="font-semibold text-gray-800">
+                                                            {new Date(closedAt).toLocaleString('en-GB', {
+                                                                day: 'numeric',
+                                                                month: 'short',
+                                                                year: 'numeric',
+                                                                hour: '2-digit',
+                                                                minute: '2-digit'
+                                                            })}
+                                                        </span>
+                                                    </div>
+                                                    <div className="md:col-span-2">
+                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Closeout comments</span>
+                                                        <span className="font-medium text-gray-700 leading-relaxed block whitespace-pre-wrap">
+                                                            {commentsText}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
                                     {/* Description Card */}
                                     <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
                                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Description</h3>
@@ -545,37 +593,42 @@ const CaseDetails: React.FC = () => {
                         {activeTab === 'actions' && (
                             <div className="space-y-6 max-w-4xl w-full">
                                 {/* Immediate Actions */}
-                                {caseData.immediateActions ? (
-                                    <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
-                                        <h4 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Immediate Actions Taken</h4>
-                                        <div>
-                                            {(() => {
-                                                try {
-                                                    const actions = JSON.parse(caseData.immediateActions);
-                                                    if (Array.isArray(actions)) {
-                                                        return (
-                                                            <div className="flex flex-wrap gap-2">
-                                                                {actions.map((action: string, idx: number) => (
-                                                                    <span key={idx} className="px-3 py-1.5 text-black text-xs font-medium flex items-center gap-1.5">
-                                                                        <div className="w-1.5 h-1.5 rounded-full bg-black"></div>
-                                                                        {action}
-                                                                    </span>
-                                                                ))}
-                                                            </div>
-                                                        );
-                                                    }
-                                                    return <p className="text-gray-700 text-sm leading-relaxed">{caseData.immediateActions}</p>;
-                                                } catch {
-                                                    return <p className="text-gray-700 text-sm leading-relaxed">{caseData.immediateActions}</p>;
-                                                }
-                                            })()}
+                                {(() => {
+                                    const rawActions = caseData.immediateActions;
+                                    const defaultMsg = (
+                                        <div className="text-center py-10 bg-gray-50 rounded-xl border border-gray-100">
+                                            <p className="text-gray-400 font-medium text-sm">No immediate actions are added</p>
                                         </div>
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-10 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-                                        <p className="text-gray-400 font-medium text-sm">No immediate actions recorded.</p>
-                                    </div>
-                                )}
+                                    );
+                                    if (!rawActions || !rawActions.trim()) return defaultMsg;
+                                    try {
+                                        const parsed = JSON.parse(rawActions);
+                                        if (Array.isArray(parsed)) {
+                                            const cleanActions = parsed.map(a => typeof a === 'string' ? a.trim() : String(a).trim()).filter(Boolean);
+                                            if (cleanActions.length === 0) return defaultMsg;
+                                            return (
+                                                <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
+                                                    <h4 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Immediate Actions Taken</h4>
+                                                    <ul className="list-disc pl-5 space-y-1.5 text-gray-750 text-sm font-medium">
+                                                        {cleanActions.map((action, idx) => (
+                                                            <li key={idx}>{action}</li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            );
+                                        }
+                                    } catch {}
+                                    const singleAction = rawActions.trim();
+                                    if (singleAction === '[]' || !singleAction) return defaultMsg;
+                                    return (
+                                        <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
+                                            <h4 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Immediate Actions Taken</h4>
+                                            <ul className="list-disc pl-5 space-y-1.5 text-gray-750 text-sm font-medium">
+                                                <li>{singleAction}</li>
+                                            </ul>
+                                        </div>
+                                    );
+                                })()}
 
                                  {/* Corrective Actions (Tracked) */}
                                 <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">

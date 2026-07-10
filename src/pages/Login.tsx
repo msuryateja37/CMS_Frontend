@@ -127,8 +127,7 @@ const Login: React.FC = () => {
                     </h1>
 
                     <p className="mt-6 text-xs lg:text-sm opacity-80 max-w-md mx-auto text-center">
-                        Chief Directorate: Security and Facilities Management Services<br />
-                        Integrated Case Management System
+                        Document Security Compliance and OHS Management System
                     </p>
                 </div>
             </div>
@@ -137,9 +136,6 @@ const Login: React.FC = () => {
             <div className="w-full lg:w-1/2 bg-white flex flex-col items-center justify-center p-6 lg:p-12 overflow-y-auto">
                 <div className="w-full max-w-md">
                     <div className="mb-6 text-center flex flex-col items-center justify-center">
-                        <div className="my-4 mb-4 w-40 h-28 font-bold">
-                            <img src="/logo_with_name.png" alt="Background" className="w-full h-full object-contain" />
-                        </div>
                         <h2 className="text-2xl font-bold text-gray-800 mb-1">Welcome Back</h2>
                         <p className="text-xs text-gray-500">Sign in to access your dashboard</p>
                     </div>

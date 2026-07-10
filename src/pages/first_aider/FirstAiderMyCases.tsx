@@ -5,7 +5,7 @@ import { Pill } from '../../components/common/Pill';
 import { Select } from '../../components/common/Select';
 import { DataTable, type Column } from '../../components/common/DataTable';
 import { type Case } from '../../services/cases.service';
-import { Eye, Loader2, FilePlus } from 'lucide-react';
+import { Eye, Loader2, FilePlus, ArrowLeft } from 'lucide-react';
 import { STATUS_FILTER_OPTIONS, CATEGORY_FILTER_OPTIONS, PRIORITY_FILTER_OPTIONS, getStatusLabel } from '../../data/constants';
 import { formatCategory } from '../../utils/formatters';
 import { useIncidents } from '../../hooks/useIncidents';
@@ -104,7 +104,14 @@ const FirstAiderMyCases: React.FC = () => {
     return (
         <DashboardLayout title="Assigned Incidents" description="Incidents currently assigned to you" breadcrumbs={[{ label: "Dashboard", path: "/first-aider/dashboard" }, { label: "Assigned Incidents" }]}>
             <div className="flex flex-col gap-6">
-                <div className="flex justify-end mb-1">
+                <div className="flex items-center justify-between">
+                    <button
+                        onClick={() => navigate('/first-aider/dashboard')}
+                        className="flex items-center gap-2 text-gray-500 hover:text-gray-700 transition-colors font-medium text-sm"
+                    >
+                        <ArrowLeft size={18} />
+                        <span>Back</span>
+                    </button>
                     <button onClick={() => navigate('/first-aider/report-breach')} className="flex items-center gap-2 px-4 py-2 bg-brown text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm">
                         <FilePlus size={16} /> Report New Incident
                     </button>

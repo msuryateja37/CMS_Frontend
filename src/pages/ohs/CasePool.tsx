@@ -43,7 +43,7 @@ const CasePool: React.FC = () => {
       const res = await casesService.getCases(filters);
       setCases((res.data ?? []) as PoolCase[]);
     } catch {
-      setError('Failed to load the pool. Please try again.');
+      setError('Failed to load unassigned incidents. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -81,11 +81,11 @@ const CasePool: React.FC = () => {
 
   return (
     <DashboardLayout
-      title="Incident Pool"
+      title="Unassigned Incidents"
       description="Incidents awaiting pickup in your province. Forwarded health cases (hospitalization) appear here too — pick one up to begin the OHS investigation track."
       breadcrumbs={[
         { label: 'OHS Dashboard', path: '/ohs/dashboard' },
-        { label: 'Incident Pool' },
+        { label: 'Unassigned Incidents' },
       ]}
     >
       <div className="mb-6">
@@ -101,7 +101,7 @@ const CasePool: React.FC = () => {
 
       {
         loading && (
-          <div className="py-16 text-center text-sm text-gray-400">Loading pool…</div>
+          <div className="py-16 text-center text-sm text-gray-400">Loading unassigned incidents…</div>
         )
       }
 
@@ -113,7 +113,7 @@ const CasePool: React.FC = () => {
 
       {
         !loading && !error && cases.length === 0 && (
-          <div className="py-16 text-center text-sm text-gray-400">The pool is empty — nothing waiting for pickup.</div>
+          <div className="py-16 text-center text-sm text-gray-400">No unassigned incidents waiting for pickup.</div>
         )
       }
 

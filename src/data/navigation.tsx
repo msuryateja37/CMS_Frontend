@@ -186,7 +186,7 @@ export const OHS_SIDEBAR = [
         isSingle: true
     },
     {
-        label: 'Incident Pool',
+        label: 'Unassigned Incidents',
         path: '/ohs/pool',
         icon: FolderOpen,
         isSingle: true

@@ -750,10 +750,7 @@ const ReportIncident: React.FC = () => {
                             <div className="w-10 h-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center mx-auto mb-3.5">
                                 <HelpCircle size={22} />
                             </div>
-                            <h3 className="font-bold text-sm text-gray-800">Report New Incident?</h3>
-                            <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
-                                Are you sure you want to report this new incident? This will route the incident to the appropriate provincial responders.
-                            </p>
+                            <h3 className="font-bold text-sm text-gray-800">Are you sure you want to submit this incident?</h3>
                         </div>
                         <div className="px-4 py-3 bg-gray-50 flex items-center justify-end gap-2 border-t border-gray-150">
                             <button

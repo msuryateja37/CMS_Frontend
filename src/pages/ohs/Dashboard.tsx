@@ -301,7 +301,7 @@ const OHSDashboard: React.FC = () => {
                             <Inbox size={16} className="text-orange-500" />
                         </div>
                         <div>
-                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none mb-0.5">Unassigned Pool</p>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none mb-0.5">Unassigned Incidents</p>
                             <p className="text-base font-bold text-gray-900 leading-none">{loading ? '...' : poolCases.length}</p>
                         </div>
                     </div>
@@ -334,14 +334,14 @@ const OHSDashboard: React.FC = () => {
                                 onClick={() => navigate('/ohs/pool')}
                                 className="flex items-center gap-1 text-sm font-bold text-brown hover:underline"
                             >
-                                View Pool <ChevronRight size={14} />
+                                View Unassigned <ChevronRight size={14} />
                             </button>
                         </div>
 
                         {poolCases.length === 0 ? (
                             <div className="text-center py-10 bg-white rounded-2xl border border-gray-150">
                                 <Inbox className="mx-auto text-gray-300 mb-2" size={32} />
-                                <p className="text-gray-400 font-medium">No pool incidents awaiting pickup.</p>
+                                <p className="text-gray-400 font-medium">No unassigned incidents awaiting pickup.</p>
                             </div>
                         ) : (
                             <DataTable
