@@ -13,12 +13,8 @@ import {
     MapPin,
     Shield,
     Hash,
-    Pencil,
-    Save,
     X,
     CheckCircle2,
-    Loader2,
-    LogOut
 } from 'lucide-react';
 
 const Profile: React.FC = () => {

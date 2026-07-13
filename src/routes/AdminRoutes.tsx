@@ -41,6 +41,8 @@ import FirstAiderMyCases from '../pages/first_aider/FirstAiderMyCases';
 import FirstAiderCasesReview from '../pages/first_aider/FirstAiderCasesReview';
 import FirstAiderCaseAction from '../pages/first_aider/FirstAiderCaseAction';
 import FirstAiderMyRegistry from '../pages/first_aider/FirstAiderMyRegistry';
+import FirstAiderChecklist from '../pages/first_aider/FirstAiderChecklist';
+import FirstAiderDressingRegistry from '../pages/first_aider/FirstAiderDressingRegistry';
 import CasePool from '../pages/ohs/CasePool';
 import HRCaseReview from '../pages/hr/HRCaseReview';
 import InvoiceInbox from '../pages/invoices/InvoiceInbox';
@@ -95,6 +97,9 @@ const AdminRoutes = () => {
             <Route path="/first-aider/my-cases" element={<ProtectedRoute><FirstAiderMyCases /></ProtectedRoute>} />
             <Route path="/first-aider/cases-review" element={<ProtectedRoute><FirstAiderCasesReview /></ProtectedRoute>} />
             <Route path="/first-aider/my-registry" element={<ProtectedRoute><FirstAiderMyRegistry /></ProtectedRoute>} />
+            <Route path="/first-aider/checklist" element={<ProtectedRoute><FirstAiderChecklist /></ProtectedRoute>} />
+            <Route path="/first-aider/dressing-registry" element={<ProtectedRoute><FirstAiderDressingRegistry /></ProtectedRoute>} />
+            <Route path="/first-aider/report-incident" element={<ProtectedRoute><ReportIncident /></ProtectedRoute>} />
             <Route path="/first-aider/cases/:id" element={<ProtectedRoute><FirstAiderCaseAction /></ProtectedRoute>} />
             <Route path="/first-aider" element={<ProtectedRoute><FirstAiderDashboard /></ProtectedRoute>} />
 

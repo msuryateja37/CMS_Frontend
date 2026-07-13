@@ -16,7 +16,10 @@ import {
     Home,
     MessageSquare,
     User,
-    AlertTriangle
+    AlertTriangle,
+    ClipboardList,
+    BookOpen,
+    Bot
 } from 'lucide-react';
 
 
@@ -258,15 +261,39 @@ export const FIRST_AIDER_SIDEBAR = [
         isSingle: true
     },
     {
-        label: 'Assigned Incidents',
+        label: 'Report Incident',
+        path: '/first-aider/report-incident',
+        icon: FilePlus,
+        isSingle: true
+    },
+    {
+        label: 'My Assigned Cases',
         path: '/first-aider/my-cases',
         icon: Folder,
+        isSingle: true
+    },
+    {
+        label: 'Dressing Registry',
+        path: '/first-aider/dressing-registry',
+        icon: BookOpen,
         isSingle: true
     },
     {
         label: 'My Registry',
         path: '/first-aider/my-registry',
         icon: FolderOpen,
+        isSingle: true
+    },
+    {
+        label: 'First Aid Checklist',
+        path: '/first-aider/checklist',
+        icon: ClipboardList,
+        isSingle: true
+    },
+    {
+        label: 'AI Assistant',
+        path: '/first-aider/ai-assistant',
+        icon: Bot,
         isSingle: true
     },
     {

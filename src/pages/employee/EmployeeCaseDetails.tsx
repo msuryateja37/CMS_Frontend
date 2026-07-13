@@ -21,43 +21,53 @@ const EmployeeCaseDetails: React.FC = () => {
 
     const isClosed = caseData?.status === 'CLOSED' || caseData?.status === 'COMPLETED';
     const isHealth = caseData?.category?.toLowerCase() === 'health';
+    const isAssigned = caseData?.status === 'ASSIGNED' || caseData?.status === 'IN_PROGRESS' || (caseData?.assignments && caseData.assignments.length > 0);
 
     // Parse structured metadata from description
     const parseDescription = (desc: string) => {
         let cleanDescription = desc || '';
         let natureOfInjury = '';
+        let affectedPersons = '';
         let vehicleReg = '';
         let driverDetails = '';
         let subtype = '';
 
-        if (cleanDescription.startsWith('[Nature of Injury:')) {
-            const match = cleanDescription.match(/^\[Nature of Injury:\s*([^\]]+)\]/);
-            if (match) {
-                natureOfInjury = match[1];
-                cleanDescription = cleanDescription.replace(/^\[Nature of Injury:\s*[^\]]+\]\s*/, '');
-            }
-        } else if (cleanDescription.startsWith('[Vehicle Reg:')) {
-            const regMatch = cleanDescription.match(/^\[Vehicle Reg:\s*([^\]]+)\]/);
-            if (regMatch) {
-                vehicleReg = regMatch[1];
-                cleanDescription = cleanDescription.replace(/^\[Vehicle Reg:\s*[^\]]+\]\s*/, '');
-            }
-            
-            // Check driver details (which comes next in description)
-            const driverMatch = cleanDescription.match(/^\[Driver Details:\s*([^\]]+)\]/);
-            if (driverMatch) {
-                driverDetails = driverMatch[1];
-                cleanDescription = cleanDescription.replace(/^\[Driver Details:\s*[^\]]+\]\s*/, '');
-            }
-        } else if (cleanDescription.startsWith('[Category Sub-type:')) {
-            const match = cleanDescription.match(/^\[Category Sub-type:\s*([^\]]+)\]/);
-            if (match) {
-                subtype = match[1];
-                cleanDescription = cleanDescription.replace(/^\[Category Sub-type:\s*[^\]]+\]\s*/, '');
-            }
+        // Extract Nature of Injury
+        const natureMatch = cleanDescription.match(/\[Nature of Injury:\s*([^\]]+)\]/);
+        if (natureMatch) {
+            natureOfInjury = natureMatch[1];
+            cleanDescription = cleanDescription.replace(/\[Nature of Injury:\s*[^\]]+\]\s*/g, '');
         }
 
-        return { cleanDescription, natureOfInjury, vehicleReg, driverDetails, subtype };
+        // Extract Affected Persons
+        const affectedMatch = cleanDescription.match(/\[Affected Persons:\s*([^\]]+)\]/);
+        if (affectedMatch) {
+            affectedPersons = affectedMatch[1];
+            cleanDescription = cleanDescription.replace(/\[Affected Persons:\s*[^\]]+\]\s*/g, '');
+        }
+
+        // Extract Vehicle Reg
+        const regMatch = cleanDescription.match(/\[Vehicle Reg:\s*([^\]]+)\]/);
+        if (regMatch) {
+            vehicleReg = regMatch[1];
+            cleanDescription = cleanDescription.replace(/\[Vehicle Reg:\s*[^\]]+\]\s*/g, '');
+        }
+
+        // Extract Driver Details
+        const driverMatch = cleanDescription.match(/\[Driver Details:\s*([^\]]+)\]/);
+        if (driverMatch) {
+            driverDetails = driverMatch[1];
+            cleanDescription = cleanDescription.replace(/\[Driver Details:\s*[^\]]+\]\s*/g, '');
+        }
+
+        // Extract Category Sub-type
+        const subtypeMatch = cleanDescription.match(/\[Category Sub-type:\s*([^\]]+)\]/);
+        if (subtypeMatch) {
+            subtype = subtypeMatch[1];
+            cleanDescription = cleanDescription.replace(/\[Category Sub-type:\s*[^\]]+\]\s*/g, '');
+        }
+
+        return { cleanDescription: cleanDescription.trim(), natureOfInjury, affectedPersons, vehicleReg, driverDetails, subtype };
     };
 
     if (caseLoading) {
@@ -93,7 +103,7 @@ const EmployeeCaseDetails: React.FC = () => {
         );
     }
 
-    const { cleanDescription, natureOfInjury, vehicleReg, driverDetails, subtype } = parseDescription(caseData.description);
+    const { cleanDescription, natureOfInjury, affectedPersons, vehicleReg, driverDetails, subtype } = parseDescription(caseData.description);
 
     const getCategoryLabel = (category: string) => {
         if (!category) return 'Other';
@@ -206,6 +216,12 @@ const EmployeeCaseDetails: React.FC = () => {
                                         <span className="font-semibold text-gray-800">{natureOfInjury}</span>
                                     </div>
                                 )}
+                                {affectedPersons && (
+                                    <div className="md:col-span-2">
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Affected Persons</span>
+                                        <span className="font-semibold text-gray-800">{affectedPersons}</span>
+                                    </div>
+                                )}
                                 {vehicleReg && (
                                     <div>
                                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Vehicle Registration</span>
@@ -220,7 +236,7 @@ const EmployeeCaseDetails: React.FC = () => {
                                 )}
                                 {subtype && (
                                     <div>
-                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Sub-type</span>
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Category Details</span>
                                         <span className="font-semibold text-gray-800">{subtype}</span>
                                     </div>
                                 )}
@@ -384,20 +400,91 @@ const EmployeeCaseDetails: React.FC = () => {
                         })()}
 
                     </div>
-
                     {/* RIGHT COLUMN: Sidebar (1/3 width) */}
                     <div className="space-y-6">
                         
                         {/* Currently With Card */}
                         <div className="bg-white rounded-2xl border border-gray-150 p-5 shadow-sm space-y-4">
-                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest leading-none">Currently with</h3>
+                            <h3 className="text-xs font-bold text-gray-450 uppercase tracking-widest leading-none">Currently with</h3>
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-400 shrink-0">
+                                <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-250 flex items-center justify-center text-gray-400 shrink-0">
                                     {isClosed ? <CheckCircle className="text-green-600" size={20} /> : <User size={20} />}
                                 </div>
                                 <div className="overflow-hidden">
                                     <h4 className="font-bold text-xs text-gray-800 truncate">{currentlyWith.name}</h4>
                                     <p className="text-[10px] text-gray-400 font-semibold mt-0.5">{currentlyWith.role}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Reported By Card */}
+                        <div className="bg-white rounded-2xl border border-gray-150 p-5 shadow-sm space-y-4">
+                            <h3 className="text-xs font-bold text-gray-455 uppercase tracking-widest leading-none">Reported by</h3>
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-250 flex items-center justify-center text-gray-400 shrink-0">
+                                    <User size={20} />
+                                </div>
+                                <div className="overflow-hidden">
+                                    <h4 className="font-bold text-xs text-gray-800 truncate">{caseData.reportedBy?.name || 'Unknown Employee'}</h4>
+                                    <p className="text-[10px] text-gray-400 font-semibold mt-0.5">
+                                        Employee · {new Date(caseData.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}, {new Date(caseData.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Status showing Card with Stepper */}
+                        <div className="bg-white rounded-2xl border border-gray-150 p-5 shadow-sm space-y-5">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-xs font-bold text-gray-450 uppercase tracking-widest leading-none">Status</h3>
+                                <Pill
+                                    label={getStatusLabel(caseData.status).toUpperCase()}
+                                    variant={caseData.status.toLowerCase().replace(/_/g, ' ')}
+                                />
+                            </div>
+
+                            {/* Stepper */}
+                            <div className="flex items-center justify-between mt-4 px-1.5">
+                                {/* Step 1: Supervisor */}
+                                <div className="flex flex-col items-center">
+                                    <div className="w-5 h-5 rounded-full bg-green-600 text-white flex items-center justify-center text-[10px] font-bold shadow-sm">
+                                        ✓
+                                    </div>
+                                    <span className="text-[10px] text-gray-500 font-semibold mt-1.5">Supervisor</span>
+                                </div>
+
+                                {/* Line 1 */}
+                                <div className={`flex-1 h-0.5 -mt-4.5 mx-1 transition-all ${isAssigned || isClosed ? 'bg-green-600' : 'bg-gray-200'}`}></div>
+
+                                {/* Step 2: Practitioner */}
+                                <div className="flex flex-col items-center">
+                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm transition-all ${
+                                        isAssigned || isClosed ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-400 border border-gray-250'
+                                    }`}>
+                                        {isAssigned || isClosed ? '✓' : '2'}
+                                    </div>
+                                    <span className="text-[10px] text-gray-500 font-semibold mt-1.5 text-center leading-none">
+                                        {isHealth ? 'First Aider' : 'OHS Practitioner'}
+                                    </span>
+                                </div>
+
+                                {/* Line 2 */}
+                                <div className={`flex-1 h-0.5 -mt-4.5 mx-1 transition-all ${isClosed ? 'bg-green-600' : 'bg-gray-200'}`}></div>
+
+                                {/* Step 3: In Progress / Closed */}
+                                <div className="flex flex-col items-center">
+                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm transition-all ${
+                                        isClosed 
+                                            ? 'bg-green-600 text-white' 
+                                            : (caseData.status === 'ASSIGNED' || caseData.status === 'IN_PROGRESS' || caseData.status === 'UNDER_REVIEW')
+                                                ? 'border-2 border-green-600 text-green-600 animate-pulse bg-white' 
+                                                : 'bg-gray-100 text-gray-400 border border-gray-250'
+                                    }`}>
+                                        {isClosed ? '✓' : '3'}
+                                    </div>
+                                    <span className="text-[10px] text-gray-500 font-semibold mt-1.5">
+                                        {isClosed ? 'Completed' : 'In Progress'}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -432,7 +519,7 @@ const EmployeeCaseDetails: React.FC = () => {
                                                          isEscalated ? 'Escalated' : getStatusLabel(act.type || '')}
                                                     </p>
                                                     {act.description && (
-                                                        <p className="text-[11px] text-gray-500 leading-relaxed">
+                                                        <p className="text-[11px] text-gray-550 leading-relaxed">
                                                             {act.description}
                                                         </p>
                                                     )}
