@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth.store';
 import authService from '../../services/auth.service';
 import DashboardLayout from '../../layouts/DashboardLayout';
@@ -18,10 +17,8 @@ import {
 } from 'lucide-react';
 
 const Profile: React.FC = () => {
-    const { user, refreshUser, logout } = useAuthStore();
-    const navigate = useNavigate();
+    const { user, refreshUser } = useAuthStore();
     const [isEditing, setIsEditing] = useState(false);
-    const [saving, setSaving] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -46,39 +43,6 @@ const Profile: React.FC = () => {
     }, [user]);
 
     // Fetch dropdown data effect removed as it is now handled by hooks
-
-    const handleSave = async () => {
-        setSaving(true);
-        setError(null);
-        try {
-            await authService.updateProfile({
-                fullName,
-                phone,
-                provinceId: provinceId || undefined,
-                departmentId: departmentId || undefined,
-            });
-            await refreshUser();
-            setIsEditing(false);
-            setSuccess(true);
-            setTimeout(() => setSuccess(false), 3000);
-        } catch (err) {
-            const errorResponse = err as { response?: { data?: { message?: string } } };
-            setError(errorResponse?.response?.data?.message || 'Failed to update profile');
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const handleCancel = () => {
-        if (user) {
-            setFullName(user.fullName || '');
-            setPhone(user.phone || '');
-            setProvinceId(user.province?.id || '');
-            setDepartmentId(user.department?.id || '');
-        }
-        setIsEditing(false);
-        setError(null);
-    };
 
     const getUserInitials = () => {
         if (!user?.fullName) return 'U';

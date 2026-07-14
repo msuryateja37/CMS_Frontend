@@ -54,12 +54,12 @@ const FirstAiderMyRegistry: React.FC = () => {
     const totalItems = casesData?.total || 0;
     const error = casesError ? (casesError as any).message || 'Failed to load registry' : null;
 
-    const forwardedCount = cases.filter(c => c.status === 'FORWARDED_TO_OHS_AND_HR').length;
+    const forwardedCount = cases.filter(c => c.status === 'REFERRED_TO_OHS_AND_HR').length;
     const closedCount = cases.filter(c => c.status === 'CLOSED' || c.status === 'RESOLVED').length;
-    const activeCount = cases.filter(c => c.status !== 'CLOSED' && c.status !== 'RESOLVED' && c.status !== 'FORWARDED_TO_OHS_AND_HR').length;
+    const activeCount = cases.filter(c => c.status !== 'CLOSED' && c.status !== 'RESOLVED' && c.status !== 'REFERRED_TO_OHS_AND_HR').length;
 
     const getStatusBadgeIcon = (status: string) => {
-        if (status === 'FORWARDED_TO_OHS_AND_HR') return <ArrowUpRight size={12} className="text-purple-600" />;
+        if (status === 'REFERRED_TO_OHS_AND_HR') return <ArrowUpRight size={12} className="text-purple-600" />;
         if (status === 'CLOSED' || status === 'RESOLVED') return <CheckCircle size={12} className="text-green-600" />;
         return <Folder size={12} className="text-gray-500" />;
     };

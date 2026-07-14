@@ -24,13 +24,13 @@ const FirstAiderDashboard: React.FC = () => {
     const [acceptingId, setAcceptingId] = useState<string | null>(null);
     const [successMsg, setSuccessMsg] = useState('');
 
-    // Pending Acceptance — POOL cases in same province not yet picked up
+    // Pending Acceptance — NEW / UNASSIGNED cases in same province not yet picked up
     const {
         data: poolData,
         isLoading: loadingPool,
         refetch: refetchPool,
     } = useIncidents({
-        status: 'POOL',
+        status: 'NEW,UNASSIGNED',
         provinceId: user?.province?.id,
         take: 10,
     });
@@ -58,7 +58,7 @@ const FirstAiderDashboard: React.FC = () => {
     const inProgress = assignedCases.filter(c => c.status === 'ASSIGNED' || c.status === 'IN_PROGRESS').length;
     const underReview = assignedCases.filter(c => {
         const s = c.status?.toUpperCase() || '';
-        return s !== 'POOL' && s !== 'CLOSED' && s !== 'RESOLVED' && s !== 'COMPLETED';
+        return s !== 'CLOSED' && s !== 'RESOLVED' && s !== 'COMPLETED';
     }).length;
     const treatedByMe = assignedCases.filter(c => c.status === 'CLOSED' || c.status === 'RESOLVED').length;
 

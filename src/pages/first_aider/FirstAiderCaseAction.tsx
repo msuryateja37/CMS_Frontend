@@ -107,9 +107,27 @@ const FirstAiderCaseAction: React.FC = () => {
         }
         setSavingTreatment(true);
         try {
+            const treatmentData = {
+                treatmentAdministered: treatmentGiven.join(', ') + (medication ? ` | Medication: ${medication}` : ''),
+                treatmentOutcome: treatmentOutcome,
+                treatmentReferral: treatmentOutcome === 'referred' ? referralFacility.trim() : null,
+                treatmentReason: treatmentOutcome === 'referred' ? referralReason.trim() : null,
+            };
+
             const note = `[Treatment Record] Treatments: ${treatmentGiven.join(', ')}${medication ? ` | Medication: ${medication}` : ''} | Outcome: ${treatmentOutcome === 'resolved' ? 'Resolved on site' : `Referred to ${referralFacility}`}${referralReason ? ` | Reason: ${referralReason}` : ''}`;
             await casesService.addComment(id!, note);
-            showSuccess('Treatment recorded successfully.');
+
+            if (treatmentOutcome === 'referred') {
+                // Submit referral, save details, and change status to REFERRED_TO_OHS_AND_HR
+                await casesService.forwardToOhs(id!, treatmentData);
+                showSuccess('Treatment recorded and case referred to OHS & HR successfully.');
+            } else {
+                // Save treatment details, then close the incident
+                await casesService.update(id!, treatmentData);
+                await casesService.closeCase(id!);
+                showSuccess('Treatment recorded and incident closed successfully.');
+            }
+
             setShowTreatmentModal(false);
             setTreatmentGiven([]);
             setMedication('');
@@ -307,7 +325,7 @@ const FirstAiderCaseAction: React.FC = () => {
 
     const sevStyle = getSeverityStyle(caseData.severity);
     const isClosed = caseData.status === 'CLOSED' || caseData.status === 'RESOLVED';
-    const isForwarded = caseData.status === 'FORWARDED_TO_OHS_AND_HR';
+    const isForwarded = caseData.status === 'REFERRED_TO_OHS_AND_HR';
     const isUnderReview = caseData.status === 'UNDER_REVIEW';
     const isCurrentAssignee = user?.id === caseData.assignedTo?.id;
 

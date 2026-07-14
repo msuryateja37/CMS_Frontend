@@ -194,6 +194,50 @@ const CaseDetails: React.FC = () => {
         }
     };
 
+    const parseTreatmentRecord = (entry?: string) => {
+        if (!entry?.startsWith('[Treatment Record]')) return null;
+
+        const payload = entry.replace('[Treatment Record] ', '');
+        const fields = payload.split(' | ');
+        const treatmentField = fields.find(field => field.startsWith('Treatments:'))?.replace('Treatments: ', '') || '';
+        const medicationField = fields.find(field => field.startsWith('Medication:'))?.replace('Medication: ', '') || '';
+        const outcomeField = fields.find(field => field.startsWith('Outcome:'))?.replace('Outcome: ', '') || '';
+        const reasonField = fields.find(field => field.startsWith('Reason:'))?.replace('Reason: ', '') || '';
+
+        const treatments = treatmentField
+            ? treatmentField.split(',').map(item => item.trim()).filter(Boolean)
+            : [];
+
+        let referral = 'None - treated on-site.';
+        if (outcomeField.toLowerCase().startsWith('referred to ')) {
+            referral = outcomeField.replace(/^Referred to\s+/i, '').trim();
+        } else if (outcomeField) {
+            referral = outcomeField;
+        }
+
+        return {
+            treatments,
+            medication: medicationField || 'None',
+            outcome: outcomeField || 'Unknown',
+            referral,
+            reason: reasonField || '',
+        };
+    };
+
+    const latestTreatmentRecord = caseData?.comments
+        ? [...caseData.comments]
+            .reverse()
+            .find((comment) => comment.comment?.startsWith('[Treatment Record]'))
+        : null;
+
+    const treatmentRecord = parseTreatmentRecord(latestTreatmentRecord?.comment) || (caseData?.treatmentAdministered ? {
+        treatments: [caseData.treatmentAdministered],
+        medication: 'Recorded',
+        outcome: caseData.treatmentOutcome || 'Unknown',
+        referral: caseData.treatmentReferral || 'None - treated on-site.',
+        reason: caseData.treatmentReason || '',
+    } : null);
+
 
     const getSeverityStyle = (severity?: string) => {
         if (!severity) return severityConfig.medium;
@@ -459,6 +503,58 @@ const CaseDetails: React.FC = () => {
                                             {caseData.description || 'No description provided.'}
                                         </div>
                                     </div>
+
+                                    {treatmentRecord && (
+                                        <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
+                                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Treatment Record</h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-xs">
+                                                <div>
+                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Administered by</span>
+                                                    <span className="font-semibold text-gray-800">{latestTreatmentRecord?.user?.name || 'First Aider'}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Date / Time</span>
+                                                    <span className="font-semibold text-gray-800">
+                                                        {latestTreatmentRecord?.createdAt
+                                                            ? new Date(latestTreatmentRecord.createdAt).toLocaleString('en-GB', {
+                                                                day: 'numeric',
+                                                                month: 'short',
+                                                                year: 'numeric',
+                                                                hour: '2-digit',
+                                                                minute: '2-digit'
+                                                            })
+                                                            : '—'}
+                                                    </span>
+                                                </div>
+                                                <div className="md:col-span-2">
+                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Actions taken</span>
+                                                    <span className="font-medium text-gray-700 leading-relaxed block whitespace-pre-wrap">
+                                                        {treatmentRecord.treatments.length > 0 ? treatmentRecord.treatments.join(', ') : 'No treatment details recorded.'}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Medication / aid provided</span>
+                                                    <span className="font-semibold text-gray-800">{treatmentRecord.medication}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Referral</span>
+                                                    <span className="font-semibold text-gray-800">{treatmentRecord.referral}</span>
+                                                </div>
+                                                {treatmentRecord.reason && (
+                                                    <div className="md:col-span-2">
+                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Reason for referral</span>
+                                                        <span className="font-medium text-gray-700 leading-relaxed block whitespace-pre-wrap">
+                                                            {treatmentRecord.reason}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                <div className="md:col-span-2">
+                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Outcome</span>
+                                                    <span className="font-semibold text-gray-800">{treatmentRecord.outcome}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* Details Grid */}
                                     <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">

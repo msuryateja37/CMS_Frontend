@@ -306,9 +306,27 @@ export const FIRST_AIDER_SIDEBAR = [
 
 export const HR_SIDEBAR = [
     {
-        label: 'Incidents for Review',
-        path: '/hr/cases',
+        label: 'Dashboard',
+        path: '/hr/dashboard',
+        icon: LayoutDashboard,
+        isSingle: true
+    },
+    {
+        label: 'Logged Incidents',
+        path: '/hr/logged-incidents',
         icon: FolderOpen,
+        isSingle: true
+    },
+    {
+        label: 'WCL Records',
+        path: '/hr/wcl-records',
+        icon: ClipboardList,
+        isSingle: true
+    },
+    {
+        label: 'AI Assistant',
+        path: '/hr/ai-assistant',
+        icon: MessageSquare,
         isSingle: true
     },
     {

@@ -62,7 +62,7 @@ const Login: React.FC = () => {
             } else if (roleName === 'first_aider') {
                 navigate('/first-aider/dashboard');
             } else if (roleName === 'hr') {
-                navigate('/hr/cases');
+                navigate('/hr/dashboard');
             } else if (roleName === 'finance_official') {
                 navigate('/finance/dashboard');
             } else if (roleName === 'system_administrator' || roleName === 'manager') {

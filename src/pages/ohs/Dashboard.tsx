@@ -32,13 +32,13 @@ const OHSDashboard: React.FC = () => {
     const { user } = useAuthStore();
     const isNational = user?.role?.name?.toUpperCase()?.replace(/_/g, ' ') === 'OHS NATIONAL OFFICE';
 
-    // Fetch unassigned pool cases in the same province (includes FORWARDED_TO_OHS_AND_HR)
+    // Fetch unassigned pool cases in the same province (includes REFERRED_TO_OHS_AND_HR)
     const {
         data: poolData,
         isLoading: loadingPool,
         error: errorPool
     } = useIncidents({
-        status: 'POOL,UNDER_REVIEW,FORWARDED_TO_OHS_AND_HR',
+        status: 'NEW,UNASSIGNED,REFERRED_TO_OHS_AND_HR',
         unassignedOnly: 'true',
         provinceId: isNational ? undefined : user?.province?.id,
         take: 100,
@@ -54,7 +54,16 @@ const OHSDashboard: React.FC = () => {
         take: 100,
     });
 
-    const poolCases = poolData?.data || [];
+    const poolCases = (poolData?.data || []).filter(c => {
+        const cat = c.category?.toLowerCase();
+        if (cat === 'health' || cat === 'safety') {
+            return c.status === 'REFERRED_TO_OHS_AND_HR';
+        }
+        if (cat === 'environmental' || cat === 'environment') {
+            return c.status === 'NEW' || c.status === 'UNASSIGNED';
+        }
+        return false;
+    });
     const assignedCases = assignedData?.data || [];
     const loading = loadingPool || loadingAssigned;
     const error = (errorPool || errorAssigned) ? 'Failed to load dashboard data.' : null;
@@ -95,7 +104,7 @@ const OHSDashboard: React.FC = () => {
             cell: (item) => (
                 <div>
                     <span className="font-mono text-sm font-medium text-gray-600">{item.incidentNumber}</span>
-                    {item.status === 'FORWARDED_TO_OHS_AND_HR' && (
+                    {item.status === 'REFERRED_TO_OHS_AND_HR' && (
                         <span className="ml-2 text-[10px] bg-purple-100 text-purple-700 font-bold px-1.5 py-0.5 rounded uppercase">Health</span>
                     )}
                 </div>

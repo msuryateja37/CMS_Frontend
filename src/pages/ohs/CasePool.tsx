@@ -32,16 +32,28 @@ const CasePool: React.FC = () => {
     setError(null);
     try {
       const isNational = user?.role?.name?.toUpperCase()?.replace(/_/g, ' ') === 'OHS NATIONAL OFFICE';
-      // Include both POOL and FORWARDED_TO_OHS_AND_HR (health parallel flow) unassigned cases
+      // Include both NEW, UNASSIGNED and REFERRED_TO_OHS_AND_HR (health parallel flow) unassigned cases
       const filters: Record<string, string> = {
-        status: 'POOL,UNDER_REVIEW,FORWARDED_TO_OHS_AND_HR',
+        status: 'NEW,UNASSIGNED,REFERRED_TO_OHS_AND_HR',
         unassignedOnly: 'true',
       };
       if (!isNational && user?.province?.id) {
         filters.provinceId = user.province.id;
       }
       const res = await casesService.getCases(filters);
-      setCases((res.data ?? []) as PoolCase[]);
+      const rawCases = (res.data ?? []) as PoolCase[];
+      
+      const filtered = rawCases.filter(c => {
+        const cat = c.category?.toLowerCase();
+        if (cat === 'health' || cat === 'safety') {
+          return c.status === 'REFERRED_TO_OHS_AND_HR';
+        }
+        if (cat === 'environmental' || cat === 'environment') {
+          return c.status === 'NEW' || c.status === 'UNASSIGNED';
+        }
+        return false;
+      });
+      setCases(filtered);
     } catch {
       setError('Failed to load unassigned incidents. Please try again.');
     } finally {
@@ -77,7 +89,7 @@ const CasePool: React.FC = () => {
     return `${days} day${days === 1 ? '' : 's'} left`;
   };
 
-  const isForwardedCase = (c: PoolCase) => c.status === 'FORWARDED_TO_OHS_AND_HR';
+  const isForwardedCase = (c: PoolCase) => c.status === 'REFERRED_TO_OHS_AND_HR';
 
   return (
     <DashboardLayout
