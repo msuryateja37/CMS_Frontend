@@ -41,8 +41,14 @@ import FirstAiderMyCases from '../pages/first_aider/FirstAiderMyCases';
 import FirstAiderCasesReview from '../pages/first_aider/FirstAiderCasesReview';
 import FirstAiderCaseAction from '../pages/first_aider/FirstAiderCaseAction';
 import FirstAiderMyRegistry from '../pages/first_aider/FirstAiderMyRegistry';
+import FirstAiderChecklist from '../pages/first_aider/FirstAiderChecklist';
+import FirstAiderDressingRegistry from '../pages/first_aider/FirstAiderDressingRegistry';
 import CasePool from '../pages/ohs/CasePool';
-import HRCaseReview from '../pages/hr/HRCaseReview';
+import HRDashboard from '../pages/hr/Dashboard';
+import HRLoggedIncidents from '../pages/hr/LoggedIncidents';
+import HRWCLRecords from '../pages/hr/WCLRecords';
+import HRCaseDetails from '../pages/hr/HRCaseDetails';
+import HRAIAssistant from '../pages/hr/AIAssistant';
 import InvoiceInbox from '../pages/invoices/InvoiceInbox';
 import PendingApproval from '../pages/invoices/PendingApproval';
 import PaymentTracking from '../pages/invoices/PaymentTracking';
@@ -95,12 +101,19 @@ const AdminRoutes = () => {
             <Route path="/first-aider/my-cases" element={<ProtectedRoute><FirstAiderMyCases /></ProtectedRoute>} />
             <Route path="/first-aider/cases-review" element={<ProtectedRoute><FirstAiderCasesReview /></ProtectedRoute>} />
             <Route path="/first-aider/my-registry" element={<ProtectedRoute><FirstAiderMyRegistry /></ProtectedRoute>} />
+            <Route path="/first-aider/checklist" element={<ProtectedRoute><FirstAiderChecklist /></ProtectedRoute>} />
+            <Route path="/first-aider/dressing-registry" element={<ProtectedRoute><FirstAiderDressingRegistry /></ProtectedRoute>} />
+            <Route path="/first-aider/report-incident" element={<ProtectedRoute><ReportIncident /></ProtectedRoute>} />
             <Route path="/first-aider/cases/:id" element={<ProtectedRoute><FirstAiderCaseAction /></ProtectedRoute>} />
             <Route path="/first-aider" element={<ProtectedRoute><FirstAiderDashboard /></ProtectedRoute>} />
 
             {/* HR Routes (review + close cases) */}
-            <Route path="/hr/cases" element={<ProtectedRoute><HRCaseReview /></ProtectedRoute>} />
-            <Route path="/hr" element={<ProtectedRoute><HRCaseReview /></ProtectedRoute>} />
+            <Route path="/hr/dashboard" element={<ProtectedRoute><HRDashboard /></ProtectedRoute>} />
+            <Route path="/hr/logged-incidents" element={<ProtectedRoute><HRLoggedIncidents /></ProtectedRoute>} />
+            <Route path="/hr/wcl-records" element={<ProtectedRoute><HRWCLRecords /></ProtectedRoute>} />
+            <Route path="/hr/cases/:id" element={<ProtectedRoute><HRCaseDetails /></ProtectedRoute>} />
+            <Route path="/hr/ai-assistant" element={<ProtectedRoute><HRAIAssistant /></ProtectedRoute>} />
+            <Route path="/hr" element={<Navigate to="/hr/dashboard" replace />} />
 
             {/* Operations Routes */}
             <Route path="/operations/permits" element={<ProtectedRoute><PermitToWork /></ProtectedRoute>} />

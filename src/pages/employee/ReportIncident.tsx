@@ -57,8 +57,10 @@ const ReportIncident: React.FC = () => {
 
     // Category Specific Sub-Fields
     const [natureOfInjury, setNatureOfInjury] = useState('');
-    const [vehicleReg, setVehicleReg] = useState('');
-    const [driverDetails, setDriverDetails] = useState('');
+    const [bodyPartAffected, setBodyPartAffected] = useState('');
+    const [selectedPersons, setSelectedPersons] = useState<User[]>([]);
+    const [personSearch, setPersonSearch] = useState('');
+    const [showPersonSuggestions, setShowPersonSuggestions] = useState(false);
     const [otherSubtype, setOtherSubtype] = useState('');
 
     const [showOtherModal, setShowOtherModal] = useState(false);
@@ -67,11 +69,17 @@ const ReportIncident: React.FC = () => {
     const isSupervisor = userRole === 'supervisor';
 
     // Query employees in current province
-    const { data: allEmployees } = useUsers(isSupervisor ? { role: 'EMPLOYEE', provinceId: user?.province?.id } : undefined);
+    const { data: allEmployees } = useUsers({ role: 'EMPLOYEE' });
     const filteredEmployees = (allEmployees || []).filter(emp =>
         emp.name?.toLowerCase().includes(employeeSearch.toLowerCase()) ||
         emp.email?.toLowerCase().includes(employeeSearch.toLowerCase()) ||
         (emp.employeeNumber || '').toLowerCase().includes(employeeSearch.toLowerCase())
+    );
+
+    const filteredPersons = (allEmployees || []).filter(emp =>
+        (emp.name?.toLowerCase().includes(personSearch.toLowerCase()) ||
+        emp.email?.toLowerCase().includes(personSearch.toLowerCase())) &&
+        !selectedPersons.some(p => p.id === emp.id)
     );
 
     const handleBehalfOfToggle = (checked: boolean) => {
@@ -149,8 +157,8 @@ const ReportIncident: React.FC = () => {
             setOccurredAtDate(draft.occurredAtDate || '');
             setOccurredAtTime(draft.occurredAtTime || '');
             setNatureOfInjury(draft.natureOfInjury || '');
-            setVehicleReg(draft.vehicleReg || '');
-            setDriverDetails(draft.driverDetails || '');
+            setBodyPartAffected(draft.bodyPartAffected || '');
+            setSelectedPersons(draft.selectedPersons || []);
             setOtherSubtype(draft.otherSubtype || '');
             setFiles(draft.attachments || []);
         } else if (user) {
@@ -184,8 +192,8 @@ const ReportIncident: React.FC = () => {
                 occurredAtDate,
                 occurredAtTime,
                 natureOfInjury,
-                vehicleReg,
-                driverDetails,
+                bodyPartAffected,
+                selectedPersons,
                 otherSubtype,
                 lastSaved: new Date().toISOString()
             };
@@ -196,7 +204,7 @@ const ReportIncident: React.FC = () => {
             }
             localStorage.setItem('incident_drafts', JSON.stringify(drafts));
         }
-    }, [formData, occurredAtDate, occurredAtTime, natureOfInjury, vehicleReg, driverDetails, otherSubtype]);
+    }, [formData, occurredAtDate, occurredAtTime, natureOfInjury, bodyPartAffected, selectedPersons, otherSubtype]);
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -279,13 +287,12 @@ const ReportIncident: React.FC = () => {
 
             // Embed category sub-fields cleanly into description for schema preservation
             let description = formData.description || '';
-            const cat = formData.categoryId || 'others';
-            if (cat === 'others' && otherSubtype) {
+            const cat = formData.categoryId || '';
+            if (cat === 'health' || cat === 'safety') {
+                const affectedStr = selectedPersons.map(p => `${p.name} (${p.email})`).join(', ');
+                description = `[Nature of Injury: ${natureOfInjury} (${bodyPartAffected})]\n[Affected Persons: ${affectedStr}]\n\n${description}`;
+            } else if (otherSubtype) {
                 description = `[Category Sub-type: ${otherSubtype}]\n\n${description}`;
-            } else if ((cat === 'health' || cat === 'safety') && natureOfInjury) {
-                description = `[Nature of Injury: ${natureOfInjury}]\n\n${description}`;
-            } else if (cat === 'mva') {
-                description = `[Vehicle Reg: ${vehicleReg}]\n[Driver Details: ${driverDetails}]\n\n${description}`;
             }
 
             const caseData = {
@@ -299,7 +306,7 @@ const ReportIncident: React.FC = () => {
                 buildingId: formData.buildingId,
                 provinceId: formData.provinceId,
                 departmentId: formData.departmentId,
-                peopleImpacted: 0,
+                peopleImpacted: selectedPersons.length,
                 media: formData.media || [],
                 immediateActions: formData.immediateActions ? [formData.immediateActions] : [],
                 otherActions: formData.otherActions,
@@ -332,8 +339,9 @@ const ReportIncident: React.FC = () => {
     const category = formData.categoryId || '';
     const isCategoryValid = category !== '';
     const isSubFieldsValid = 
-        category === 'others' ? otherSubtype !== '' :
-        (category === 'health' || category === 'safety') ? natureOfInjury.trim() !== '' : true;
+        (category === 'health' || category === 'safety')
+            ? (natureOfInjury !== '' && bodyPartAffected !== '' && selectedPersons.length > 0)
+            : (category !== '' ? otherSubtype.trim() !== '' : true);
 
     const isBehalfOfValid = !isBehalfOf || !!selectedEmployee;
 
@@ -586,6 +594,121 @@ const ReportIncident: React.FC = () => {
                         </div>
 
                         {/* Dynamic Sub-Fields based on selected Category */}
+                        {(category === 'health' || category === 'safety') && (
+                            <div className="pt-2 animate-fadeIn space-y-4">
+                                {/* Nature of Injury / Medical Complaint */}
+                                <div>
+                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-2">
+                                        Nature of Injury / Medical Complaint *
+                                    </label>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <select
+                                            value={natureOfInjury}
+                                            onChange={(e) => setNatureOfInjury(e.target.value)}
+                                            className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold outline-none focus:border-[#884616] transition cursor-pointer"
+                                        >
+                                            <option value="">Nature of Injury</option>
+                                            <option value="Cut / laceration">Cut / laceration</option>
+                                            <option value="Bruise / contusion">Bruise / contusion</option>
+                                            <option value="Sprain / strain">Sprain / strain</option>
+                                            <option value="Burn">Burn</option>
+                                            <option value="Fracture">Fracture</option>
+                                            <option value="Chest pain">Chest pain</option>
+                                            <option value="Heat exhaustion">Heat exhaustion</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                        <select
+                                            value={bodyPartAffected}
+                                            onChange={(e) => setBodyPartAffected(e.target.value)}
+                                            className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold outline-none focus:border-[#884616] transition cursor-pointer"
+                                        >
+                                            <option value="">Body Part Affected</option>
+                                            <option value="Head">Head</option>
+                                            <option value="Face">Face</option>
+                                            <option value="Eye">Eye</option>
+                                            <option value="Neck">Neck</option>
+                                            <option value="Shoulder">Shoulder</option>
+                                            <option value="Arm">Arm</option>
+                                            <option value="Hand">Hand</option>
+                                            <option value="Chest">Chest</option>
+                                            <option value="Back">Back</option>
+                                            <option value="Abdomen">Abdomen</option>
+                                            <option value="Hip">Hip</option>
+                                            <option value="Leg">Leg</option>
+                                            <option value="Knee">Knee</option>
+                                            <option value="Ankle">Ankle</option>
+                                            <option value="Foot">Foot</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Affected Person(s) selector with Chips */}
+                                <div className="space-y-1.5">
+                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider">
+                                        Affected Person (s) *
+                                    </label>
+                                    
+                                    {/* Chips */}
+                                    {selectedPersons.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 pb-2">
+                                            {selectedPersons.map(person => (
+                                                <span
+                                                    key={person.id}
+                                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-[#884616] border border-amber-200 rounded-lg text-xs font-bold shadow-sm"
+                                                >
+                                                    {person.name} ({person.email})
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setSelectedPersons(prev => prev.filter(p => p.id !== person.id))}
+                                                        className="text-amber-500 hover:text-amber-700 font-bold ml-0.5"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Dropdown selector */}
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={personSearch}
+                                            onChange={(e) => {
+                                                setPersonSearch(e.target.value);
+                                                setShowPersonSuggestions(true);
+                                            }}
+                                            onFocus={() => setShowPersonSuggestions(true)}
+                                            placeholder="Select one or more people from Active Directory."
+                                            className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold outline-none focus:border-[#884616] transition"
+                                        />
+                                        {showPersonSuggestions && (
+                                            <div className="absolute z-25 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto custom-scrollbar">
+                                                {filteredPersons.length > 0 ? (
+                                                    filteredPersons.map(p => (
+                                                        <div
+                                                            key={p.id}
+                                                            onClick={() => {
+                                                                setSelectedPersons(prev => [...prev, p]);
+                                                                setPersonSearch('');
+                                                                setShowPersonSuggestions(false);
+                                                            }}
+                                                            className="px-4 py-2 hover:bg-gray-50 cursor-pointer text-xs font-medium text-gray-700 flex justify-between"
+                                                        >
+                                                            <span>{p.name} ({p.email})</span>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div className="px-4 py-3 text-xs text-gray-400 text-center font-medium">No results found</div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <p className="text-[10px] text-gray-400 font-semibold">Select one or more people from Active Directory.</p>
+                                </div>
+                            </div>
+                        )}
+
                         {category === 'others' && (
                             <div className="pt-2 animate-fadeIn flex flex-col gap-1.5">
                                 <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Sub-type Details *</label>
@@ -601,21 +724,6 @@ const ReportIncident: React.FC = () => {
                                         Edit Details
                                     </button>
                                 </div>
-                            </div>
-                        )}
-
-                        {(category === 'health' || category === 'safety') && (
-                            <div className="pt-2 animate-fadeIn">
-                                <label htmlFor="incident-nature" className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Nature of Injury / Medical Complaint *</label>
-                                <input
-                                    type="text"
-                                    id="incident-nature"
-                                    placeholder="e.g. Chest pain, deep cut on left index finger"
-                                    value={natureOfInjury}
-                                    onChange={(e) => setNatureOfInjury(e.target.value)}
-                                    required
-                                    className="w-full px-3.5 py-2 bg-white border border-gray-200 rounded-lg text-xs font-semibold outline-none focus:border-[#884616] focus:ring-1 focus:ring-[#884616] transition"
-                                />
                             </div>
                         )}
                     </div>
@@ -750,10 +858,7 @@ const ReportIncident: React.FC = () => {
                             <div className="w-10 h-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center mx-auto mb-3.5">
                                 <HelpCircle size={22} />
                             </div>
-                            <h3 className="font-bold text-sm text-gray-800">Report New Incident?</h3>
-                            <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
-                                Are you sure you want to report this new incident? This will route the incident to the appropriate provincial responders.
-                            </p>
+                            <h3 className="font-bold text-sm text-gray-800">Are you sure you want to submit this incident?</h3>
                         </div>
                         <div className="px-4 py-3 bg-gray-50 flex items-center justify-end gap-2 border-t border-gray-150">
                             <button
@@ -834,7 +939,7 @@ const ReportIncident: React.FC = () => {
                             </p>
                             
                             <div className="grid grid-cols-2 gap-2">
-                                {['Power Outage', 'Water Outage', 'Infrastructure'].map(type => (
+                                {['Power Outage', 'Water Outage', 'Infrastructure', 'Cleaning', 'Sewer Blockage', 'Bad Smell', 'MVA', 'Other'].map(type => (
                                     <button
                                         key={type}
                                         type="button"

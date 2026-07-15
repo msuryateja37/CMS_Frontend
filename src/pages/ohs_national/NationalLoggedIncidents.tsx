@@ -24,7 +24,7 @@ const STATUS_PILL_STYLES: Record<string, string> = {
 
 const STATUS_LABELS: Record<string, string> = {
     RAISED: 'Submitted',
-    POOL: 'In Pool',
+    POOL: 'Unassigned',
     FA_ASSIGNED: 'First Aider Assigned',
     FORWARDED_TO_OHS_AND_HR: 'Referred — Awaiting HR',
     UNDER_REVIEW: 'Under Review',

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth.store';
 import authService from '../../services/auth.service';
 import DashboardLayout from '../../layouts/DashboardLayout';
@@ -13,19 +12,13 @@ import {
     MapPin,
     Shield,
     Hash,
-    Pencil,
-    Save,
     X,
     CheckCircle2,
-    Loader2,
-    LogOut
 } from 'lucide-react';
 
 const Profile: React.FC = () => {
-    const { user, refreshUser, logout } = useAuthStore();
-    const navigate = useNavigate();
+    const { user, refreshUser } = useAuthStore();
     const [isEditing, setIsEditing] = useState(false);
-    const [saving, setSaving] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -50,39 +43,6 @@ const Profile: React.FC = () => {
     }, [user]);
 
     // Fetch dropdown data effect removed as it is now handled by hooks
-
-    const handleSave = async () => {
-        setSaving(true);
-        setError(null);
-        try {
-            await authService.updateProfile({
-                fullName,
-                phone,
-                provinceId: provinceId || undefined,
-                departmentId: departmentId || undefined,
-            });
-            await refreshUser();
-            setIsEditing(false);
-            setSuccess(true);
-            setTimeout(() => setSuccess(false), 3000);
-        } catch (err) {
-            const errorResponse = err as { response?: { data?: { message?: string } } };
-            setError(errorResponse?.response?.data?.message || 'Failed to update profile');
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const handleCancel = () => {
-        if (user) {
-            setFullName(user.fullName || '');
-            setPhone(user.phone || '');
-            setProvinceId(user.province?.id || '');
-            setDepartmentId(user.department?.id || '');
-        }
-        setIsEditing(false);
-        setError(null);
-    };
 
     const getUserInitials = () => {
         if (!user?.fullName) return 'U';
@@ -122,16 +82,6 @@ const Profile: React.FC = () => {
                             <h2 className="text-lg font-bold text-gray-800">{user.fullName}</h2>
                             <p className="text-xs text-gray-400 font-medium">{formatRole(user.role?.name)}</p>
                         </div>
-                        <button
-                            onClick={async () => {
-                                await logout();
-                                navigate('/');
-                            }}
-                            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 font-semibold rounded-lg hover:bg-gray-50 transition-all text-xs shadow-sm"
-                        >
-                            <LogOut size={14} />
-                            Log Out
-                        </button>
                     </div>
 
                     {/* Account Information */}
@@ -219,33 +169,6 @@ const Profile: React.FC = () => {
                                 <h2 className="text-xl font-bold text-gray-800">{user.fullName}</h2>
                                 <p className="text-sm text-gray-500">{formatRole(user.role?.name)}</p>
                             </div>
-                            {!isEditing ? (
-                                <button
-                                    onClick={() => setIsEditing(true)}
-                                    className="flex items-center gap-2 px-5 py-2.5 bg-brown text-white font-semibold rounded-lg hover:bg-opacity-90 transition-all text-sm shadow-sm"
-                                >
-                                    <Pencil size={16} />
-                                    Edit Profile
-                                </button>
-                            ) : (
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={handleCancel}
-                                        className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-600 font-semibold rounded-lg hover:bg-gray-200 transition-all text-sm"
-                                    >
-                                        <X size={16} />
-                                        Cancel
-                                    </button>
-                                    <button
-                                        onClick={handleSave}
-                                        disabled={saving}
-                                        className="flex items-center gap-2 px-5 py-2.5 bg-gold text-white font-semibold rounded-lg hover:bg-opacity-90 transition-all text-sm shadow-sm disabled:opacity-50"
-                                    >
-                                        {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                                        {saving ? 'Saving...' : 'Save Changes'}
-                                    </button>
-                                </div>
-                            )}
                         </div>
                     </div>
                 </div>
@@ -364,23 +287,7 @@ const Profile: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Account Actions / Logout */}
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="text-center sm:text-left">
-                        <h4 className="text-sm font-bold text-gray-800">Account Session</h4>
-                        <p className="text-xs text-gray-400 font-medium mt-1">Log out of your current session on this device.</p>
-                    </div>
-                    <button
-                        onClick={async () => {
-                            await logout();
-                            navigate('/');
-                        }}
-                        className="flex items-center justify-center gap-2 px-6 py-2.5 bg-white hover:bg-red-50/60 text-red-600 hover:text-red-600/90 font-semibold rounded-lg transition-all text-sm shadow-sm border border-red-100 hover:border-red-200/80 active:scale-[0.98] w-full sm:w-auto"
-                    >
-                        <LogOut size={16} />
-                        Log Out
-                    </button>
-                </div>
+
             </div>
         </DashboardLayout>
     );

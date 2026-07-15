@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import { Pill } from '../../components/common/Pill';
 import { getStatusLabel } from '../../data/constants';
 import {
     ArrowLeft, Clock, MapPin, Calendar, Building2, User,
-    Shield, MessageSquare, AlertCircle, FileText
+    Shield, MessageSquare, AlertCircle, FileText, CheckCircle, Loader2
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 import { useCaseDetails, useCaseTimeline } from '../../hooks/useIncidents';
+import casesService from '../../services/cases.service';
 
 const EmployeeCaseDetails: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -19,45 +20,179 @@ const EmployeeCaseDetails: React.FC = () => {
     const { data: caseData, isLoading: caseLoading, error: caseError } = useCaseDetails(id || '');
     const { data: timeline = [] } = useCaseTimeline(id || '');
 
+    const [wclRecord, setWclRecord] = useState<any>(null);
+    const [wclFormData, setWclFormData] = useState<any>({
+        employeeSurname: '',
+        employeeFirstNames: '',
+        employeeIdNumber: '',
+        employeeDob: '',
+        employeeSex: '',
+        employeeMaritalState: '',
+        employeeCitizenship: 'South Africa',
+        employeePersonnelNo: '',
+        employeeAddress: '',
+        employeePeriodInEmploy: '',
+        employeeWorkingDirector: 'No',
+        employeeOccupation: '',
+        diseaseNature: '',
+        diseaseAllegedCause: '',
+        diseaseDateDiagnosed: '',
+        diseaseExposurePeriod: '',
+        diseaseDateReported: '',
+        diseasePrevEmployer: 'N/A',
+        diseaseWorkOtherEmployer: 'N/A',
+        earningsGrossWeek: '0.00',
+        earningsGrossMonth: '0.00',
+        earningsBonusesWeek: '0.00',
+        earningsBonusesMonth: '0.00',
+        earningsAllowancesWeek: '0.00',
+        earningsAllowancesMonth: '0.00',
+        earningsFoodWeek: '0.00',
+        earningsFoodMonth: '0.00',
+        earningsQuartersWeek: '0.00',
+        earningsQuartersMonth: '0.00',
+        continueFreeFood: 'No',
+        continueFreeQuarters: 'No',
+        prepCashPayments: 'No',
+        totalCashPaid: '0.00',
+        cashPaymentPeriod: '—',
+        dateCeasedWork: '',
+        dateResumedWork: '—',
+        prevCompensation: 'None',
+        deliberateNonCompliance: 'No',
+        deliberateDisregard: 'No',
+    });
+    const [wclLoading, setWclLoading] = useState(false);
+    const [submittingWcl, setSubmittingWcl] = useState(false);
+    const [wclError, setWclError] = useState<string | null>(null);
+    const [wclSuccess, setWclSuccess] = useState(false);
+    const [activeFormTab, setActiveFormTab] = useState<'employee' | 'disease' | 'earnings'>('employee');
+
+    useEffect(() => {
+        if (id && caseData?.hrStatus === 'WCL_ISSUED') {
+            const loadWcl = async () => {
+                setWclLoading(true);
+                try {
+                    const res = await casesService.getWclRecord(id);
+                    setWclRecord(res);
+                    setWclFormData({
+                        employeeSurname: res.employeeSurname || user?.name?.split(' ').slice(1).join(' ') || '',
+                        employeeFirstNames: res.employeeFirstNames || user?.name?.split(' ')[0] || '',
+                        employeeIdNumber: res.employeeIdNumber || '',
+                        employeeDob: res.employeeDob || '',
+                        employeeSex: res.employeeSex || '',
+                        employeeMaritalState: res.employeeMaritalState || '',
+                        employeeCitizenship: res.employeeCitizenship || 'South Africa',
+                        employeePersonnelNo: res.employeePersonnelNo || user?.employeeNumber || '',
+                        employeeAddress: res.employeeAddress || '',
+                        employeePeriodInEmploy: res.employeePeriodInEmploy || '',
+                        employeeWorkingDirector: res.employeeWorkingDirector || 'No',
+                        employeeOccupation: res.employeeOccupation || '',
+                        diseaseNature: res.diseaseNature || '',
+                        diseaseAllegedCause: res.diseaseAllegedCause || '',
+                        diseaseDateDiagnosed: res.diseaseDateDiagnosed || '',
+                        diseaseExposurePeriod: res.diseaseExposurePeriod || '',
+                        diseaseDateReported: res.diseaseDateReported || '',
+                        diseasePrevEmployer: res.diseasePrevEmployer || 'N/A',
+                        diseaseWorkOtherEmployer: res.diseaseWorkOtherEmployer || 'N/A',
+                        earningsGrossWeek: res.earningsGrossWeek || '0.00',
+                        earningsGrossMonth: res.earningsGrossMonth || '0.00',
+                        earningsBonusesWeek: res.earningsBonusesWeek || '0.00',
+                        earningsBonusesMonth: res.earningsBonusesMonth || '0.00',
+                        earningsAllowancesWeek: res.earningsAllowancesWeek || '0.00',
+                        earningsAllowancesMonth: res.earningsAllowancesMonth || '0.00',
+                        earningsFoodWeek: res.earningsFoodWeek || '0.00',
+                        earningsFoodMonth: res.earningsFoodMonth || '0.00',
+                        earningsQuartersWeek: res.earningsQuartersWeek || '0.00',
+                        earningsQuartersMonth: res.earningsQuartersMonth || '0.00',
+                        continueFreeFood: res.continueFreeFood || 'No',
+                        continueFreeQuarters: res.continueFreeQuarters || 'No',
+                        prepCashPayments: res.prepCashPayments || 'No',
+                        totalCashPaid: res.totalCashPaid || '0.00',
+                        cashPaymentPeriod: res.cashPaymentPeriod || '—',
+                        dateCeasedWork: res.dateCeasedWork || '',
+                        dateResumedWork: res.dateResumedWork || '—',
+                        prevCompensation: res.prevCompensation || 'None',
+                        deliberateNonCompliance: res.deliberateNonCompliance || 'No',
+                        deliberateDisregard: res.deliberateDisregard || 'No',
+                    });
+                } catch (err) {
+                    console.error('Failed to load WCL record', err);
+                } finally {
+                    setWclLoading(false);
+                }
+            };
+            loadWcl();
+        }
+    }, [id, caseData?.hrStatus, user]);
+
+    const handleSubmitWclForm = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!id) return;
+        setSubmittingWcl(true);
+        setWclError(null);
+        try {
+            await casesService.updateWclRecord(id, wclFormData);
+            setWclSuccess(true);
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } catch (err) {
+            setWclError('Failed to submit Workmen\'s Compensation Form. Please try again.');
+        } finally {
+            setSubmittingWcl(false);
+        }
+    };
+
     const isClosed = caseData?.status === 'CLOSED' || caseData?.status === 'COMPLETED';
     const isHealth = caseData?.category?.toLowerCase() === 'health';
+    const isAssigned = caseData?.status === 'ASSIGNED' || caseData?.status === 'IN_PROGRESS' || (caseData?.assignments && caseData.assignments.length > 0);
 
     // Parse structured metadata from description
     const parseDescription = (desc: string) => {
         let cleanDescription = desc || '';
         let natureOfInjury = '';
+        let affectedPersons = '';
         let vehicleReg = '';
         let driverDetails = '';
         let subtype = '';
 
-        if (cleanDescription.startsWith('[Nature of Injury:')) {
-            const match = cleanDescription.match(/^\[Nature of Injury:\s*([^\]]+)\]/);
-            if (match) {
-                natureOfInjury = match[1];
-                cleanDescription = cleanDescription.replace(/^\[Nature of Injury:\s*[^\]]+\]\s*/, '');
-            }
-        } else if (cleanDescription.startsWith('[Vehicle Reg:')) {
-            const regMatch = cleanDescription.match(/^\[Vehicle Reg:\s*([^\]]+)\]/);
-            if (regMatch) {
-                vehicleReg = regMatch[1];
-                cleanDescription = cleanDescription.replace(/^\[Vehicle Reg:\s*[^\]]+\]\s*/, '');
-            }
-            
-            // Check driver details (which comes next in description)
-            const driverMatch = cleanDescription.match(/^\[Driver Details:\s*([^\]]+)\]/);
-            if (driverMatch) {
-                driverDetails = driverMatch[1];
-                cleanDescription = cleanDescription.replace(/^\[Driver Details:\s*[^\]]+\]\s*/, '');
-            }
-        } else if (cleanDescription.startsWith('[Category Sub-type:')) {
-            const match = cleanDescription.match(/^\[Category Sub-type:\s*([^\]]+)\]/);
-            if (match) {
-                subtype = match[1];
-                cleanDescription = cleanDescription.replace(/^\[Category Sub-type:\s*[^\]]+\]\s*/, '');
-            }
+        // Extract Nature of Injury
+        const natureMatch = cleanDescription.match(/\[Nature of Injury:\s*([^\]]+)\]/);
+        if (natureMatch) {
+            natureOfInjury = natureMatch[1];
+            cleanDescription = cleanDescription.replace(/\[Nature of Injury:\s*[^\]]+\]\s*/g, '');
         }
 
-        return { cleanDescription, natureOfInjury, vehicleReg, driverDetails, subtype };
+        // Extract Affected Persons
+        const affectedMatch = cleanDescription.match(/\[Affected Persons:\s*([^\]]+)\]/);
+        if (affectedMatch) {
+            affectedPersons = affectedMatch[1];
+            cleanDescription = cleanDescription.replace(/\[Affected Persons:\s*[^\]]+\]\s*/g, '');
+        }
+
+        // Extract Vehicle Reg
+        const regMatch = cleanDescription.match(/\[Vehicle Reg:\s*([^\]]+)\]/);
+        if (regMatch) {
+            vehicleReg = regMatch[1];
+            cleanDescription = cleanDescription.replace(/\[Vehicle Reg:\s*[^\]]+\]\s*/g, '');
+        }
+
+        // Extract Driver Details
+        const driverMatch = cleanDescription.match(/\[Driver Details:\s*([^\]]+)\]/);
+        if (driverMatch) {
+            driverDetails = driverMatch[1];
+            cleanDescription = cleanDescription.replace(/\[Driver Details:\s*[^\]]+\]\s*/g, '');
+        }
+
+        // Extract Category Sub-type
+        const subtypeMatch = cleanDescription.match(/\[Category Sub-type:\s*([^\]]+)\]/);
+        if (subtypeMatch) {
+            subtype = subtypeMatch[1];
+            cleanDescription = cleanDescription.replace(/\[Category Sub-type:\s*[^\]]+\]\s*/g, '');
+        }
+
+        return { cleanDescription: cleanDescription.trim(), natureOfInjury, affectedPersons, vehicleReg, driverDetails, subtype };
     };
 
     if (caseLoading) {
@@ -93,7 +228,7 @@ const EmployeeCaseDetails: React.FC = () => {
         );
     }
 
-    const { cleanDescription, natureOfInjury, vehicleReg, driverDetails, subtype } = parseDescription(caseData.description);
+    const { cleanDescription, natureOfInjury, affectedPersons, vehicleReg, driverDetails, subtype } = parseDescription(caseData.description);
 
     const getCategoryLabel = (category: string) => {
         if (!category) return 'Other';
@@ -137,7 +272,7 @@ const EmployeeCaseDetails: React.FC = () => {
 
     return (
         <DashboardLayout title="OHS Incident Management">
-            <div className="max-w-[1200px] mx-auto space-y-5 pb-12 animate-fadeIn">
+            <div className="space-y-5 pb-12 animate-fadeIn">
                 
                 {/* Back Link */}
                 <button
@@ -148,16 +283,7 @@ const EmployeeCaseDetails: React.FC = () => {
                     Back to incidents
                 </button>
 
-                {/* View-Only Alert Banner matching Screen 6/11 */}
-                <div className="bg-amber-50/50 border border-amber-200/50 rounded-2xl p-4 flex gap-3.5">
-                    <AlertCircle className="text-[#884616] shrink-0 mt-0.5" size={16} />
-                    <div>
-                        <h4 className="font-bold text-xs text-gray-800">View only</h4>
-                        <p className="text-[11px] text-gray-500 mt-1 leading-relaxed">
-                            As the reporter of this incident, you have view-only access. Any updates or actions will be performed by the assigned OHS practitioner or first aider.
-                        </p>
-                    </div>
-                </div>
+
 
                 {/* ====== MAIN 2-COLUMN GRID ====== */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -167,14 +293,20 @@ const EmployeeCaseDetails: React.FC = () => {
                         
                         {/* Incident Summary Card */}
                         <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm space-y-5">
-                            <div>
-                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Incident Summary</span>
-                                <h2 className="text-base font-bold text-gray-900 mt-1">
-                                    {caseData.incidentNumber} · {getCategoryLabel(caseData.category)}
-                                </h2>
+                            <div className="flex items-start justify-between">
+                                <div>
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Incident Summary</span>
+                                    <h2 className="text-base font-bold text-gray-900 mt-1">
+                                        {caseData.incidentNumber} · {getCategoryLabel(caseData.category)}
+                                    </h2>
+                                </div>
+                                <Pill
+                                    label={getStatusLabel(caseData.status).toUpperCase()}
+                                    variant={caseData.status.toLowerCase().replace(/_/g, ' ')}
+                                />
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-xs border-t border-b border-gray-100 py-4.5">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-xs border-t border-b border-gray-100 pb-6 pt-5">
                                 <div>
                                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Date</span>
                                     <span className="font-semibold text-gray-800">
@@ -209,6 +341,12 @@ const EmployeeCaseDetails: React.FC = () => {
                                         <span className="font-semibold text-gray-800">{natureOfInjury}</span>
                                     </div>
                                 )}
+                                {affectedPersons && (
+                                    <div className="md:col-span-2">
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Affected Persons</span>
+                                        <span className="font-semibold text-gray-800">{affectedPersons}</span>
+                                    </div>
+                                )}
                                 {vehicleReg && (
                                     <div>
                                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Vehicle Registration</span>
@@ -223,7 +361,7 @@ const EmployeeCaseDetails: React.FC = () => {
                                 )}
                                 {subtype && (
                                     <div>
-                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Sub-type</span>
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Category Details</span>
                                         <span className="font-semibold text-gray-800">{subtype}</span>
                                     </div>
                                 )}
@@ -236,14 +374,35 @@ const EmployeeCaseDetails: React.FC = () => {
                                 </p>
                             </div>
 
-                            {caseData.immediateActions && (
-                                <div className="pt-4 border-t border-gray-50 space-y-2">
-                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Immediate Actions Taken</span>
-                                    <p className="text-gray-700 leading-relaxed text-xs">
-                                        {caseData.immediateActions}
-                                    </p>
-                                </div>
-                            )}
+                            <div className="pt-4 border-t border-gray-50 space-y-2">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Immediate Actions Taken</span>
+                                {(() => {
+                                    const rawActions = caseData.immediateActions;
+                                    const defaultMsg = <p className="text-gray-400 text-xs italic">No immediate actions are added</p>;
+                                    if (!rawActions || !rawActions.trim()) return defaultMsg;
+                                    try {
+                                        const parsed = JSON.parse(rawActions);
+                                        if (Array.isArray(parsed)) {
+                                            const cleanActions = parsed.map(a => typeof a === 'string' ? a.trim() : String(a).trim()).filter(Boolean);
+                                            if (cleanActions.length === 0) return defaultMsg;
+                                            return (
+                                                <ul className="list-disc pl-5 space-y-1 text-gray-750 text-xs sm:text-[13px] font-medium">
+                                                    {cleanActions.map((action, idx) => (
+                                                        <li key={idx}>{action}</li>
+                                                    ))}
+                                                </ul>
+                                            );
+                                        }
+                                    } catch {}
+                                    const singleAction = rawActions.trim();
+                                    if (singleAction === '[]' || !singleAction) return defaultMsg;
+                                    return (
+                                        <ul className="list-disc pl-5 space-y-1 text-gray-750 text-xs sm:text-[13px] font-medium">
+                                            <li>{singleAction}</li>
+                                        </ul>
+                                    );
+                                })()}
+                            </div>
 
                             {/* Attachments Section */}
                             <div className="pt-4 border-t border-gray-50 space-y-3">
@@ -276,23 +435,495 @@ const EmployeeCaseDetails: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* TREATMENT RECORD SECTION (For closed/resolved Health incidents) */}
-                        {isClosed && isHealth && (
+                        {/* WCL INTAKE FORM CARD (For WCL_ISSUED status) */}
+                        {caseData?.hrStatus === 'WCL_ISSUED' && (
+                            <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm space-y-6 animate-fadeIn">
+                                <div>
+                                    <span className="text-[10px] font-bold text-[#884616] uppercase tracking-wider block">Compensation Claim Action</span>
+                                    <h2 className="text-base font-bold text-gray-900 mt-1">Complete Workmen's Compensation (WCL1) Form</h2>
+                                    <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                                        Please complete the required details below to proceed with your workmen's compensation claim registration.
+                                    </p>
+                                </div>
+
+                                {wclSuccess ? (
+                                    <div className="p-4 bg-emerald-50 border border-emerald-250 text-emerald-700 rounded-xl text-xs font-semibold flex items-center gap-2">
+                                        <CheckCircle size={16} />
+                                        <span>Workmen's Compensation Form submitted successfully! Reloading details...</span>
+                                    </div>
+                                ) : (
+                                    <form onSubmit={handleSubmitWclForm} className="space-y-4">
+                                        {wclError && (
+                                            <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-semibold flex items-center gap-2">
+                                                <AlertCircle size={16} />
+                                                <span>{wclError}</span>
+                                            </div>
+                                        )}
+
+                                        {/* Tabs Navigation */}
+                                        <div className="flex border-b border-gray-150 bg-gray-50/50 rounded-t-xl">
+                                            <button
+                                                type="button"
+                                                onClick={() => setActiveFormTab('employee')}
+                                                className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-wider border-b-2 transition-all ${activeFormTab === 'employee' ? 'border-[#884616] text-[#884616] bg-white' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                                            >
+                                                1. Employee Details
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setActiveFormTab('disease')}
+                                                className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-wider border-b-2 transition-all ${activeFormTab === 'disease' ? 'border-[#884616] text-[#884616] bg-white' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                                            >
+                                                2. Disease &amp; Cause
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setActiveFormTab('earnings')}
+                                                className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-wider border-b-2 transition-all ${activeFormTab === 'earnings' ? 'border-[#884616] text-[#884616] bg-white' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                                            >
+                                                3. Earnings &amp; Particulars
+                                            </button>
+                                        </div>
+
+                                        {/* Tab Content */}
+                                        <div className="pt-2">
+                                            {/* Tab 1: Employee */}
+                                            {activeFormTab === 'employee' && (
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">First Name(s)</label>
+                                                        <input
+                                                            type="text"
+                                                            required
+                                                            value={wclFormData.employeeFirstNames}
+                                                            onChange={(e) => setWclFormData({...wclFormData, employeeFirstNames: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Surname</label>
+                                                        <input
+                                                            type="text"
+                                                            required
+                                                            value={wclFormData.employeeSurname}
+                                                            onChange={(e) => setWclFormData({...wclFormData, employeeSurname: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">ID Number</label>
+                                                        <input
+                                                            type="text"
+                                                            required
+                                                            value={wclFormData.employeeIdNumber}
+                                                            onChange={(e) => setWclFormData({...wclFormData, employeeIdNumber: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Date of Birth</label>
+                                                        <input
+                                                            type="date"
+                                                            required
+                                                            value={wclFormData.employeeDob}
+                                                            onChange={(e) => setWclFormData({...wclFormData, employeeDob: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Sex</label>
+                                                        <select
+                                                            required
+                                                            value={wclFormData.employeeSex}
+                                                            onChange={(e) => setWclFormData({...wclFormData, employeeSex: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        >
+                                                            <option value="">Select Sex</option>
+                                                            <option value="Male">Male</option>
+                                                            <option value="Female">Female</option>
+                                                            <option value="Other">Other</option>
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Marital State</label>
+                                                        <input
+                                                            type="text"
+                                                            value={wclFormData.employeeMaritalState}
+                                                            onChange={(e) => setWclFormData({...wclFormData, employeeMaritalState: e.target.value})}
+                                                            placeholder="Single, Married, etc."
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Citizenship</label>
+                                                        <input
+                                                            type="text"
+                                                            required
+                                                            value={wclFormData.employeeCitizenship}
+                                                            onChange={(e) => setWclFormData({...wclFormData, employeeCitizenship: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Personnel / Employee Number</label>
+                                                        <input
+                                                            type="text"
+                                                            required
+                                                            value={wclFormData.employeePersonnelNo}
+                                                            onChange={(e) => setWclFormData({...wclFormData, employeePersonnelNo: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Occupation</label>
+                                                        <input
+                                                            type="text"
+                                                            required
+                                                            value={wclFormData.employeeOccupation}
+                                                            onChange={(e) => setWclFormData({...wclFormData, employeeOccupation: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Period in Employ</label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="e.g. 5 years"
+                                                            value={wclFormData.employeePeriodInEmploy}
+                                                            onChange={(e) => setWclFormData({...wclFormData, employeePeriodInEmploy: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Working Director / CC Member / Owner?</label>
+                                                        <select
+                                                            value={wclFormData.employeeWorkingDirector}
+                                                            onChange={(e) => setWclFormData({...wclFormData, employeeWorkingDirector: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        >
+                                                            <option value="No">No</option>
+                                                            <option value="Yes">Yes</option>
+                                                        </select>
+                                                    </div>
+                                                    <div className="md:col-span-2">
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Street Address</label>
+                                                        <input
+                                                            type="text"
+                                                            required
+                                                            value={wclFormData.employeeAddress}
+                                                            onChange={(e) => setWclFormData({...wclFormData, employeeAddress: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Tab 2: Disease */}
+                                            {activeFormTab === 'disease' && (
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Nature of Disease / Injury</label>
+                                                        <input
+                                                            type="text"
+                                                            required
+                                                            value={wclFormData.diseaseNature}
+                                                            onChange={(e) => setWclFormData({...wclFormData, diseaseNature: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Date Diagnosed</label>
+                                                        <input
+                                                            type="date"
+                                                            required
+                                                            value={wclFormData.diseaseDateDiagnosed}
+                                                            onChange={(e) => setWclFormData({...wclFormData, diseaseDateDiagnosed: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Exposure Period (years)</label>
+                                                        <input
+                                                            type="text"
+                                                            required
+                                                            value={wclFormData.diseaseExposurePeriod}
+                                                            onChange={(e) => setWclFormData({...wclFormData, diseaseExposurePeriod: e.target.value})}
+                                                            placeholder="e.g. 2 years"
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Date Employee Reported Disease</label>
+                                                        <input
+                                                            type="date"
+                                                            required
+                                                            value={wclFormData.diseaseDateReported}
+                                                            onChange={(e) => setWclFormData({...wclFormData, diseaseDateReported: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Previous Employer (if applicable)</label>
+                                                        <input
+                                                            type="text"
+                                                            value={wclFormData.diseasePrevEmployer}
+                                                            onChange={(e) => setWclFormData({...wclFormData, diseasePrevEmployer: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Work Performed with Other Employer</label>
+                                                        <input
+                                                            type="text"
+                                                            value={wclFormData.diseaseWorkOtherEmployer}
+                                                            onChange={(e) => setWclFormData({...wclFormData, diseaseWorkOtherEmployer: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div className="md:col-span-2">
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Alleged Cause of Disease</label>
+                                                        <textarea
+                                                            required
+                                                            value={wclFormData.diseaseAllegedCause}
+                                                            onChange={(e) => setWclFormData({...wclFormData, diseaseAllegedCause: e.target.value})}
+                                                            rows={2}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none resize-none"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Tab 3: Earnings */}
+                                            {activeFormTab === 'earnings' && (
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Gross Cash Earnings (per Week)</label>
+                                                        <input
+                                                            type="text"
+                                                            value={wclFormData.earningsGrossWeek}
+                                                            onChange={(e) => setWclFormData({...wclFormData, earningsGrossWeek: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Gross Cash Earnings (per Month)</label>
+                                                        <input
+                                                            type="text"
+                                                            value={wclFormData.earningsGrossMonth}
+                                                            onChange={(e) => setWclFormData({...wclFormData, earningsGrossMonth: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Bonuses (per Week)</label>
+                                                        <input
+                                                            type="text"
+                                                            value={wclFormData.earningsBonusesWeek}
+                                                            onChange={(e) => setWclFormData({...wclFormData, earningsBonusesWeek: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Bonuses (per Month)</label>
+                                                        <input
+                                                            type="text"
+                                                            value={wclFormData.earningsBonusesMonth}
+                                                            onChange={(e) => setWclFormData({...wclFormData, earningsBonusesMonth: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Other Allowances (per Week)</label>
+                                                        <input
+                                                            type="text"
+                                                            value={wclFormData.earningsAllowancesWeek}
+                                                            onChange={(e) => setWclFormData({...wclFormData, earningsAllowancesWeek: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Other Allowances (per Month)</label>
+                                                        <input
+                                                            type="text"
+                                                            value={wclFormData.earningsAllowancesMonth}
+                                                            onChange={(e) => setWclFormData({...wclFormData, earningsAllowancesMonth: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Cash Value of Food (per Week)</label>
+                                                        <input
+                                                            type="text"
+                                                            value={wclFormData.earningsFoodWeek}
+                                                            onChange={(e) => setWclFormData({...wclFormData, earningsFoodWeek: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Cash Value of Food (per Month)</label>
+                                                        <input
+                                                            type="text"
+                                                            value={wclFormData.earningsFoodMonth}
+                                                            onChange={(e) => setWclFormData({...wclFormData, earningsFoodMonth: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Value of Free Quarters (per Week)</label>
+                                                        <input
+                                                            type="text"
+                                                            value={wclFormData.earningsQuartersWeek}
+                                                            onChange={(e) => setWclFormData({...wclFormData, earningsQuartersWeek: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Value of Free Quarters (per Month)</label>
+                                                        <input
+                                                            type="text"
+                                                            value={wclFormData.earningsQuartersMonth}
+                                                            onChange={(e) => setWclFormData({...wclFormData, earningsQuartersMonth: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Continue Free Food during disablement?</label>
+                                                        <select
+                                                            value={wclFormData.continueFreeFood}
+                                                            onChange={(e) => setWclFormData({...wclFormData, continueFreeFood: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        >
+                                                            <option value="No">No</option>
+                                                            <option value="Yes">Yes</option>
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Continue Free Quarters during disablement?</label>
+                                                        <select
+                                                            value={wclFormData.continueFreeQuarters}
+                                                            onChange={(e) => setWclFormData({...wclFormData, continueFreeQuarters: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        >
+                                                            <option value="No">No</option>
+                                                            <option value="Yes">Yes</option>
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Prepared to make Cash Payments (&gt;3 Months)?</label>
+                                                        <select
+                                                            value={wclFormData.prepCashPayments}
+                                                            onChange={(e) => setWclFormData({...wclFormData, prepCashPayments: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        >
+                                                            <option value="No">No</option>
+                                                            <option value="Yes">Yes</option>
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Total Cash Already Paid (R)</label>
+                                                        <input
+                                                            type="text"
+                                                            value={wclFormData.totalCashPaid}
+                                                            onChange={(e) => setWclFormData({...wclFormData, totalCashPaid: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Cash Payment Period</label>
+                                                        <input
+                                                            type="text"
+                                                            value={wclFormData.cashPaymentPeriod}
+                                                            onChange={(e) => setWclFormData({...wclFormData, cashPaymentPeriod: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Date Employee Ceased Work</label>
+                                                        <input
+                                                            type="date"
+                                                            value={wclFormData.dateCeasedWork}
+                                                            onChange={(e) => setWclFormData({...wclFormData, dateCeasedWork: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Date Employee Resumed Work</label>
+                                                        <input
+                                                            type="text"
+                                                            value={wclFormData.dateResumedWork}
+                                                            onChange={(e) => setWclFormData({...wclFormData, dateResumedWork: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Previous Compensation (same/other disease/accident)</label>
+                                                        <input
+                                                            type="text"
+                                                            value={wclFormData.prevCompensation}
+                                                            onChange={(e) => setWclFormData({...wclFormData, prevCompensation: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Deliberate non-compliance of directions?</label>
+                                                        <select
+                                                            value={wclFormData.deliberateNonCompliance}
+                                                            onChange={(e) => setWclFormData({...wclFormData, deliberateNonCompliance: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        >
+                                                            <option value="No">No</option>
+                                                            <option value="Yes">Yes</option>
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Deliberate disregard of safety laws?</label>
+                                                        <select
+                                                            value={wclFormData.deliberateDisregard}
+                                                            onChange={(e) => setWclFormData({...wclFormData, deliberateDisregard: e.target.value})}
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-semibold focus:ring-1 focus:ring-[#884616] outline-none"
+                                                        >
+                                                            <option value="No">No</option>
+                                                            <option value="Yes">Yes</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="flex justify-end pt-2 border-t border-gray-100">
+                                            <button
+                                                type="submit"
+                                                disabled={submittingWcl}
+                                                className="flex items-center gap-1.5 px-6 py-2.5 bg-[#884616] hover:bg-opacity-95 text-white text-xs font-bold rounded-xl shadow-sm transition disabled:opacity-50"
+                                            >
+                                                {submittingWcl ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle size={13} />}
+                                                <span>Submit WCL Form</span>
+                                            </button>
+                                        </div>
+                                    </form>
+                                )}
+                            </div>
+                        )}
+
+                        {/* TREATMENT RECORD SECTION */}
+                        {(caseData?.treatmentAdministered || (isClosed && isHealth)) && (
                             <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm space-y-5 animate-fadeIn">
                                 <div>
-                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Treatment Record</span>
+                                    <span className="text-[10px] font-bold text-[#884616] uppercase tracking-wider block">Treatment Record</span>
                                     <h2 className="text-base font-bold text-gray-900 mt-1">First Aid Treatment Log</h2>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-xs border-t border-gray-100 pt-4.5">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-xs border-t border-gray-100 pt-5">
                                     <div>
                                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Administered by</span>
-                                        <span className="font-semibold text-gray-800">Thandi Nkosi (First Aider)</span>
+                                        <span className="font-semibold text-gray-800">
+                                            {caseData.assignments?.[0]?.assignedTo?.name || 'Thandi Nkosi (First Aider)'}
+                                        </span>
                                     </div>
                                     <div>
                                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Date / Time</span>
                                         <span className="font-semibold text-gray-800">
-                                            {new Date(new Date(caseData.occurredAt).getTime() + 60 * 60 * 1000).toLocaleString('en-GB', {
+                                            {new Date(caseData.updatedAt || caseData.occurredAt).toLocaleString('en-GB', {
                                                 day: 'numeric',
                                                 month: 'short',
                                                 year: 'numeric',
@@ -304,67 +935,171 @@ const EmployeeCaseDetails: React.FC = () => {
                                     <div className="md:col-span-2">
                                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Actions taken</span>
                                         <span className="font-medium text-gray-700 leading-relaxed block">
-                                            Cleaned wound with antiseptic, applied sterile dressing, and advised employee to monitor for signs of infection.
+                                            {caseData.treatmentAdministered || 'Cleaned wound with antiseptic, applied sterile dressing, and advised employee to monitor for signs of infection.'}
                                         </span>
                                     </div>
                                     <div>
-                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Referral</span>
-                                        <span className="font-semibold text-gray-800">None - treated on-site.</span>
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Outcome</span>
+                                        <span className="font-semibold text-gray-800 capitalize">
+                                            {caseData.treatmentOutcome || 'Resolved on site'}
+                                        </span>
                                     </div>
+                                    {caseData.treatmentOutcome === 'referred' && (
+                                        <>
+                                            <div>
+                                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Referral Facility</span>
+                                                <span className="font-semibold text-gray-800">
+                                                    {caseData.treatmentReferral || '—'}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Reason for Referral</span>
+                                                <span className="font-semibold text-gray-800">
+                                                    {caseData.treatmentReason || '—'}
+                                                </span>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         )}
 
                         {/* CASE CLOSED SECTION (For closed/resolved Health/Safety incidents) */}
-                        {isClosed && (
-                            <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm space-y-5 animate-fadeIn">
-                                <div>
-                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Incident Closed</span>
-                                    <h2 className="text-base font-bold text-gray-900 mt-1">Resolution Summary</h2>
-                                </div>
+                        {isClosed && (() => {
+                            const { closedByName, closedAt, commentsText } = (() => {
+                                const closedActivity = timeline.find(t => t.type === 'CLOSED' || t.type === 'RESOLVED');
+                                const closureComment = timeline.find(t => t.type === 'COMMENT' && t.description?.startsWith('[Closure Note]'));
+                                
+                                const closedByName = closedActivity?.user?.name || caseData?.assignments?.[0]?.assignedTo?.name || 'First Aider';
+                                const closedAt = closedActivity?.timestamp || caseData?.updatedAt;
+                                const commentsText = closureComment 
+                                    ? closureComment.description.replace('[Closure Note] ', '') 
+                                    : 'Incident resolved by First Aider. Treatment details logged.';
+                                    
+                                return { closedByName, closedAt, commentsText };
+                            })();
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-xs border-t border-gray-100 pt-4.5">
+                            return (
+                                <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm space-y-5 animate-fadeIn">
                                     <div>
-                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Closed by</span>
-                                        <span className="font-semibold text-gray-800">Sarah Mokae (Supervisor)</span>
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Incident Closed</span>
+                                        <h2 className="text-base font-bold text-gray-900 mt-1">Resolution Summary</h2>
                                     </div>
-                                    <div>
-                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Date / Time</span>
-                                        <span className="font-semibold text-gray-800">
-                                            {new Date(new Date(caseData.occurredAt).getTime() + 2 * 24 * 60 * 60 * 1000).toLocaleString('en-GB', {
-                                                day: 'numeric',
-                                                month: 'short',
-                                                year: 'numeric',
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            })}
-                                        </span>
-                                    </div>
-                                    <div className="md:col-span-2">
-                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Closeout comments</span>
-                                        <span className="font-medium text-gray-700 leading-relaxed block">
-                                            Incident fully investigated. First aid treatment logged. Work area inspected; floor dry and clear of obstructions. Incident resolved.
-                                        </span>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-xs border-t border-gray-100 pt-5">
+                                        <div>
+                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Closed by</span>
+                                            <span className="font-semibold text-gray-800">{closedByName}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Date / Time</span>
+                                            <span className="font-semibold text-gray-800">
+                                                {new Date(closedAt).toLocaleString('en-GB', {
+                                                    day: 'numeric',
+                                                    month: 'short',
+                                                    year: 'numeric',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                })}
+                                            </span>
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Closeout comments</span>
+                                            <span className="font-medium text-gray-700 leading-relaxed block whitespace-pre-wrap">
+                                                {commentsText}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
+                            );
+                        })()}
 
                     </div>
-
                     {/* RIGHT COLUMN: Sidebar (1/3 width) */}
                     <div className="space-y-6">
                         
                         {/* Currently With Card */}
                         <div className="bg-white rounded-2xl border border-gray-150 p-5 shadow-sm space-y-4">
-                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest leading-none">Currently with</h3>
+                            <h3 className="text-xs font-bold text-gray-450 uppercase tracking-widest leading-none">Currently with</h3>
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-400 shrink-0">
+                                <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-250 flex items-center justify-center text-gray-400 shrink-0">
                                     {isClosed ? <CheckCircle className="text-green-600" size={20} /> : <User size={20} />}
                                 </div>
                                 <div className="overflow-hidden">
                                     <h4 className="font-bold text-xs text-gray-800 truncate">{currentlyWith.name}</h4>
                                     <p className="text-[10px] text-gray-400 font-semibold mt-0.5">{currentlyWith.role}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Reported By Card */}
+                        <div className="bg-white rounded-2xl border border-gray-150 p-5 shadow-sm space-y-4">
+                            <h3 className="text-xs font-bold text-gray-455 uppercase tracking-widest leading-none">Reported by</h3>
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-250 flex items-center justify-center text-gray-400 shrink-0">
+                                    <User size={20} />
+                                </div>
+                                <div className="overflow-hidden">
+                                    <h4 className="font-bold text-xs text-gray-800 truncate">{caseData.reportedBy?.name || 'Unknown Employee'}</h4>
+                                    <p className="text-[10px] text-gray-400 font-semibold mt-0.5">
+                                        Employee · {new Date(caseData.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}, {new Date(caseData.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Status showing Card with Stepper */}
+                        <div className="bg-white rounded-2xl border border-gray-150 p-5 shadow-sm space-y-5">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-xs font-bold text-gray-450 uppercase tracking-widest leading-none">Status</h3>
+                                <Pill
+                                    label={getStatusLabel(caseData.status).toUpperCase()}
+                                    variant={caseData.status.toLowerCase().replace(/_/g, ' ')}
+                                />
+                            </div>
+
+                            {/* Stepper */}
+                            <div className="flex items-center justify-between mt-4 px-1.5">
+                                {/* Step 1: Supervisor */}
+                                <div className="flex flex-col items-center">
+                                    <div className="w-5 h-5 rounded-full bg-green-600 text-white flex items-center justify-center text-[10px] font-bold shadow-sm">
+                                        ✓
+                                    </div>
+                                    <span className="text-[10px] text-gray-500 font-semibold mt-1.5">Supervisor</span>
+                                </div>
+
+                                {/* Line 1 */}
+                                <div className={`flex-1 h-0.5 -mt-4.5 mx-1 transition-all ${isAssigned || isClosed ? 'bg-green-600' : 'bg-gray-200'}`}></div>
+
+                                {/* Step 2: Practitioner */}
+                                <div className="flex flex-col items-center">
+                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm transition-all ${
+                                        isAssigned || isClosed ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-400 border border-gray-250'
+                                    }`}>
+                                        {isAssigned || isClosed ? '✓' : '2'}
+                                    </div>
+                                    <span className="text-[10px] text-gray-500 font-semibold mt-1.5 text-center leading-none">
+                                        {isHealth ? 'First Aider' : 'OHS Practitioner'}
+                                    </span>
+                                </div>
+
+                                {/* Line 2 */}
+                                <div className={`flex-1 h-0.5 -mt-4.5 mx-1 transition-all ${isClosed ? 'bg-green-600' : 'bg-gray-200'}`}></div>
+
+                                {/* Step 3: In Progress / Closed */}
+                                <div className="flex flex-col items-center">
+                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm transition-all ${
+                                        isClosed 
+                                            ? 'bg-green-600 text-white' 
+                                            : (caseData.status === 'ASSIGNED' || caseData.status === 'IN_PROGRESS' || caseData.status === 'UNDER_REVIEW')
+                                                ? 'border-2 border-green-600 text-green-600 animate-pulse bg-white' 
+                                                : 'bg-gray-100 text-gray-400 border border-gray-250'
+                                    }`}>
+                                        {isClosed ? '✓' : '3'}
+                                    </div>
+                                    <span className="text-[10px] text-gray-500 font-semibold mt-1.5">
+                                        {isClosed ? 'Completed' : 'In Progress'}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -399,7 +1134,7 @@ const EmployeeCaseDetails: React.FC = () => {
                                                          isEscalated ? 'Escalated' : getStatusLabel(act.type || '')}
                                                     </p>
                                                     {act.description && (
-                                                        <p className="text-[11px] text-gray-500 leading-relaxed">
+                                                        <p className="text-[11px] text-gray-550 leading-relaxed">
                                                             {act.description}
                                                         </p>
                                                     )}

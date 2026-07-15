@@ -5,11 +5,12 @@ import { Pill } from '../../components/common/Pill';
 import { Select } from '../../components/common/Select';
 import { DataTable, type Column } from '../../components/common/DataTable';
 import { type Case } from '../../services/cases.service';
-import { Eye, Loader2, ArrowUpRight, CheckCircle, Folder } from 'lucide-react';
+import { Eye, Loader2, ArrowUpRight, CheckCircle, Folder, X, User, Calendar, Clock, Building2, Activity, Stethoscope, UserCheck } from 'lucide-react';
 import { STATUS_FILTER_OPTIONS, CATEGORY_FILTER_OPTIONS, PRIORITY_FILTER_OPTIONS, getStatusLabel } from '../../data/constants';
 import { formatCategory } from '../../utils/formatters';
 import { useIncidents } from '../../hooks/useIncidents';
 import { useAuthStore } from '../../store/auth.store';
+import { getStatusLabel as getLabel } from '../../data/constants';
 
 const hrStatusLabel: Record<string, string> = {
     HR_UNASSIGNED: 'HR Unassigned',
@@ -34,9 +35,8 @@ const FirstAiderMyRegistry: React.FC = () => {
     const [priorityFilter, setPriorityFilter] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [selectedCase, setSelectedCase] = useState<Case | null>(null);
 
-    // Fetch ALL incidents ever assigned to this first aider (no status filter by default)
-    // assignedToId covers historical assignments via IncidentAssignment records
     const {
         data: casesData,
         isLoading: loading,
@@ -54,26 +54,24 @@ const FirstAiderMyRegistry: React.FC = () => {
     const totalItems = casesData?.total || 0;
     const error = casesError ? (casesError as any).message || 'Failed to load registry' : null;
 
-    const handleStatusFilterChange = (val: string) => {
-        setStatusFilter(val);
-        setCurrentPage(1);
-    };
-
-    const handleCategoryFilterChange = (val: string) => {
-        setCategoryFilter(val);
-        setCurrentPage(1);
-    };
-
-    const handlePriorityFilterChange = (val: string) => {
-        setPriorityFilter(val);
-        setCurrentPage(1);
-    };
+    const forwardedCount = cases.filter(c => c.status === 'REFERRED_TO_OHS_AND_HR').length;
+    const closedCount = cases.filter(c => c.status === 'CLOSED' || c.status === 'RESOLVED').length;
+    const activeCount = cases.filter(c => c.status !== 'CLOSED' && c.status !== 'RESOLVED' && c.status !== 'REFERRED_TO_OHS_AND_HR').length;
 
     const getStatusBadgeIcon = (status: string) => {
-        if (status === 'FORWARDED_TO_OHS_AND_HR') return <ArrowUpRight size={12} className="text-purple-600" />;
+        if (status === 'REFERRED_TO_OHS_AND_HR') return <ArrowUpRight size={12} className="text-purple-600" />;
         if (status === 'CLOSED' || status === 'RESOLVED') return <CheckCircle size={12} className="text-green-600" />;
         return <Folder size={12} className="text-gray-500" />;
     };
+
+    const filteredCases = cases.filter(c => {
+        const matchesSearch = (
+            c.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            c.incidentNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            c.category?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        return matchesSearch;
+    });
 
     const columns: Column<Case>[] = [
         {
@@ -136,7 +134,7 @@ const FirstAiderMyRegistry: React.FC = () => {
             header: 'Actions',
             cell: (item) => (
                 <button
-                    onClick={() => navigate(`/first-aider/cases/${item.id}`)}
+                    onClick={() => setSelectedCase(item)}
                     className="flex items-center gap-1.5 px-4 py-1.5 bg-light-gold text-brown text-xs font-bold rounded-lg hover:bg-gold/10 transition-colors whitespace-nowrap"
                 >
                     <Eye size={14} />
@@ -146,27 +144,19 @@ const FirstAiderMyRegistry: React.FC = () => {
         }
     ];
 
-    const filteredCases = cases.filter(c => {
-        const matchesSearch = (
-            c.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            c.incidentNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            c.category?.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        return matchesSearch;
-    });
-
-    // Stats for the summary bar
-    const forwardedCount = cases.filter(c => c.status === 'FORWARDED_TO_OHS_AND_HR').length;
-    const closedCount = cases.filter(c => c.status === 'CLOSED' || c.status === 'RESOLVED').length;
-    const activeCount = cases.filter(c => c.status !== 'CLOSED' && c.status !== 'RESOLVED' && c.status !== 'FORWARDED_TO_OHS_AND_HR').length;
-
     return (
         <DashboardLayout
             title="My Registry"
-            description="All incidents you have ever handled — including those forwarded to OHS & HR and closed ones"
-            breadcrumbs={[{ label: "Dashboard", path: "/first-aider/dashboard" }, { label: "My Registry" }]}
+            description="All incidents you have ever handled"
+            breadcrumbs={[{ label: 'Dashboard', path: '/first-aider/dashboard' }, { label: 'My Registry' }]}
         >
             <div className="flex flex-col gap-6">
+
+                {/* Page title */}
+                <div>
+                    <h1 className="text-lg font-bold text-gray-900">OHS My Registry</h1>
+                    <p className="text-xs text-gray-500">Inspection Register</p>
+                </div>
 
                 {/* Summary Stats */}
                 {!loading && !error && (
@@ -241,27 +231,85 @@ const FirstAiderMyRegistry: React.FC = () => {
                             <div className="flex gap-2">
                                 <Select
                                     value={statusFilter}
-                                    onChange={handleStatusFilterChange}
+                                    onChange={(val) => { setStatusFilter(val); setCurrentPage(1); }}
                                     options={STATUS_FILTER_OPTIONS}
-                                    placeholder="Status"
+                                    placeholder="All Status"
                                 />
                                 <Select
                                     value={categoryFilter}
-                                    onChange={handleCategoryFilterChange}
+                                    onChange={(val) => { setCategoryFilter(val); setCurrentPage(1); }}
                                     options={CATEGORY_FILTER_OPTIONS}
-                                    placeholder="Category"
+                                    placeholder="All Categories"
                                 />
                                 <Select
                                     value={priorityFilter}
-                                    onChange={handlePriorityFilterChange}
+                                    onChange={(val) => { setPriorityFilter(val); setCurrentPage(1); }}
                                     options={PRIORITY_FILTER_OPTIONS}
-                                    placeholder="Priority"
+                                    placeholder="All Priority"
                                 />
                             </div>
                         }
                     />
                 )}
             </div>
+
+            {/* ===== View Registry Modal (Screen 17) ===== */}
+            {selectedCase && (
+                <div className="fixed inset-0 bg-black/55 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl border border-gray-100 overflow-hidden animate-fadeIn">
+                        {/* Modal Header */}
+                        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                            <div>
+                                <h3 className="font-bold text-sm text-gray-900">My Registry – {selectedCase.incidentNumber}</h3>
+                                <div className="flex items-center gap-2 mt-1.5">
+                                    {selectedCase.severity && (
+                                        <Pill label={selectedCase.severity.charAt(0).toUpperCase() + selectedCase.severity.slice(1).toLowerCase()} variant={selectedCase.severity.toLowerCase()} />
+                                    )}
+                                    <Pill label={getStatusLabel(selectedCase.status)} variant={selectedCase.status.toLowerCase().replace(/_/g, ' ')} />
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setSelectedCase(null)}
+                                className="text-gray-400 hover:text-gray-600 p-1.5 hover:bg-gray-100 rounded-lg transition"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="p-5 space-y-3">
+                            {[
+                                { icon: User, label: 'Full Name', value: selectedCase.reportedBy?.name || selectedCase.assignedTo?.name || '—' },
+                                { icon: Calendar, label: 'Start Date', value: selectedCase.occurredAt ? new Date(selectedCase.occurredAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : new Date(selectedCase.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) },
+                                { icon: Clock, label: 'Time', value: selectedCase.occurredAt ? new Date(selectedCase.occurredAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '—' },
+                                { icon: Building2, label: 'Office Name', value: selectedCase.building?.name || '—' },
+                                { icon: Activity, label: 'Nature of Injury', value: selectedCase.category ? formatCategory(selectedCase.category) : '—' },
+                                { icon: Stethoscope, label: 'Treatment Rendered', value: selectedCase.description ? selectedCase.description.slice(0, 40) + (selectedCase.description.length > 40 ? '...' : '') : '—' },
+                                { icon: UserCheck, label: 'Treated By', value: selectedCase.assignedTo?.name || '—' },
+                                { icon: Calendar, label: 'Date Resumed Work', value: selectedCase.updatedAt ? new Date(selectedCase.updatedAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—' },
+                            ].map(({ icon: Icon, label, value }) => (
+                                <div key={label} className="flex items-start justify-between gap-4 py-1.5 border-b border-gray-50 last:border-0">
+                                    <div className="flex items-center gap-2 text-gray-500 shrink-0">
+                                        <Icon size={14} className="text-gray-400" />
+                                        <span className="text-xs font-semibold text-gray-500">{label}</span>
+                                    </div>
+                                    <span className="text-xs font-semibold text-gray-800 text-right max-w-[55%] break-words">{value}</span>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="px-5 py-4 bg-gray-50 border-t border-gray-100 flex justify-end">
+                            <button
+                                onClick={() => setSelectedCase(null)}
+                                className="px-6 py-2 bg-brown hover:bg-opacity-90 text-white rounded-xl text-xs font-bold transition"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </DashboardLayout>
     );
 };

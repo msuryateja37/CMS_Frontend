@@ -39,6 +39,7 @@ export const STATUS_FILTER_OPTIONS = [
 /** Maps a raw DB status value to a human-readable display label */
 export function getStatusLabel(status: string): string {
     if (status === 'RAISED') return 'Open';
+    if (status === 'POOL') return 'Unassigned';
     return status.replace(/_/g, ' ');
 }
 

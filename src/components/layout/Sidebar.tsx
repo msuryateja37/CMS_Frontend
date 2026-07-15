@@ -197,8 +197,8 @@ const Sidebar: React.FC = () => {
                 })}
             </nav>
 
-            {/* Inspector Information — shown for OHS role */}
-            {!sidebarCollapsed && (user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'ohs_practitioner' || user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'ohs_national_office') && (
+            {/* Inspector Information — shown for OHS and First Aider roles */}
+            {!sidebarCollapsed && (user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'ohs_practitioner' || user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'ohs_national_office' || user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'first_aider') && (
                 <div className="px-4 pb-2 shrink-0">
                     <div className="border-t border-white/10 pt-4 mb-3">
                         <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Inspector Information</p>

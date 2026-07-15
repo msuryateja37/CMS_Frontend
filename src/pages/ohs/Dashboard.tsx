@@ -32,13 +32,13 @@ const OHSDashboard: React.FC = () => {
     const { user } = useAuthStore();
     const isNational = user?.role?.name?.toUpperCase()?.replace(/_/g, ' ') === 'OHS NATIONAL OFFICE';
 
-    // Fetch unassigned pool cases in the same province (includes FORWARDED_TO_OHS_AND_HR)
+    // Fetch unassigned pool cases in the same province (includes REFERRED_TO_OHS_AND_HR)
     const {
         data: poolData,
         isLoading: loadingPool,
         error: errorPool
     } = useIncidents({
-        status: 'POOL,UNDER_REVIEW,FORWARDED_TO_OHS_AND_HR',
+        status: 'NEW,UNASSIGNED,REFERRED_TO_OHS_AND_HR',
         unassignedOnly: 'true',
         provinceId: isNational ? undefined : user?.province?.id,
         take: 100,
@@ -54,7 +54,16 @@ const OHSDashboard: React.FC = () => {
         take: 100,
     });
 
-    const poolCases = poolData?.data || [];
+    const poolCases = (poolData?.data || []).filter(c => {
+        const cat = c.category?.toLowerCase();
+        if (cat === 'health' || cat === 'safety') {
+            return c.status === 'REFERRED_TO_OHS_AND_HR';
+        }
+        if (cat === 'environmental' || cat === 'environment') {
+            return c.status === 'NEW' || c.status === 'UNASSIGNED';
+        }
+        return false;
+    });
     const assignedCases = assignedData?.data || [];
     const loading = loadingPool || loadingAssigned;
     const error = (errorPool || errorAssigned) ? 'Failed to load dashboard data.' : null;
@@ -95,7 +104,7 @@ const OHSDashboard: React.FC = () => {
             cell: (item) => (
                 <div>
                     <span className="font-mono text-sm font-medium text-gray-600">{item.incidentNumber}</span>
-                    {item.status === 'FORWARDED_TO_OHS_AND_HR' && (
+                    {item.status === 'REFERRED_TO_OHS_AND_HR' && (
                         <span className="ml-2 text-[10px] bg-purple-100 text-purple-700 font-bold px-1.5 py-0.5 rounded uppercase">Health</span>
                     )}
                 </div>
@@ -301,7 +310,7 @@ const OHSDashboard: React.FC = () => {
                             <Inbox size={16} className="text-orange-500" />
                         </div>
                         <div>
-                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none mb-0.5">Unassigned Pool</p>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none mb-0.5">Unassigned Incidents</p>
                             <p className="text-base font-bold text-gray-900 leading-none">{loading ? '...' : poolCases.length}</p>
                         </div>
                     </div>
@@ -334,14 +343,14 @@ const OHSDashboard: React.FC = () => {
                                 onClick={() => navigate('/ohs/pool')}
                                 className="flex items-center gap-1 text-sm font-bold text-brown hover:underline"
                             >
-                                View Pool <ChevronRight size={14} />
+                                View Unassigned <ChevronRight size={14} />
                             </button>
                         </div>
 
                         {poolCases.length === 0 ? (
                             <div className="text-center py-10 bg-white rounded-2xl border border-gray-150">
                                 <Inbox className="mx-auto text-gray-300 mb-2" size={32} />
-                                <p className="text-gray-400 font-medium">No pool incidents awaiting pickup.</p>
+                                <p className="text-gray-400 font-medium">No unassigned incidents awaiting pickup.</p>
                             </div>
                         ) : (
                             <DataTable

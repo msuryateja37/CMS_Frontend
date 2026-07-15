@@ -124,6 +124,10 @@ export interface Case {
     name: string;
     email: string;
   };
+  treatmentAdministered?: string;
+  treatmentOutcome?: string;
+  treatmentReferral?: string;
+  treatmentReason?: string;
 }
 
 export interface CaseApprovalAttachment {
@@ -437,8 +441,8 @@ class CasesService {
   /**
    * Forward a health case to OHS pool due to hospitalization
    */
-  async forwardToOhs(id: string): Promise<Case> {
-    const response = await api.put<Case>(`/cases/${id}/forward-ohs`);
+  async forwardToOhs(id: string, treatmentData?: any): Promise<Case> {
+    const response = await api.put<Case>(`/cases/${id}/forward-ohs`, { treatmentData });
     return response.data;
   }
 
@@ -456,6 +460,31 @@ class CasesService {
   async hrUpdateStatus(id: string, hrStatus: string): Promise<Case> {
     const response = await api.put<Case>(`/cases/${id}/hr-status`, { hrStatus });
     return response.data;
+  }
+
+  async getWclRecord(id: string): Promise<any> {
+    const response = await api.get(`/cases/${id}/wcl`);
+    return response.data;
+  }
+
+  async updateWclRecord(id: string, data: any): Promise<any> {
+    const response = await api.put(`/cases/${id}/wcl`, data);
+    return response.data;
+  }
+
+  async downloadWclPdf(id: string): Promise<void> {
+    const response = await api.get(`/cases/${id}/wcl/pdf`, {
+      responseType: 'blob',
+    });
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `WCL_Form_${id}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
   }
 }
 
