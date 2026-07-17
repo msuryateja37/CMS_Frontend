@@ -57,6 +57,17 @@ import NationalDashboard from '../pages/ohs_national/NationalDashboard';
 import NationalLoggedIncidents from '../pages/ohs_national/NationalLoggedIncidents';
 import NationalAdministration from '../pages/ohs_national/NationalAdministration';
 import NationalAIAssistant from '../pages/ohs_national/NationalAIAssistant';
+import PlaceholderPage from '../components/common/PlaceholderPage';
+import OHSSafetyAiAssistant from '../pages/employee/OHSSafetyAiAssistant';
+import PssCDashboard from '../pages/pssc/Dashboard';
+import PssCReports from '../pages/pssc/Reports';
+import PssCInspectionRegistry from '../pages/pssc/InspectionRegistry';
+import PssCMonthlyStatistics from '../pages/pssc/MonthlyStatistics';
+
+import DeputyDashboard from '../pages/deputy/Dashboard';
+import DeputyReports from '../pages/deputy/Reports';
+import DeputyInspectionRegistry from '../pages/deputy/InspectionRegistry';
+import DeputyMonthlyStatistics from '../pages/deputy/MonthlyStatistics';
 
 const AdminRoutes = () => {
     return (
@@ -145,6 +156,31 @@ const AdminRoutes = () => {
 
             {/* Common Routes */}
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+
+            {/* PSSC Coordinator specific routes */}
+            <Route path="/pssc/dashboard" element={<ProtectedRoute><PssCDashboard /></ProtectedRoute>} />
+            <Route path="/pssc/reports" element={<ProtectedRoute><PssCReports /></ProtectedRoute>} />
+            <Route path="/pssc/inspection-registry" element={<ProtectedRoute><PssCInspectionRegistry /></ProtectedRoute>} />
+            <Route path="/pssc/monthly-statistics" element={<ProtectedRoute><PssCMonthlyStatistics /></ProtectedRoute>} />
+            <Route path="/pssc/incidents" element={<ProtectedRoute><IncidentManagement /></ProtectedRoute>} />
+            <Route path="/pssc/incidents/:id" element={<ProtectedRoute><CaseDetails /></ProtectedRoute>} />
+            <Route path="/pssc/report-incident" element={<ProtectedRoute><ReportIncident /></ProtectedRoute>} />
+            <Route path="/pssc/hira" element={<ProtectedRoute><OHSHira /></ProtectedRoute>} />
+            <Route path="/pssc/ai-assistant" element={<ProtectedRoute><OHSSafetyAiAssistant /></ProtectedRoute>} />
+
+            {/* Deputy Director specific routes */}
+            <Route path="/deputy/dashboard" element={<ProtectedRoute><DeputyDashboard /></ProtectedRoute>} />
+            <Route path="/deputy/reports" element={<ProtectedRoute><DeputyReports /></ProtectedRoute>} />
+            <Route path="/deputy/inspection-registry" element={<ProtectedRoute><DeputyInspectionRegistry /></ProtectedRoute>} />
+            <Route path="/deputy/monthly-statistics" element={<ProtectedRoute><DeputyMonthlyStatistics /></ProtectedRoute>} />
+            <Route path="/deputy/incidents" element={<ProtectedRoute><IncidentManagement /></ProtectedRoute>} />
+            <Route path="/deputy/incidents/:id" element={<ProtectedRoute><CaseDetails /></ProtectedRoute>} />
+            <Route path="/deputy/report-incident" element={<ProtectedRoute><ReportIncident /></ProtectedRoute>} />
+            <Route path="/deputy/hira" element={<ProtectedRoute><OHSHira /></ProtectedRoute>} />
+            <Route path="/deputy/ai-assistant" element={<ProtectedRoute><OHSSafetyAiAssistant /></ProtectedRoute>} />
+
+            <Route path="/hr-team" element={<ProtectedRoute><PlaceholderPage title="HR Team" /></ProtectedRoute>} />
+            <Route path="/ai-assistant" element={<ProtectedRoute><OHSSafetyAiAssistant /></ProtectedRoute>} />
 
             {/* Catch all redirect to login */}
             <Route path="*" element={<Navigate to="/" replace />} />

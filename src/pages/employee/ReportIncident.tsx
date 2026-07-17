@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import { useAuthStore } from '../../store/auth.store';
@@ -62,25 +62,49 @@ const ReportIncident: React.FC = () => {
     const [personSearch, setPersonSearch] = useState('');
     const [showPersonSuggestions, setShowPersonSuggestions] = useState(false);
     const [otherSubtype, setOtherSubtype] = useState('');
+    const suggestionsRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
+                setShowPersonSuggestions(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     const [showOtherModal, setShowOtherModal] = useState(false);
 
     const userRole = user?.role?.name?.toLowerCase()?.replace(/_/g, ' ')?.replace(/\s+/g, ' ')?.trim();
-    const isSupervisor = userRole === 'supervisor';
+    const isSupervisor = userRole === 'supervisor' || userRole === 'pssc coordinator' || userRole === 'deputy director';
+
+    const currentUserProvinceId = user?.province?.id || user?.department?.building?.province?.id;
+    const isNational = user?.province?.name === 'National Office';
 
     // Query employees in current province
     const { data: allEmployees } = useUsers({ role: 'EMPLOYEE' });
-    const filteredEmployees = (allEmployees || []).filter(emp =>
-        emp.name?.toLowerCase().includes(employeeSearch.toLowerCase()) ||
-        emp.email?.toLowerCase().includes(employeeSearch.toLowerCase()) ||
-        (emp.employeeNumber || '').toLowerCase().includes(employeeSearch.toLowerCase())
-    );
+    const filteredEmployees = (allEmployees || []).filter(emp => {
+        if (!isNational && currentUserProvinceId) {
+            const empProvinceId = emp.provinceId || emp.department?.building?.province?.id;
+            if (empProvinceId !== currentUserProvinceId) return false;
+        }
+        return emp.name?.toLowerCase().includes(employeeSearch.toLowerCase()) ||
+            emp.email?.toLowerCase().includes(employeeSearch.toLowerCase()) ||
+            (emp.employeeNumber || '').toLowerCase().includes(employeeSearch.toLowerCase());
+    });
 
-    const filteredPersons = (allEmployees || []).filter(emp =>
-        (emp.name?.toLowerCase().includes(personSearch.toLowerCase()) ||
-        emp.email?.toLowerCase().includes(personSearch.toLowerCase())) &&
-        !selectedPersons.some(p => p.id === emp.id)
-    );
+    const filteredPersons = (allEmployees || []).filter(emp => {
+        if (!isNational && currentUserProvinceId) {
+            const empProvinceId = emp.provinceId || emp.department?.building?.province?.id;
+            if (empProvinceId !== currentUserProvinceId) return false;
+        }
+        return (emp.name?.toLowerCase().includes(personSearch.toLowerCase()) ||
+            emp.email?.toLowerCase().includes(personSearch.toLowerCase())) &&
+            !selectedPersons.some(p => p.id === emp.id);
+    });
 
     const handleBehalfOfToggle = (checked: boolean) => {
         setIsBehalfOf(checked);
@@ -320,7 +344,11 @@ const ReportIncident: React.FC = () => {
             const updatedDrafts = drafts.filter((d: { id: string }) => d.id !== formData.id);
             localStorage.setItem('incident_drafts', JSON.stringify(updatedDrafts));
 
-            const roleSlug = userRole === 'supervisor' ? 'supervisor' : userRole === 'ohs practitioner' ? 'ohs' : 'employee';
+            const roleSlug = (userRole === 'supervisor') 
+                ? 'supervisor' 
+                : (userRole === 'ohs practitioner' || userRole === 'pssc coordinator' || userRole === 'deputy director') 
+                    ? 'ohs' 
+                    : 'employee';
             navigate(`/${roleSlug}/submit-case/success`, {
                 state: {
                     caseId: response.id,
@@ -365,7 +393,13 @@ const ReportIncident: React.FC = () => {
         { id: 'others', label: 'Other', icon: '💬', color: 'border-gray-200 hover:bg-gray-50/20 text-gray-800' }
     ];
 
-    const dashboardPath = userRole === 'supervisor' ? '/supervisor/dashboard' : userRole === 'ohs practitioner' ? '/ohs/dashboard' : '/employee/dashboard';
+    const dashboardPath = userRole === 'supervisor' 
+        ? '/supervisor/dashboard' 
+        : userRole === 'ohs practitioner' 
+            ? '/ohs/dashboard' 
+            : (userRole === 'pssc coordinator' || userRole === 'deputy director')
+                ? '/admin/dashboard'
+                : '/employee/dashboard';
 
     return (
         <DashboardLayout
@@ -670,7 +704,7 @@ const ReportIncident: React.FC = () => {
                                     )}
 
                                     {/* Dropdown selector */}
-                                    <div className="relative">
+                                    <div className="relative" ref={suggestionsRef}>
                                         <input
                                             type="text"
                                             value={personSearch}

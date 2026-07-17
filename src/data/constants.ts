@@ -37,10 +37,11 @@ export const STATUS_FILTER_OPTIONS = [
 ];
 
 /** Maps a raw DB status value to a human-readable display label */
-export function getStatusLabel(status: string): string {
-    if (status === 'RAISED') return 'Open';
-    if (status === 'POOL') return 'Unassigned';
-    return status.replace(/_/g, ' ');
+export function getStatusLabel(status?: string | null): string {
+    if (!status) return '';
+    if (status === 'NEW' || status === 'RAISED') return 'Open';
+    if (status === 'POOL' || status === 'UNASSIGNED') return 'Unassigned';
+    return status.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
 }
 
 export const CATEGORY_FILTER_OPTIONS = [

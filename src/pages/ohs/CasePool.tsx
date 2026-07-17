@@ -45,13 +45,11 @@ const CasePool: React.FC = () => {
       
       const filtered = rawCases.filter(c => {
         const cat = c.category?.toLowerCase();
-        if (cat === 'health' || cat === 'safety') {
+        if (cat === 'health') {
           return c.status === 'REFERRED_TO_OHS_AND_HR';
         }
-        if (cat === 'environmental' || cat === 'environment') {
-          return c.status === 'NEW' || c.status === 'UNASSIGNED';
-        }
-        return false;
+        // Safety, environmental, equipment, security, others go directly to OHS Pool on creation
+        return c.status === 'NEW' || c.status === 'UNASSIGNED' || c.status === 'POOL';
       });
       setCases(filtered);
     } catch {

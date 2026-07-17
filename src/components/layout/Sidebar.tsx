@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { ChevronDown, ChevronRight, ChevronLeft, LogOut } from 'lucide-react';
-import { SIDEBAR_ITEMS, EMPLOYEE_SIDEBAR, SUPERVISOR_SIDEBAR, OHS_SIDEBAR, OHS_NATIONAL_SIDEBAR, FIRST_AIDER_SIDEBAR, HR_SIDEBAR, INVESTIGATOR_SIDEBAR, CHAIRPERSON_SIDEBAR, EA_DA_SIDEBAR } from '../../data/navigation';
+import { SIDEBAR_ITEMS, EMPLOYEE_SIDEBAR, SUPERVISOR_SIDEBAR, OHS_SIDEBAR, OHS_NATIONAL_SIDEBAR, FIRST_AIDER_SIDEBAR, HR_SIDEBAR, INVESTIGATOR_SIDEBAR, CHAIRPERSON_SIDEBAR, EA_DA_SIDEBAR, PSSC_SIDEBAR, DEPUTY_SIDEBAR } from '../../data/navigation';
 import clsx from 'clsx';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth.store';
@@ -28,6 +28,8 @@ const Sidebar: React.FC = () => {
         if (role === 'finance_official') return SIDEBAR_ITEMS;
         if (role === 'manager') return SIDEBAR_ITEMS;
         if (role === 'ea_da') return EA_DA_SIDEBAR;
+        if (role === 'pssc_coordinator') return PSSC_SIDEBAR;
+        if (role === 'deputy_director') return DEPUTY_SIDEBAR;
         return SIDEBAR_ITEMS;
     };
 

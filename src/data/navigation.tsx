@@ -471,3 +471,129 @@ export const EA_DA_SIDEBAR = [
         isSingle: true
     }
 ];
+
+export const PSSC_SIDEBAR = [
+    {
+        path: '/pssc/dashboard',
+        label: 'Dashboard',
+        icon: LayoutDashboard,
+        isSingle: true
+    },
+    {
+        path: '/pssc/report-incident',
+        label: 'Report New Incident',
+        icon: FilePlus,
+        isSingle: true
+    },
+    {
+        path: '/pssc/incidents',
+        label: 'All Incidents',
+        icon: AlertCircle,
+        isSingle: true
+    },
+    {
+        path: '/pssc/reports',
+        label: 'Reports',
+        icon: FileText,
+        isSingle: true
+    },
+    {
+        path: '/pssc/hira',
+        label: 'HIRA',
+        icon: Shield,
+        isSingle: true
+    },
+    {
+        path: '/pssc/inspection-registry',
+        label: 'Inspection Registry',
+        icon: ClipboardList,
+        isSingle: true
+    },
+    {
+        path: '/pssc/monthly-statistics',
+        label: 'Monthly Statistics',
+        icon: BarChart2,
+        isSingle: true
+    },
+    {
+        path: '/hr-team',
+        label: 'HR Team',
+        icon: UserCog,
+        isSingle: true
+    },
+    {
+        path: '/pssc/ai-assistant',
+        label: 'AI Assistant',
+        icon: MessageSquare,
+        isSingle: true
+    },
+    {
+        path: '/profile',
+        label: 'Profile',
+        icon: User,
+        isSingle: true
+    }
+];
+
+export const DEPUTY_SIDEBAR = [
+    {
+        path: '/deputy/dashboard',
+        label: 'Dashboard',
+        icon: LayoutDashboard,
+        isSingle: true
+    },
+    {
+        path: '/deputy/report-incident',
+        label: 'Report New Incident',
+        icon: FilePlus,
+        isSingle: true
+    },
+    {
+        path: '/deputy/incidents',
+        label: 'All Incidents',
+        icon: AlertCircle,
+        isSingle: true
+    },
+    {
+        path: '/deputy/reports',
+        label: 'Reports',
+        icon: FileText,
+        isSingle: true
+    },
+    {
+        path: '/deputy/hira',
+        label: 'HIRA',
+        icon: Shield,
+        isSingle: true
+    },
+    {
+        path: '/deputy/inspection-registry',
+        label: 'Inspection Registry',
+        icon: ClipboardList,
+        isSingle: true
+    },
+    {
+        path: '/deputy/monthly-statistics',
+        label: 'Monthly Statistics',
+        icon: BarChart2,
+        isSingle: true
+    },
+    {
+        path: '/hr-team',
+        label: 'HR Team',
+        icon: UserCog,
+        isSingle: true
+    },
+    {
+        path: '/deputy/ai-assistant',
+        label: 'AI Assistant',
+        icon: MessageSquare,
+        isSingle: true
+    },
+    {
+        path: '/profile',
+        label: 'Profile',
+        icon: User,
+        isSingle: true
+    }
+];

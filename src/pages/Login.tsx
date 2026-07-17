@@ -42,7 +42,9 @@ const Login: React.FC = () => {
         { id: 'FIRST_AIDER', label: 'First Aider', prefix: 'firstaider' },
         { id: 'OHS_PRACTITIONER', label: 'OHS Practitioner', prefix: 'ohspractitioner' },
         { id: 'OHS_NATIONAL_OFFICE', label: 'OHS National Office', prefix: 'ohspractitioner' },
-        { id: 'HR', label: 'HR Officer', prefix: 'hr' }
+        { id: 'HR', label: 'HR Officer', prefix: 'hr' },
+        { id: 'PSSC_COORDINATOR', label: 'PSSC Coordinator', prefix: 'pssccoordinator' },
+        { id: 'DEPUTY_DIRECTOR', label: 'Deputy Director', prefix: 'deputydirector' }
     ];
 
     // Redirect if already authenticated
@@ -67,6 +69,10 @@ const Login: React.FC = () => {
                 navigate('/finance/dashboard');
             } else if (roleName === 'system_administrator' || roleName === 'manager') {
                 navigate('/admin/dashboard');
+            } else if (roleName === 'pssc_coordinator') {
+                navigate('/pssc/dashboard');
+            } else if (roleName === 'deputy_director') {
+                navigate('/deputy/dashboard');
             } else {
                 // Default fallback
                 navigate('/admin/dashboard');

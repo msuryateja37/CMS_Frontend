@@ -222,11 +222,6 @@ const TopBar: React.FC<TopBarProps> = ({
                     {displayTitle && (
                         <div className="flex items-baseline gap-2">
                             <h1 className="text-[19px] font-bold text-gray-800 leading-tight">{displayTitle}</h1>
-                            {displayDescription && (
-                                <span className="text-[11px] text-gray-400 font-semibold ml-1.5 hidden sm:inline">
-                                    {displayDescription}
-                                </span>
-                            )}
                         </div>
                     )}
                     {actionButton && (
