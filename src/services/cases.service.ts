@@ -128,6 +128,8 @@ export interface Case {
   treatmentOutcome?: string;
   treatmentReferral?: string;
   treatmentReason?: string;
+  natureOfInjury?: string;
+  bodyPartAffected?: string;
 }
 
 export interface CaseApprovalAttachment {

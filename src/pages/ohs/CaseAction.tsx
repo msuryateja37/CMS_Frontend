@@ -164,11 +164,14 @@ const CaseAction: React.FC = () => {
         if (id) {
             fetchCaseDetails(id);
             fetchTimeline(id);
-            if (activeTab === 'investigation') {
-                fetchAnnexDetails(id);
-            }
         }
-    }, [id, activeTab, caseData?.category]);
+    }, [id]);
+
+    useEffect(() => {
+        if (id && activeTab === 'investigation') {
+            fetchAnnexDetails(id);
+        }
+    }, [id, activeTab]);
 
     const fetchAnnexDetails = async (caseId: string) => {
         try {
@@ -184,7 +187,7 @@ const CaseAction: React.FC = () => {
 
     const fetchCaseDetails = async (caseId: string, showLoader = true) => {
         try {
-            if (showLoader) setLoading(true);
+            if (showLoader && !caseData) setLoading(true);
             const data = await casesService.getCaseById(caseId);
             setCaseData(data);
             if (data.incidentPlan) setIncidentPlan(data.incidentPlan);
@@ -192,7 +195,7 @@ const CaseAction: React.FC = () => {
             console.error('Error fetching case details:', err);
             setError('Failed to load case details.');
         } finally {
-            if (showLoader) setLoading(false);
+            setLoading(false);
         }
     };
 
@@ -456,6 +459,11 @@ const CaseAction: React.FC = () => {
     const isOHS = userRole === 'ohs practitioner';
     const isOHSNational = user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'ohs_national_office';
     const isCurrentAssignee = user?.id === caseData.assignedTo?.id;
+    const isDirectorApproved = caseData?.approvals?.some((a: any) => 
+        a.roleName === 'Director' || 
+        a.roleName === 'Provincial Security Coordinator' || 
+        a.roleName === 'PSSC Coordinator'
+    ) || false;
     const hasOhsGivenRecommendation = 
         caseData.status === 'UNDER_PSSC_RECOMMENDATION' || 
         caseData.status === 'UNDER_DEP_DIRECTOR_RECOMMENDATION' || 
@@ -505,19 +513,22 @@ const CaseAction: React.FC = () => {
                         <span>{backLabel}</span>
                     </button>
 
-                    {!isClosed && !isUnderReview && isCurrentAssignee && (!isOHS || isOHSNational) && (
+                    {!isClosed && !isUnderReview && isCurrentAssignee && (
                         <div className="flex items-center gap-3">
-                            <button
-                                onClick={() => setShowEscalation(true)}
-                                className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition-all font-semibold text-sm"
-                            >
-                                <ArrowUpRight size={16} />
-                                Escalate
-                            </button>
+                            {(!isOHS || isOHSNational) && (
+                                <button
+                                    onClick={() => setShowEscalation(true)}
+                                    className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition-all font-semibold text-sm"
+                                >
+                                    <ArrowUpRight size={16} />
+                                    Escalate
+                                </button>
+                            )}
                             <button
                                 onClick={handleOpenCloseModal}
-                                disabled={closingCase}
-                                className="flex items-center gap-2 px-5 py-2.5 bg-red text-white rounded-lg hover:bg-opacity-90 transition-all font-semibold text-sm shadow-sm disabled:opacity-50"
+                                disabled={closingCase || (isOHS && !isDirectorApproved)}
+                                className="flex items-center gap-2 px-5 py-2.5 bg-red text-white rounded-lg hover:bg-opacity-90 transition-all font-semibold text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                title={isOHS && !isDirectorApproved ? "Close button will be activated after the Director has approved" : ""}
                             >
                                 {closingCase ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
                                 Close Incident
@@ -800,6 +811,22 @@ const CaseAction: React.FC = () => {
                                                 </label>
                                                 <p className="text-sm font-medium text-gray-800">{caseData.peopleImpacted ?? 0}</p>
                                             </div>
+                                            {caseData.natureOfInjury && (
+                                                <div>
+                                                    <label className="flex items-center gap-1.5 text-xs text-gray-400 font-semibold mb-1">
+                                                        <Activity size={12} /> Nature of Injury
+                                                    </label>
+                                                    <p className="text-sm font-medium text-gray-850">{caseData.natureOfInjury}</p>
+                                                </div>
+                                            )}
+                                            {caseData.bodyPartAffected && (
+                                                <div>
+                                                    <label className="flex items-center gap-1.5 text-xs text-gray-400 font-semibold mb-1">
+                                                        <Activity size={12} /> Body Part Affected
+                                                    </label>
+                                                    <p className="text-sm font-medium text-gray-850">{caseData.bodyPartAffected}</p>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 

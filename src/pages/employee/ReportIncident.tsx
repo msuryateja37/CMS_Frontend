@@ -334,7 +334,14 @@ const ReportIncident: React.FC = () => {
                 media: formData.media || [],
                 immediateActions: formData.immediateActions ? [formData.immediateActions] : [],
                 otherActions: formData.otherActions,
-                reportedById: isBehalfOf && selectedEmployee ? selectedEmployee.id : undefined
+                reportedById: isBehalfOf && selectedEmployee ? selectedEmployee.id : undefined,
+                natureOfInjury: (cat === 'health' || cat === 'safety') ? natureOfInjury : undefined,
+                bodyPartAffected: (cat === 'health' || cat === 'safety') ? bodyPartAffected : undefined,
+                impactedPeople: (cat === 'health' || cat === 'safety') ? selectedPersons.map(p => ({
+                    name: p.fullName || p.name,
+                    email: p.email,
+                    phone: p.phone || ''
+                })) : undefined
             };
 
             const response = await createCaseMutation.mutateAsync(caseData);
@@ -369,7 +376,7 @@ const ReportIncident: React.FC = () => {
     const isSubFieldsValid = 
         (category === 'health' || category === 'safety')
             ? (natureOfInjury !== '' && bodyPartAffected !== '' && selectedPersons.length > 0)
-            : (category !== '' ? otherSubtype.trim() !== '' : true);
+            : (category === 'others' ? otherSubtype.trim() !== '' : true);
 
     const isBehalfOfValid = !isBehalfOf || !!selectedEmployee;
 

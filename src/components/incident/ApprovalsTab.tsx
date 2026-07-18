@@ -23,6 +23,13 @@ const NATIONAL_APPROVAL_ROLES = [
     { roleName: 'Director', label: 'Director: Document Security Compliance & OHS for recommendations', hint: 'Recommendations report' },
 ];
 
+const ALL_RECOMMENDATION_ROLES = [
+    { roleName: 'OHS Practitioner', label: 'OHS Practitioner Recommendation', hint: 'Recommendation report', aliases: ['OHS Practitioner'] },
+    { roleName: 'PSSC Coordinator', label: 'Provincial Security Coordinator / Director PSSC for recommendations', hint: 'Recommendations report', aliases: ['Provincial Security Coordinator', 'PSSC Coordinator'] },
+    { roleName: 'Deputy Director', label: 'Deputy Director Recommendation', hint: 'Approvals/Recommendations report', aliases: ['Deputy Director', 'Deputy_Director'] },
+    { roleName: 'Director', label: 'Director: Document Security Compliance & OHS for recommendations', hint: 'Recommendations report', aliases: ['Director'] },
+];
+
 function normalizeApprovals(raw: unknown): CaseApproval[] {
     if (!Array.isArray(raw)) return [];
     return raw.map((a: Record<string, unknown>) => {
@@ -333,14 +340,16 @@ export const ApprovalsTab: React.FC<ApprovalsTabProps> = ({
                     <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Approvals & recommendations</h4>
                 </div>
 
-                <div className={`grid gap-4 items-start ${
-                    rolesList.length === 1 
-                        ? 'max-w-md mx-auto grid-cols-1' 
-                        : (isProvincial ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-3')
-                }`}>
-                    {rolesList.map((def) => {
+                <div className="grid gap-4 items-start grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+                    {ALL_RECOMMENDATION_ROLES.map((def) => {
                         const approvalsList = normalizeApprovals(caseData.approvals);
-                        const forRole = approvalsList.filter((a) => a.roleName === def.roleName);
+                        const forRole = approvalsList.filter((a) => {
+                            if (def.aliases) {
+                                return def.aliases.some(alias => a.roleName?.toLowerCase() === alias.toLowerCase());
+                            }
+                            return a.roleName?.toLowerCase() === def.roleName.toLowerCase();
+                        });
+                        const canEditColumn = canEdit && (def.roleName === 'OHS Practitioner' || userRole === 'admin' || userRole === 'system administrator' || userRole === 'supervisor');
                         return (
                             <div
                                 key={def.roleName}
@@ -369,7 +378,7 @@ export const ApprovalsTab: React.FC<ApprovalsTabProps> = ({
                                                             </p>
                                                         ) : null}
                                                     </div>
-                                                    {canEdit && (
+                                                    {canEditColumn && (
                                                         <div className="flex shrink-0 gap-1">
                                                             <button
                                                                 type="button"
@@ -466,7 +475,7 @@ export const ApprovalsTab: React.FC<ApprovalsTabProps> = ({
                                                             >
                                                                 {att.fileName || 'Document'}
                                                             </a>
-                                                            {canEdit && (
+                                                            {canEditColumn && (
                                                                 <button
                                                                     type="button"
                                                                     disabled={
@@ -487,7 +496,7 @@ export const ApprovalsTab: React.FC<ApprovalsTabProps> = ({
                                                     ))}
                                                 </div>
 
-                                                {canEdit && (
+                                                {canEditColumn && (
                                                     <button
                                                         type="button"
                                                         disabled={uploadingExtraAttachments}
@@ -518,7 +527,7 @@ export const ApprovalsTab: React.FC<ApprovalsTabProps> = ({
                                 )}
 
                                 {forRole.length === 0 && (
-                                    isOHS && (caseData.status === 'ASSIGNED' || caseData.status === 'IN_PROGRESS' || caseData.status === 'UNDER_INVESTIGATION' || caseData.status === 'POOL') ? (
+                                    isOHS && def.roleName === 'OHS Practitioner' && (caseData.status === 'ASSIGNED' || caseData.status === 'IN_PROGRESS' || caseData.status === 'UNDER_INVESTIGATION' || caseData.status === 'POOL') ? (
                                         <button
                                             type="button"
                                             onClick={() => {

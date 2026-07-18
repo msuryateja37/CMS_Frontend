@@ -228,7 +228,14 @@ const EmployeeCaseDetails: React.FC = () => {
         );
     }
 
-    const { cleanDescription, natureOfInjury, affectedPersons, vehicleReg, driverDetails, subtype } = parseDescription(caseData.description);
+    const parsedData = parseDescription(caseData.description);
+    const natureOfInjury = caseData.natureOfInjury || parsedData.natureOfInjury;
+    const bodyPartAffected = caseData.bodyPartAffected || parsedData.cleanDescription.match(/\[Body Part Affected:\s*([^\]]+)\]/)?.[1] || '';
+    const cleanDescription = parsedData.cleanDescription;
+    const affectedPersons = parsedData.affectedPersons;
+    const vehicleReg = parsedData.vehicleReg;
+    const driverDetails = parsedData.driverDetails;
+    const subtype = parsedData.subtype;
 
     const getCategoryLabel = (category: string) => {
         if (!category) return 'Other';
@@ -339,6 +346,12 @@ const EmployeeCaseDetails: React.FC = () => {
                                     <div className="md:col-span-2">
                                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Nature of Injury</span>
                                         <span className="font-semibold text-gray-800">{natureOfInjury}</span>
+                                    </div>
+                                )}
+                                {bodyPartAffected && (
+                                    <div className="md:col-span-2">
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Body Part Affected</span>
+                                        <span className="font-semibold text-gray-800">{bodyPartAffected}</span>
                                     </div>
                                 )}
                                 {affectedPersons && (
