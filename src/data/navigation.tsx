@@ -19,7 +19,11 @@ import {
     AlertTriangle,
     ClipboardList,
     BookOpen,
-    Bot
+    Bot,
+    Zap,
+    ArrowUpRight,
+    Gavel,
+    MapPin
 } from 'lucide-react';
 
 
@@ -525,6 +529,51 @@ export const PSSC_SIDEBAR = [
         path: '/pssc/ai-assistant',
         label: 'AI Assistant',
         icon: MessageSquare,
+        isSingle: true
+    },
+    {
+        path: '/profile',
+        label: 'Profile',
+        icon: User,
+        isSingle: true
+    }
+];
+
+export const CHIEF_DIRECTOR_SIDEBAR = [
+    {
+        path: '/chief-director/dashboard',
+        label: 'Dashboard',
+        icon: LayoutDashboard,
+        isSingle: true
+    },
+    {
+        path: '/chief-director/infrastructure',
+        label: 'Infrastructure Incidents',
+        icon: Zap,
+        isSingle: true
+    },
+    {
+        path: '/chief-director/escalations',
+        label: 'Escalation Reports',
+        icon: ArrowUpRight,
+        isSingle: true
+    },
+    {
+        path: '/chief-director/compliance',
+        label: 'Provincial Compliance',
+        icon: MapPin,
+        isSingle: true
+    },
+    {
+        path: '/chief-director/strategic-decisions',
+        label: 'Strategic Decisions',
+        icon: Gavel,
+        isSingle: true
+    },
+    {
+        path: '/chief-director/ai-assistant',
+        label: 'AI Assistant',
+        icon: Bot,
         isSingle: true
     },
     {

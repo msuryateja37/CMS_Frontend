@@ -18,7 +18,7 @@ const Login: React.FC = () => {
         if (['Eastern Cape', 'Northern Cape', 'North West'].includes(ssoProvince) && ssoRole === 'OHS_PRACTITIONER') {
             setSsoRole('EMPLOYEE');
         }
-        if (ssoProvince !== 'National Office' && ssoRole === 'OHS_NATIONAL_OFFICE') {
+        if (ssoProvince !== 'National Office' && (ssoRole === 'OHS_NATIONAL_OFFICE' || ssoRole === 'CHIEF_DIRECTOR')) {
             setSsoRole('EMPLOYEE');
         }
     }, [ssoProvince, ssoRole]);
@@ -44,7 +44,8 @@ const Login: React.FC = () => {
         { id: 'OHS_NATIONAL_OFFICE', label: 'OHS National Office', prefix: 'ohspractitioner' },
         { id: 'HR', label: 'HR Officer', prefix: 'hr' },
         { id: 'PSSC_COORDINATOR', label: 'PSSC Coordinator', prefix: 'pssccoordinator' },
-        { id: 'DEPUTY_DIRECTOR', label: 'Deputy Director', prefix: 'deputydirector' }
+        { id: 'DEPUTY_DIRECTOR', label: 'Deputy Director', prefix: 'deputydirector' },
+        { id: 'CHIEF_DIRECTOR', label: 'Chief Director', prefix: 'chiefdirector' }
     ];
 
     // Redirect if already authenticated
@@ -73,6 +74,8 @@ const Login: React.FC = () => {
                 navigate('/pssc/dashboard');
             } else if (roleName === 'deputy_director') {
                 navigate('/deputy/dashboard');
+            } else if (roleName === 'chief_director') {
+                navigate('/chief-director/dashboard');
             } else {
                 // Default fallback
                 navigate('/admin/dashboard');
@@ -276,7 +279,7 @@ const Login: React.FC = () => {
                                             if (['Eastern Cape', 'Northern Cape', 'North West'].includes(ssoProvince) && role.id === 'OHS_PRACTITIONER') {
                                                 return false;
                                             }
-                                            if (role.id === 'OHS_NATIONAL_OFFICE') {
+                                            if (role.id === 'OHS_NATIONAL_OFFICE' || role.id === 'CHIEF_DIRECTOR') {
                                                 return ssoProvince === 'National Office';
                                             }
                                             return true;

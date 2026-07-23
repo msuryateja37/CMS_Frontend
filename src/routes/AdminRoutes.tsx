@@ -69,6 +69,13 @@ import DeputyReports from '../pages/deputy/Reports';
 import DeputyInspectionRegistry from '../pages/deputy/InspectionRegistry';
 import DeputyMonthlyStatistics from '../pages/deputy/MonthlyStatistics';
 
+import ChiefDirectorDashboard from '../pages/chief_director/Dashboard';
+import ChiefDirectorInfrastructure from '../pages/chief_director/InfrastructureIncidents';
+import ChiefDirectorEscalations from '../pages/chief_director/EscalationReports';
+import ChiefDirectorStrategicDecisions from '../pages/chief_director/StrategicDecisions';
+import ChiefDirectorCompliance from '../pages/chief_director/ProvincialCompliance';
+import ChiefDirectorAIAssistant from '../pages/chief_director/AIAssistant';
+
 const AdminRoutes = () => {
     return (
         <Routes>
@@ -178,6 +185,15 @@ const AdminRoutes = () => {
             <Route path="/deputy/report-incident" element={<ProtectedRoute><ReportIncident /></ProtectedRoute>} />
             <Route path="/deputy/hira" element={<ProtectedRoute><OHSHira /></ProtectedRoute>} />
             <Route path="/deputy/ai-assistant" element={<ProtectedRoute><OHSSafetyAiAssistant /></ProtectedRoute>} />
+
+            {/* Chief Director (DDG / Executive Management) specific routes */}
+            <Route path="/chief-director/dashboard" element={<ProtectedRoute><ChiefDirectorDashboard /></ProtectedRoute>} />
+            <Route path="/chief-director/infrastructure" element={<ProtectedRoute><ChiefDirectorInfrastructure /></ProtectedRoute>} />
+            <Route path="/chief-director/escalations" element={<ProtectedRoute><ChiefDirectorEscalations /></ProtectedRoute>} />
+            <Route path="/chief-director/strategic-decisions" element={<ProtectedRoute><ChiefDirectorStrategicDecisions /></ProtectedRoute>} />
+            <Route path="/chief-director/compliance" element={<ProtectedRoute><ChiefDirectorCompliance /></ProtectedRoute>} />
+            <Route path="/chief-director/ai-assistant" element={<ProtectedRoute><ChiefDirectorAIAssistant /></ProtectedRoute>} />
+            <Route path="/chief-director" element={<Navigate to="/chief-director/dashboard" replace />} />
 
             <Route path="/hr-team" element={<ProtectedRoute><PlaceholderPage title="HR Team" /></ProtectedRoute>} />
             <Route path="/ai-assistant" element={<ProtectedRoute><OHSSafetyAiAssistant /></ProtectedRoute>} />
