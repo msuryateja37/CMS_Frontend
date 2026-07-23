@@ -351,11 +351,13 @@ const ReportIncident: React.FC = () => {
             const updatedDrafts = drafts.filter((d: { id: string }) => d.id !== formData.id);
             localStorage.setItem('incident_drafts', JSON.stringify(updatedDrafts));
 
-            const roleSlug = (userRole === 'supervisor') 
-                ? 'supervisor' 
-                : (userRole === 'ohs practitioner' || userRole === 'pssc coordinator' || userRole === 'deputy director') 
-                    ? 'ohs' 
-                    : 'employee';
+            const roleSlug = (userRole === 'supervisor')
+                ? 'supervisor'
+                : (userRole === 'facilities coordinator')
+                    ? 'facilities'
+                    : (userRole === 'ohs practitioner' || userRole === 'pssc coordinator' || userRole === 'deputy director')
+                        ? 'ohs'
+                        : 'employee';
             navigate(`/${roleSlug}/submit-case/success`, {
                 state: {
                     caseId: response.id,
@@ -400,13 +402,15 @@ const ReportIncident: React.FC = () => {
         { id: 'others', label: 'Other', icon: '💬', color: 'border-gray-200 hover:bg-gray-50/20 text-gray-800' }
     ];
 
-    const dashboardPath = userRole === 'supervisor' 
-        ? '/supervisor/dashboard' 
-        : userRole === 'ohs practitioner' 
-            ? '/ohs/dashboard' 
-            : (userRole === 'pssc coordinator' || userRole === 'deputy director')
-                ? '/admin/dashboard'
-                : '/employee/dashboard';
+    const dashboardPath = userRole === 'supervisor'
+        ? '/supervisor/dashboard'
+        : userRole === 'facilities coordinator'
+            ? '/facilities/dashboard'
+            : userRole === 'ohs practitioner'
+                ? '/ohs/dashboard'
+                : (userRole === 'pssc coordinator' || userRole === 'deputy director')
+                    ? '/admin/dashboard'
+                    : '/employee/dashboard';
 
     return (
         <DashboardLayout

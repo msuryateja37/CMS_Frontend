@@ -7,6 +7,7 @@ import { DataTable, type Column } from '../../components/common/DataTable';
 import { type Case } from '../../services/cases.service';
 import { useIncidents } from '../../hooks/useIncidents';
 import { useAuthStore } from '../../store/auth.store';
+import { getRoleBasePath } from '../../utils/rolePaths';
 import {
     Folder,
     CheckCircle2,
@@ -31,6 +32,7 @@ const OHSDashboard: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuthStore();
     const isNational = user?.role?.name?.toUpperCase()?.replace(/_/g, ' ') === 'OHS NATIONAL OFFICE';
+    const base = getRoleBasePath(user?.role?.name);
 
     // Fetch unassigned pool cases in the same province (includes REFERRED_TO_OHS_AND_HR)
     const {
@@ -164,7 +166,7 @@ const OHSDashboard: React.FC = () => {
             header: '',
             cell: (item) => (
                 <button
-                    onClick={() => navigate(`/ohs/cases/${item.id}`, { state: { from: 'dashboard' } })}
+                    onClick={() => navigate(`${base}/cases/${item.id}`, { state: { from: 'dashboard' } })}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 text-orange-750 text-xs font-bold rounded-lg hover:bg-orange-100 transition-colors"
                 >
                     <Eye size={14} />
@@ -212,7 +214,7 @@ const OHSDashboard: React.FC = () => {
             header: '',
             cell: (item) => (
                 <button
-                    onClick={() => navigate(`/ohs/cases/${item.id}`, { state: { from: 'dashboard' } })}
+                    onClick={() => navigate(`${base}/cases/${item.id}`, { state: { from: 'dashboard' } })}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-light-gold text-brown text-xs font-bold rounded-lg hover:bg-gold/10 transition-colors"
                 >
                     <Eye size={14} />
@@ -226,14 +228,14 @@ const OHSDashboard: React.FC = () => {
         <DashboardLayout
             title={isNational ? "OHS National Office Dashboard" : "OHS Dashboard"}
             description={isNational ? "National-level incident monitoring and escalation control" : "Dashboard"}
-            breadcrumbs={[{ label: "Dashboard", path: "/ohs/dashboard" }, { label: "Overview" }]}
+            breadcrumbs={[{ label: "Dashboard", path: `${base}/dashboard` }, { label: "Overview" }]}
         >
 
             <div className="flex flex-col gap-4">
                 {/* Top Actions */}
                 <div className="flex justify-end mb-1">
                     <button
-                        onClick={() => navigate('/ohs/submit-case')}
+                        onClick={() => navigate(`${base}/submit-case`)}
                         className="flex items-center gap-2 px-4 py-2 bg-brown text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm text-sm shrink-0"
                     >
                         <FilePlus size={16} />
@@ -338,7 +340,7 @@ const OHSDashboard: React.FC = () => {
                                 )}
                             </div>
                             <button
-                                onClick={() => navigate('/ohs/pool')}
+                                onClick={() => navigate(`${base}/pool`)}
                                 className="flex items-center gap-1 text-sm font-bold text-brown hover:underline"
                             >
                                 View Unassigned <ChevronRight size={14} />
@@ -369,7 +371,7 @@ const OHSDashboard: React.FC = () => {
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-bold text-gray-800">Assigned Incidents</h3>
                             <button
-                                onClick={() => navigate('/ohs/cases-review')}
+                                onClick={() => navigate(`${base}/cases-review`)}
                                 className="flex items-center gap-1 text-sm font-bold text-brown hover:underline"
                             >
                                 View All <ChevronRight size={14} />

@@ -13,6 +13,7 @@ import {
     X, ArrowUpRight, Plus
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
+import { getRoleBasePath } from '../../utils/rolePaths';
 import EscalationModal from '../../components/incident/EscalationModal';
 import { ApprovalsTab } from '../../components/incident/ApprovalsTab';
 import { SignatureInput } from '../../components/common/SignatureInput';
@@ -88,7 +89,8 @@ const CaseAction: React.FC = () => {
 
     const state = location.state as Record<string, unknown> | null;
     const fromPath = state?.from as string | undefined;
-    const backTarget = fromPath === 'pool' ? '/ohs/pool' : fromPath === 'my-cases' ? '/ohs/my-cases' : '/ohs/dashboard';
+    const base = getRoleBasePath(user?.role?.name);
+    const backTarget = fromPath === 'pool' ? `${base}/pool` : fromPath === 'my-cases' ? `${base}/my-cases` : `${base}/dashboard`;
     const backLabel = fromPath === 'pool' ? 'Back' : fromPath === 'my-cases' ? 'Back to Assigned Incidents' : 'Back to Dashboard';
 
     const [caseData, setCaseData] = useState<Case | null>(null);
@@ -428,7 +430,7 @@ const CaseAction: React.FC = () => {
 
     if (loading) {
         return (
-            <DashboardLayout title="Case Details" description="Loading..." breadcrumbs={[{ label: "Dashboard", path: "/ohs/dashboard" }, { label: "Cases Under Review", path: "/ohs/cases-review" }, { label: "Loading..." }]}>
+            <DashboardLayout title="Case Details" description="Loading..." breadcrumbs={[{ label: "Dashboard", path: `${base}/dashboard` }, { label: "Cases Under Review", path: `${base}/cases-review` }, { label: "Loading..." }]}>
                 <div className="flex items-center justify-center h-96">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div>
                 </div>
@@ -438,7 +440,7 @@ const CaseAction: React.FC = () => {
 
     if (error && !caseData) {
         return (
-            <DashboardLayout title="Case Details" description="Error" breadcrumbs={[{ label: "Dashboard", path: "/ohs/dashboard" }, { label: "Cases Under Review", path: "/ohs/cases-review" }, { label: "Error" }]}>
+            <DashboardLayout title="Case Details" description="Error" breadcrumbs={[{ label: "Dashboard", path: `${base}/dashboard` }, { label: "Cases Under Review", path: `${base}/cases-review` }, { label: "Error" }]}>
                 <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl">
                     <p className="font-bold">Error</p>
                     <p className="text-sm mt-1">{error}</p>
@@ -483,7 +485,7 @@ const CaseAction: React.FC = () => {
         <DashboardLayout
             title={`Case ${caseData.incidentNumber}`}
             description="Case Details"
-            breadcrumbs={[{ label: "Dashboard", path: "/ohs/dashboard" }, { label: "Cases Under Review", path: "/ohs/cases-review" }, { label: caseData?.incidentNumber || "Case Details" }]}
+            breadcrumbs={[{ label: "Dashboard", path: `${base}/dashboard` }, { label: "Cases Under Review", path: `${base}/cases-review` }, { label: caseData?.incidentNumber || "Case Details" }]}
         >
             <div className="max-w-7xl mx-auto">
                 {/* Success Banner */}

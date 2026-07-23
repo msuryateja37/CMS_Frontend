@@ -45,7 +45,8 @@ const Login: React.FC = () => {
         { id: 'HR', label: 'HR Officer', prefix: 'hr' },
         { id: 'PSSC_COORDINATOR', label: 'PSSC Coordinator', prefix: 'pssccoordinator' },
         { id: 'DEPUTY_DIRECTOR', label: 'Deputy Director', prefix: 'deputydirector' },
-        { id: 'CHIEF_DIRECTOR', label: 'Chief Director', prefix: 'chiefdirector' }
+        { id: 'CHIEF_DIRECTOR', label: 'Chief Director', prefix: 'chiefdirector' },
+        { id: 'FACILITIES_COORDINATOR', label: 'Facilities Co Coordinator', prefix: 'facilitiescoordinator' }
     ];
 
     // Redirect if already authenticated
@@ -76,6 +77,8 @@ const Login: React.FC = () => {
                 navigate('/deputy/dashboard');
             } else if (roleName === 'chief_director') {
                 navigate('/chief-director/dashboard');
+            } else if (roleName === 'facilities_coordinator') {
+                navigate('/facilities/dashboard');
             } else {
                 // Default fallback
                 navigate('/admin/dashboard');

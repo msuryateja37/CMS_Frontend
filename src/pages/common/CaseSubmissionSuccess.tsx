@@ -48,6 +48,16 @@ const CaseSubmissionSuccess: React.FC = () => {
             "Email updates on status changes",
             "Track status under 'My Incidents'"
         ];
+    } else if (userRole === 'FACILITIES_COORDINATOR') {
+        dashboardPath = '/facilities/dashboard';
+        viewCasesPath = '/facilities/my-cases';
+        submitAnotherPath = '/facilities/report-incident';
+        viewCasesLabel = 'View My Incidents';
+        nextSteps = [
+            "Your incident has been reported successfully",
+            "Email updates on status changes",
+            "Track status under 'Assigned Incidents'"
+        ];
     }
 
     // Redirect if no case data

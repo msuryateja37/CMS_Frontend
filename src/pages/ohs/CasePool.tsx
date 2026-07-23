@@ -4,6 +4,7 @@ import { Eye, Users, ArrowLeft } from 'lucide-react';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import casesService, { type Case } from '../../services/cases.service';
 import { useAuthStore } from '../../store/auth.store';
+import { getRoleBasePath } from '../../utils/rolePaths';
 import { Pill } from '../../components/common/Pill';
 import { getStatusLabel } from '../../data/constants';
 
@@ -22,6 +23,7 @@ interface PoolCase extends Case {
 const CasePool: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const base = getRoleBasePath(user?.role?.name);
   const [cases, setCases] = useState<PoolCase[]>([]);
   const [loading, setLoading] = useState(true);
   const [pickingId, setPickingId] = useState<string | null>(null);
@@ -94,13 +96,13 @@ const CasePool: React.FC = () => {
       title="Unassigned Incidents"
       description="Incidents awaiting pickup in your province. Forwarded health cases (hospitalization) appear here too — pick one up to begin the OHS investigation track."
       breadcrumbs={[
-        { label: 'OHS Dashboard', path: '/ohs/dashboard' },
+        { label: 'OHS Dashboard', path: `${base}/dashboard` },
         { label: 'Unassigned Incidents' },
       ]}
     >
       <div className="mb-6">
         <button
-          onClick={() => navigate('/ohs/dashboard')}
+          onClick={() => navigate(`${base}/dashboard`)}
           className="p-2 hover:bg-gray-200 rounded-lg text-gray-500 hover:text-gray-700 transition-colors shrink-0"
           title="Back"
           aria-label="Back"
@@ -197,7 +199,7 @@ const CasePool: React.FC = () => {
                       <td className="px-5 py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button
-                            onClick={() => navigate(`/ohs/cases/${c.id}`, { state: { from: 'pool' } })}
+                            onClick={() => navigate(`${base}/cases/${c.id}`, { state: { from: 'pool' } })}
                             className="flex items-center gap-1.5 px-3 py-1.5 bg-light-gold text-brown text-xs font-bold rounded-lg hover:bg-gold/10 transition-colors active:scale-[0.98]"
                           >
                             <Eye size={14} />

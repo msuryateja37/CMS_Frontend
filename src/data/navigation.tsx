@@ -539,6 +539,51 @@ export const PSSC_SIDEBAR = [
     }
 ];
 
+export const FACILITIES_SIDEBAR = [
+    {
+        path: '/facilities/dashboard',
+        label: 'Dashboard',
+        icon: LayoutDashboard,
+        isSingle: true
+    },
+    {
+        path: '/facilities/pool',
+        label: 'Incident Pool',
+        icon: FolderOpen,
+        isSingle: true
+    },
+    {
+        path: '/facilities/my-cases',
+        label: 'Assigned Incidents',
+        icon: Folder,
+        isSingle: true
+    },
+    {
+        path: '/facilities/report-incident',
+        label: 'Report New Incident',
+        icon: FilePlus,
+        isSingle: true
+    },
+    {
+        path: '/facilities/memorandum',
+        label: 'Memorandum',
+        icon: FileText,
+        isSingle: true
+    },
+    {
+        path: '/facilities/ai-assistant',
+        label: 'AI Assistant',
+        icon: MessageSquare,
+        isSingle: true
+    },
+    {
+        path: '/profile',
+        label: 'My Profile',
+        icon: User,
+        isSingle: true
+    }
+];
+
 export const CHIEF_DIRECTOR_SIDEBAR = [
     {
         path: '/chief-director/dashboard',

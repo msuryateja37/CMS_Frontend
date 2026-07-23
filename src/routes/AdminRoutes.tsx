@@ -76,6 +76,8 @@ import ChiefDirectorStrategicDecisions from '../pages/chief_director/StrategicDe
 import ChiefDirectorCompliance from '../pages/chief_director/ProvincialCompliance';
 import ChiefDirectorAIAssistant from '../pages/chief_director/AIAssistant';
 
+import FacilitiesMemorandum from '../pages/facilities/Memorandum';
+
 const AdminRoutes = () => {
     return (
         <Routes>
@@ -185,6 +187,21 @@ const AdminRoutes = () => {
             <Route path="/deputy/report-incident" element={<ProtectedRoute><ReportIncident /></ProtectedRoute>} />
             <Route path="/deputy/hira" element={<ProtectedRoute><OHSHira /></ProtectedRoute>} />
             <Route path="/deputy/ai-assistant" element={<ProtectedRoute><OHSSafetyAiAssistant /></ProtectedRoute>} />
+
+            {/* Facilities Co Coordinator routes (reuse the OHS Practitioner workflow) */}
+            <Route path="/facilities/dashboard" element={<ProtectedRoute><OHSDashboard /></ProtectedRoute>} />
+            <Route path="/facilities/pool" element={<ProtectedRoute><CasePool /></ProtectedRoute>} />
+            <Route path="/facilities/my-cases" element={<ProtectedRoute><OHSMyCases /></ProtectedRoute>} />
+            <Route path="/facilities/cases/:id" element={<ProtectedRoute><OHSCaseAction /></ProtectedRoute>} />
+            <Route path="/facilities/cases-review" element={<ProtectedRoute><OHSCasesReview /></ProtectedRoute>} />
+            <Route path="/facilities/report-incident" element={<ProtectedRoute><ReportIncident /></ProtectedRoute>} />
+            <Route path="/facilities/submit-case" element={<ProtectedRoute><ReportIncident /></ProtectedRoute>} />
+            <Route path="/facilities/report-incident/success" element={<ProtectedRoute><CaseSubmissionSuccess /></ProtectedRoute>} />
+            <Route path="/facilities/submit-case/success" element={<ProtectedRoute><CaseSubmissionSuccess /></ProtectedRoute>} />
+            <Route path="/facilities/ai-assistant" element={<ProtectedRoute><OHSSafetyAiAssistant /></ProtectedRoute>} />
+            <Route path="/facilities/memorandum" element={<ProtectedRoute><FacilitiesMemorandum /></ProtectedRoute>} />
+            <Route path="/facilities/cases/:id/memorandum" element={<ProtectedRoute><FacilitiesMemorandum /></ProtectedRoute>} />
+            <Route path="/facilities" element={<Navigate to="/facilities/dashboard" replace />} />
 
             {/* Chief Director (DDG / Executive Management) specific routes */}
             <Route path="/chief-director/dashboard" element={<ProtectedRoute><ChiefDirectorDashboard /></ProtectedRoute>} />
