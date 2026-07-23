@@ -7,7 +7,7 @@ import { DataTable, type Column } from '../../components/common/DataTable';
 import { type Case } from '../../services/cases.service';
 import { ArrowLeft, Eye, Loader2, FilePlus } from 'lucide-react';
 import { STATUS_FILTER_OPTIONS, CATEGORY_FILTER_OPTIONS, PRIORITY_FILTER_OPTIONS, getStatusLabel } from '../../data/constants';
-import { formatCategory } from '../../utils/formatters';
+import { formatIncidentCategory } from '../../utils/formatters';
 import { useIncidents } from '../../hooks/useIncidents';
 import { useAuthStore } from '../../store/auth.store';
 import { getRoleBasePath } from '../../utils/rolePaths';
@@ -68,7 +68,7 @@ const MyCases: React.FC = () => {
             header: 'Category',
             accessorKey: 'category',
             sortable: true,
-            cell: (item) => <span className="text-gray-700 font-medium">{formatCategory(item.category || 'N/A')}</span>
+            cell: (item) => <span className="text-gray-700 font-medium">{formatIncidentCategory(item.category, item.description) || 'N/A'}</span>
         },
 
         {

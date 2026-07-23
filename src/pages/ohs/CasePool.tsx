@@ -5,6 +5,7 @@ import DashboardLayout from '../../layouts/DashboardLayout';
 import casesService, { type Case } from '../../services/cases.service';
 import { useAuthStore } from '../../store/auth.store';
 import { getRoleBasePath } from '../../utils/rolePaths';
+import { formatIncidentCategory } from '../../utils/formatters';
 import { Pill } from '../../components/common/Pill';
 import { getStatusLabel } from '../../data/constants';
 
@@ -162,7 +163,7 @@ const CasePool: React.FC = () => {
                         </div>
                         <div className="text-xs text-gray-400 truncate max-w-[240px]">{c.description}</div>
                       </td>
-                      <td className="px-5 py-3 capitalize">{c.category}</td>
+                      <td className="px-5 py-3 capitalize">{formatIncidentCategory(c.category, c.description)}</td>
                       <td className="px-5 py-3 capitalize">{c.severity ?? c.severityLevel ?? '—'}</td>
                       <td className="px-5 py-3">{c.building?.province?.name ?? '—'}</td>
                       <td className="px-5 py-3">

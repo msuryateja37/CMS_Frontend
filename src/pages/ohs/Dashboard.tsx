@@ -21,7 +21,7 @@ import {
     Inbox,
     Users
 } from 'lucide-react';
-import { formatCategory } from '../../utils/formatters';
+import { formatIncidentCategory } from '../../utils/formatters';
 
 interface DashboardCase extends Case {
     hrStatus?: string;
@@ -114,7 +114,7 @@ const OHSDashboard: React.FC = () => {
             header: 'Category',
             accessorKey: 'category',
             sortable: true,
-            cell: (item) => <span className="text-gray-700 font-medium">{formatCategory(item.category || 'N/A')}</span>
+            cell: (item) => <span className="text-gray-700 font-medium">{formatIncidentCategory(item.category, item.description) || 'N/A'}</span>
         },
         {
             header: 'Severity',
@@ -190,7 +190,7 @@ const OHSDashboard: React.FC = () => {
             header: 'Category',
             accessorKey: 'category',
             sortable: true,
-            cell: (item) => <span className="text-gray-700 font-medium">{formatCategory(item.category || 'N/A')}</span>
+            cell: (item) => <span className="text-gray-700 font-medium">{formatIncidentCategory(item.category, item.description) || 'N/A'}</span>
         },
         {
             header: 'Severity',
