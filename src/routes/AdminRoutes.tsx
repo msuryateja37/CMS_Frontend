@@ -75,6 +75,7 @@ import ChiefDirectorEscalations from '../pages/chief_director/EscalationReports'
 import ChiefDirectorStrategicDecisions from '../pages/chief_director/StrategicDecisions';
 import ChiefDirectorCompliance from '../pages/chief_director/ProvincialCompliance';
 import ChiefDirectorAIAssistant from '../pages/chief_director/AIAssistant';
+import ChiefDirectorIncidentApprovals from '../pages/chief_director/IncidentApprovals';
 
 import FacilitiesMemorandum from '../pages/facilities/Memorandum';
 
@@ -205,6 +206,8 @@ const AdminRoutes = () => {
 
             {/* Chief Director (DDG / Executive Management) specific routes */}
             <Route path="/chief-director/dashboard" element={<ProtectedRoute><ChiefDirectorDashboard /></ProtectedRoute>} />
+            <Route path="/chief-director/incident-approvals" element={<ProtectedRoute><ChiefDirectorIncidentApprovals /></ProtectedRoute>} />
+            <Route path="/chief-director/incidents/:id" element={<ProtectedRoute><CaseDetails /></ProtectedRoute>} />
             <Route path="/chief-director/infrastructure" element={<ProtectedRoute><ChiefDirectorInfrastructure /></ProtectedRoute>} />
             <Route path="/chief-director/escalations" element={<ProtectedRoute><ChiefDirectorEscalations /></ProtectedRoute>} />
             <Route path="/chief-director/strategic-decisions" element={<ProtectedRoute><ChiefDirectorStrategicDecisions /></ProtectedRoute>} />

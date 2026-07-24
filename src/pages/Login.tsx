@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
+import { getUserDashboardPath } from '../utils/rolePaths';
 
 const Login: React.FC = () => {
     const navigate = useNavigate();
@@ -54,35 +55,8 @@ const Login: React.FC = () => {
         if (!isInitialized) return;
 
         if (isAuthenticated && user) {
-            const roleName = user.role?.name?.toLowerCase().replace(/\s+/g, '_');
-
-            // Route based on role (normalized to lowercase with underscores)
-            if (roleName === 'employee') {
-                navigate('/employee/dashboard');
-            } else if (roleName === 'supervisor') {
-                navigate('/supervisor/dashboard');
-            } else if (roleName === 'ohs_practitioner' || roleName === 'ohs_national_office') {
-                navigate('/ohs/dashboard');
-            } else if (roleName === 'first_aider') {
-                navigate('/first-aider/dashboard');
-            } else if (roleName === 'hr') {
-                navigate('/hr/dashboard');
-            } else if (roleName === 'finance_official') {
-                navigate('/finance/dashboard');
-            } else if (roleName === 'system_administrator' || roleName === 'manager') {
-                navigate('/admin/dashboard');
-            } else if (roleName === 'pssc_coordinator') {
-                navigate('/pssc/dashboard');
-            } else if (roleName === 'deputy_director') {
-                navigate('/deputy/dashboard');
-            } else if (roleName === 'chief_director') {
-                navigate('/chief-director/dashboard');
-            } else if (roleName === 'facilities_coordinator') {
-                navigate('/facilities/dashboard');
-            } else {
-                // Default fallback
-                navigate('/admin/dashboard');
-            }
+            const targetPath = getUserDashboardPath(user);
+            navigate(targetPath);
         }
     }, [isAuthenticated, isInitialized, user, navigate]);
 

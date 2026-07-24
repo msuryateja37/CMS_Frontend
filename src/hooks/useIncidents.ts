@@ -1,19 +1,23 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import casesService from '../services/cases.service';
 import type { CreateCaseDto } from '../services/cases.service';
+import { useAuthStore } from '../store/auth.store';
 
 export const useIncidents = (filters?: any) => {
+    const user = useAuthStore(s => s.user);
     return useQuery({
-        queryKey: ['incidents', filters],
+        queryKey: ['incidents', user?.id, filters],
         queryFn: () => casesService.getCases(filters),
+        enabled: !!user?.id,
     });
 };
 
 export const useCaseDetails = (id: string) => {
+    const user = useAuthStore(s => s.user);
     return useQuery({
-        queryKey: ['case', id],
+        queryKey: ['case', id, user?.id],
         queryFn: () => casesService.getCaseById(id),
-        enabled: !!id,
+        enabled: !!id && !!user?.id,
     });
 };
 
@@ -56,10 +60,12 @@ export const useAssignCase = () => {
         },
     });
 };
+
 export const useCaseTimeline = (id: string) => {
+    const user = useAuthStore(s => s.user);
     return useQuery({
-        queryKey: ['case-timeline', id],
+        queryKey: ['case-timeline', id, user?.id],
         queryFn: () => casesService.getActivityTimeline(id),
-        enabled: !!id,
+        enabled: !!id && !!user?.id,
     });
 };

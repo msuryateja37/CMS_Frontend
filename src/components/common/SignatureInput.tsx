@@ -170,7 +170,7 @@ export const SignatureInput: React.FC<SignatureInputProps> = ({
 
             {/* Sign Options Modal/Dropdown */}
             {showOptions && (
-                <div className="absolute z-50 mt-1 w-64 bg-white border border-gray-200 rounded-xl shadow-lg p-3 space-y-2.5 animate-fadeIn">
+                <div className="absolute right-0 bottom-full mb-2 z-50 w-72 bg-white border border-gray-200 rounded-xl shadow-2xl p-3.5 space-y-2.5 animate-fadeIn">
                     <div className="flex items-center justify-between border-b border-gray-100 pb-1.5">
                         <span className="text-xs font-bold text-gray-700">Choose Signature Method</span>
                         <button type="button" onClick={() => { setShowOptions(false); setIsDrawing(false); }} className="text-gray-400 hover:text-gray-650">

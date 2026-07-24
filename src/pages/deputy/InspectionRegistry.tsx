@@ -48,9 +48,10 @@ const InspectionRegistry: React.FC = () => {
 
     // Filter inspections based on user's province and period toggle (generates dynamically from cases if exist)
     const filteredInspections = React.useMemo<InspectionData[]>(() => {
-        if (cases.length === 0) return [];
+        const filledCases = cases.filter(c => Boolean(c.annexureOne));
+        if (filledCases.length === 0) return [];
 
-        const list = cases.map((c, idx) => {
+        const list = filledCases.map((c, idx) => {
             const pSlug = getProvinceSlug(c.building?.province?.name || '');
             const locName = c.building?.name || 'Main Office';
             const periodVal = (idx % 2 === 0) ? 'Monthly' : 'Quarterly';

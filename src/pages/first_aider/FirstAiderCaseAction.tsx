@@ -9,7 +9,7 @@ import {
     ArrowLeft, Clock, FileText, MapPin, Calendar, Building2,
     User, Tag, AlertCircle, Shield, Users, Upload,
     Send, Loader2, MessageSquare, Paperclip, CheckCircle,
-    X, ArrowUpRight, Stethoscope, Hospital
+    X, ArrowUpRight, Stethoscope, Hospital, Activity
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 import EscalationModal from '../../components/incident/EscalationModal';

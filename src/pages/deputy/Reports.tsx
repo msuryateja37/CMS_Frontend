@@ -1,12 +1,15 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import { useAuthStore } from '../../store/auth.store';
 import { useIncidents } from '../../hooks/useIncidents';
 import { Download, Eye } from 'lucide-react';
 import { Pill } from '../../components/common/Pill';
+import { getRoleBasePath } from '../../utils/rolePaths';
 
 interface ReportData {
     id: string;
+    firstCaseId?: string;
     reportId: string;
     title: string;
     province: string;
@@ -35,6 +38,7 @@ const getProvinceSlug = (name: string): string => {
 
 
 const Reports: React.FC = () => {
+    const navigate = useNavigate();
     const { user } = useAuthStore();
     const { data: casesData, isLoading } = useIncidents({ take: 1000 });
     const cases = casesData?.data || [];
@@ -77,6 +81,7 @@ const Reports: React.FC = () => {
 
             list.push({
                 id: key,
+                firstCaseId: firstCase.id,
                 reportId: `RPT-2026-${String(idx + 1).padStart(3, '0')}`,
                 title: `${month} ${cat} Incidents Report`,
                 province: pSlug,
@@ -155,11 +160,27 @@ const Reports: React.FC = () => {
                                         </td>
                                         <td className="px-5 py-3.5 text-center">
                                             <div className="flex items-center justify-center gap-3">
-                                                <button className="flex items-center gap-1 text-xs text-gold hover:text-gold-700 font-bold transition">
+                                                <button
+                                                    onClick={() => navigate(`${getRoleBasePath(user?.role?.name)}/cases/${report.firstCaseId}`)}
+                                                    className="flex items-center gap-1 text-xs text-gold hover:text-gold-700 font-bold transition"
+                                                >
                                                     <Eye className="w-3.5 h-3.5" />
                                                     View
                                                 </button>
-                                                <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-brown font-bold transition">
+                                                <button
+                                                    onClick={() => {
+                                                        const csvContent = `Report ID,Title,Province,Category,Date,Incidents Count,Status\n"${report.reportId}","${report.title}","${report.province}","${report.category}","${report.date}",${report.incidents},"${report.status}"`;
+                                                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                                                        const url = URL.createObjectURL(blob);
+                                                        const link = document.createElement('a');
+                                                        link.setAttribute('href', url);
+                                                        link.setAttribute('download', `${report.reportId}_Export.csv`);
+                                                        document.body.appendChild(link);
+                                                        link.click();
+                                                        document.body.removeChild(link);
+                                                    }}
+                                                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-brown font-bold transition"
+                                                >
                                                     <Download className="w-3.5 h-3.5" />
                                                     Export
                                                 </button>

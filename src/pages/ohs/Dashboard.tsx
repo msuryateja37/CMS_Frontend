@@ -57,12 +57,7 @@ const OHSDashboard: React.FC = () => {
     });
 
     const poolCases = (poolData?.data || []).filter(c => {
-        const cat = c.category?.toLowerCase();
-        if (cat === 'health') {
-            return c.status === 'REFERRED_TO_OHS_AND_HR';
-        }
-        // Safety, environmental, equipment, security, others go directly to OHS Pool on creation
-        return c.status === 'NEW' || c.status === 'UNASSIGNED' || c.status === 'POOL';
+        return c.status === 'NEW' || c.status === 'UNASSIGNED' || c.status === 'REFERRED_TO_OHS_AND_HR' || c.status === 'POOL';
     });
     const assignedCases = assignedData?.data || [];
     const loading = loadingPool || loadingAssigned;
@@ -102,12 +97,7 @@ const OHSDashboard: React.FC = () => {
             accessorKey: 'incidentNumber',
             sortable: true,
             cell: (item) => (
-                <div>
-                    <span className="font-mono text-sm font-medium text-gray-600">{item.incidentNumber}</span>
-                    {item.status === 'REFERRED_TO_OHS_AND_HR' && (
-                        <span className="ml-2 text-[10px] bg-purple-100 text-purple-700 font-bold px-1.5 py-0.5 rounded uppercase">Health</span>
-                    )}
-                </div>
+                <span className="font-mono text-xs font-semibold text-gray-800">{item.incidentNumber}</span>
             )
         },
         {
@@ -138,36 +128,28 @@ const OHSDashboard: React.FC = () => {
             cell: (item) => {
                 const hrStatus = item.hrStatus;
                 if (!hrStatus) return <span className="text-gray-400 text-xs">—</span>;
-                const colorMap: Record<string, string> = {
-                    HR_UNASSIGNED: 'bg-gray-100 text-gray-600',
-                    HR_ASSIGNED: 'bg-blue-100 text-blue-700',
-                    HR_UNDER_REVIEW: 'bg-amber-100 text-amber-700',
-                    HR_APPROVED: 'bg-green-100 text-green-700',
+                const labelMap: Record<string, string> = {
+                    HR_UNASSIGNED: 'WCL Processing',
+                    HR_ASSIGNED: 'WCL Processing',
+                    HR_UNDER_REVIEW: 'WCL Sent',
+                    HR_APPROVED: 'WCL Processed',
+                    WCL_ISSUED: 'WCL Sent',
+                    WCL_PROCESSED: 'WCL Processed',
+                    CLOSED: 'Completed',
                 };
                 return (
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${colorMap[hrStatus] ?? 'bg-gray-100 text-gray-600'}`}>
-                        {hrStatusLabel[hrStatus] ?? hrStatus}
+                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-700">
+                        {labelMap[hrStatus] ?? hrStatus}
                     </span>
                 );
             }
         },
         {
-            header: 'HR Assignee',
-            cell: (item) => {
-                const hr = item.hrAssignedTo;
-                return hr ? (
-                    <span className="flex items-center gap-1 text-xs text-gray-600">
-                        <Users size={12} /> {hr.name}
-                    </span>
-                ) : <span className="text-gray-400 text-xs">—</span>;
-            }
-        },
-        {
-            header: '',
+            header: 'Action',
             cell: (item) => (
                 <button
                     onClick={() => navigate(`${base}/cases/${item.id}`, { state: { from: 'dashboard' } })}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 text-orange-750 text-xs font-bold rounded-lg hover:bg-orange-100 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#884616] hover:bg-[#723b12] text-white text-xs font-bold rounded-lg transition-colors shadow-sm"
                 >
                     <Eye size={14} />
                     View
@@ -284,17 +266,7 @@ const OHSDashboard: React.FC = () => {
                 </div>
 
                 {/* Secondary Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-white py-2.5 px-3.5 rounded-xl border border-gray-150 shadow-sm flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
-                            <Clock size={16} className="text-amber-600" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none mb-0.5">Under Review</p>
-                            <p className="text-base font-bold text-gray-900 leading-none">{loading ? '...' : underReviewCases}</p>
-                        </div>
-                    </div>
-
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="bg-white py-2.5 px-3.5 rounded-xl border border-gray-150 shadow-sm flex items-center gap-3">
                         <div className="w-9 h-9 rounded-lg bg-red/10 flex items-center justify-center shrink-0">
                             <AlertTriangle size={16} className="text-red-500" />
@@ -385,7 +357,7 @@ const OHSDashboard: React.FC = () => {
                             </div>
                         ) : (
                             <DataTable
-                                data={assignedCases.filter(c => c.status !== 'CLOSED' && c.status !== 'RESOLVED').slice(0, 5)}
+                                data={assignedCases.slice(0, 5)}
                                 columns={assignedColumns}
                                 keyField="id"
                                 selectable={false}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout';
-import { BookOpen, ChevronDown, Save, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { BookOpen, ChevronDown, Save, CheckCircle, AlertCircle, Loader2, ArrowLeft } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 import casesService, { type Case } from '../../services/cases.service';
 import { dressingRegistryService } from '../../services/dressingRegistry.service';
@@ -173,10 +173,17 @@ const FirstAiderDressingRegistry: React.FC = () => {
         >
             <div className="max-w-4xl mx-auto">
                 {/* Page Header */}
-                <div className="mb-6">
-                    <div className="flex items-center gap-3 mb-1">
-                        <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-brown">
-                            <BookOpen size={18} />
+                <div className="flex items-center justify-between mb-6">
+                    <button
+                        type="button"
+                        onClick={() => navigate(-1)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold transition"
+                    >
+                        <ArrowLeft size={16} /> Back
+                    </button>
+                    <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-brown/10 flex items-center justify-center text-brown">
+                            <BookOpen size={20} />
                         </div>
                         <div>
                             <h1 className="text-lg font-bold text-gray-900">OHS Dressing Registry</h1>

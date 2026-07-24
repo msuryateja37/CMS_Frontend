@@ -10,7 +10,7 @@ import {
     ArrowLeft, Clock, FileText, MapPin, Calendar, Building2,
     User, AlertCircle, Shield, Users, Upload,
     Send, Loader2, MessageSquare, CheckCircle,
-    X, ArrowUpRight, Plus
+    X, ArrowUpRight, Plus, Activity
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 import { getRoleBasePath } from '../../utils/rolePaths';
@@ -164,16 +164,13 @@ const CaseAction: React.FC = () => {
 
     useEffect(() => {
         if (id) {
-            fetchCaseDetails(id);
-            fetchTimeline(id);
+            void Promise.all([
+                fetchCaseDetails(id, !caseData),
+                fetchTimeline(id),
+                fetchAnnexDetails(id),
+            ]);
         }
     }, [id]);
-
-    useEffect(() => {
-        if (id && activeTab === 'investigation') {
-            fetchAnnexDetails(id);
-        }
-    }, [id, activeTab]);
 
     const fetchAnnexDetails = async (caseId: string) => {
         try {
@@ -221,8 +218,13 @@ const CaseAction: React.FC = () => {
         try {
             setSavingAnnex(true);
             await casesService.updateAnnexureOne(id, annexData);
+            if (caseData?.status === 'ASSIGNED_TO_OHS' || caseData?.status === 'REFERRED_TO_OHS_AND_HR' || caseData?.status === 'ASSIGNED') {
+                await casesService.updateStatus(id, 'UNDER_INVESTIGATION');
+                setCaseData((prev) => prev ? { ...prev, status: 'UNDER_INVESTIGATION' } : prev);
+            }
             showSuccess('Annexure 1 form details updated successfully.');
             void fetchAnnexDetails(id);
+            void fetchTimeline(id);
         } catch (err) {
             console.error('Error saving Annexure 1:', err);
             setError('Failed to save Annexure 1 details.');
@@ -459,25 +461,27 @@ const CaseAction: React.FC = () => {
     const isSupervisor = userRole === 'supervisor';
     const isAdmin = userRole === 'admin' || userRole === 'system administrator';
     const isOHS = userRole === 'ohs practitioner';
+    const isFacilities = userRole === 'facilities coordinator' || userRole === 'facilities_coordinator';
+    const isPractitionerOrFacilities = isOHS || isFacilities;
     const isOHSNational = user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'ohs_national_office';
     const isCurrentAssignee = user?.id === caseData.assignedTo?.id;
-    const isDirectorApproved = caseData?.approvals?.some((a: any) => 
+    const isDirectorApproved = caseData.status === 'APPROVED' || (caseData?.approvals?.some((a: any) => 
         a.roleName === 'Director' || 
-        a.roleName === 'Provincial Security Coordinator' || 
-        a.roleName === 'PSSC Coordinator'
-    ) || false;
+        a.roleName === 'Chief Director' ||
+        a.roleName === 'CHIEF_DIRECTOR'
+    ) ?? false);
     const hasOhsGivenRecommendation = 
         caseData.status === 'UNDER_PSSC_RECOMMENDATION' || 
         caseData.status === 'UNDER_DEP_DIRECTOR_RECOMMENDATION' || 
         caseData.status === 'UNDER_DIRECTOR_RECOMMENDATION' || 
         caseData.status === 'DIRECTOR_APPROVAL';
 
-    const canEdit = !isClosed && (isCurrentAssignee || isSupervisor || isAdmin) && !hasOhsGivenRecommendation;
+    const canEdit = !isClosed && (isCurrentAssignee || isSupervisor || isAdmin || isFacilities) && !hasOhsGivenRecommendation;
 
-    // Practitioner-only actions
-    const canAddAction = !isClosed && isOHS && isCurrentAssignee && !hasOhsGivenRecommendation;
-    const canAddEvidence = !isClosed && isOHS && isCurrentAssignee && !hasOhsGivenRecommendation;
-    const canAddApproval = !isClosed && isOHS && isCurrentAssignee && !hasOhsGivenRecommendation;
+    // Practitioner/Facilities actions
+    const canAddAction = !isClosed && (isPractitionerOrFacilities || isAdmin) && (isCurrentAssignee || !caseData.assignedTo) && !hasOhsGivenRecommendation;
+    const canAddEvidence = !isClosed && (isPractitionerOrFacilities || isAdmin) && (isCurrentAssignee || !caseData.assignedTo) && !hasOhsGivenRecommendation;
+    const canAddApproval = !isClosed && (isPractitionerOrFacilities || isAdmin) && (isCurrentAssignee || !caseData.assignedTo) && !hasOhsGivenRecommendation;
 
 
 
@@ -505,6 +509,30 @@ const CaseAction: React.FC = () => {
                     </div>
                 )}
 
+                {/* Chief Director Approved Status Banner */}
+                {caseData.status === 'APPROVED' && (
+                    <div className="mb-4 flex items-center gap-3 bg-emerald-50 border border-emerald-200 text-emerald-800 px-5 py-4 rounded-xl text-xs font-semibold shadow-sm">
+                        <CheckCircle size={20} className="text-emerald-600 flex-shrink-0" />
+                        <div>
+                            <span className="font-bold uppercase tracking-wider block text-[11px] text-emerald-900">Incident Approved by Chief Director</span>
+                            <span>This case has received final Chief Director approval. You can view comments, add additional notes, and click "Close Case" to finalize it.</span>
+                        </div>
+                    </div>
+                )}
+
+                {/* Chief Director Declined Status Banner */}
+                {(caseData.status === 'UNDER_INVESTIGATION' && caseData.approvals?.some((a: any) => a.roleName?.includes('Declined'))) && (
+                    <div className="mb-4 flex items-center gap-3 bg-red-50 border border-red-200 text-red-800 px-5 py-4 rounded-xl text-xs font-semibold shadow-sm">
+                        <AlertCircle size={20} className="text-red-600 flex-shrink-0" />
+                        <div>
+                            <span className="font-bold uppercase tracking-wider block text-[11px] text-red-900">Incident Declined by Chief Director</span>
+                            <span>
+                                {caseData.approvals?.find((a: any) => a.roleName?.includes('Declined'))?.recommendationText || 'This case was returned for further investigation.'}
+                            </span>
+                        </div>
+                    </div>
+                )}
+
                 {/* Top Bar: Back + Action */}
                 <div className="flex items-center justify-between mb-6">
                     <button
@@ -528,9 +556,9 @@ const CaseAction: React.FC = () => {
                             )}
                             <button
                                 onClick={handleOpenCloseModal}
-                                disabled={closingCase || (isOHS && !isDirectorApproved)}
+                                disabled={closingCase || !isDirectorApproved}
                                 className="flex items-center gap-2 px-5 py-2.5 bg-red text-white rounded-lg hover:bg-opacity-90 transition-all font-semibold text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                                title={isOHS && !isDirectorApproved ? "Close button will be activated after the Director has approved" : ""}
+                                title={!isDirectorApproved ? "Close button will be activated after the Chief Director has approved" : ""}
                             >
                                 {closingCase ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
                                 Close Incident
@@ -539,32 +567,25 @@ const CaseAction: React.FC = () => {
                     )}
 
                     {!isClosed && !isUnderReview && !isCurrentAssignee && (
-                        caseData.assignedTo ? (
-                            <span className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-500 rounded-lg font-semibold text-sm">
-                                <Shield size={16} />
-                                Assigned to {caseData.assignedTo?.name || 'another practitioner'}
-                            </span>
-                        ) : (
-                            <button
-                                onClick={async () => {
-                                    try {
-                                        setLoading(true);
-                                        await casesService.pickupCase(caseData.id);
-                                        showSuccess('Case self-assigned successfully.');
-                                        fetchCaseDetails(caseData.id);
-                                        fetchTimeline(caseData.id);
-                                    } catch {
-                                        setError('Failed to self-assign incident.');
-                                    } finally {
-                                        setLoading(false);
-                                    }
-                                }}
-                                className="flex items-center gap-2 px-5 py-2.5 bg-[#2E7D32] hover:bg-[#1B5E20] text-white rounded-lg font-semibold text-sm shadow-md transition"
-                            >
-                                <CheckCircle size={16} />
-                                Self Assign Incident
-                            </button>
-                        )
+                        <button
+                            onClick={async () => {
+                                try {
+                                    setLoading(true);
+                                    await casesService.pickupCase(caseData.id);
+                                    showSuccess('Case self-assigned successfully.');
+                                    void fetchCaseDetails(caseData.id);
+                                    void fetchTimeline(caseData.id);
+                                } catch {
+                                    setError('Failed to self-assign incident.');
+                                } finally {
+                                    setLoading(false);
+                                }
+                            }}
+                            className="flex items-center gap-2 px-5 py-2.5 bg-[#884616] hover:bg-[#723b12] text-white rounded-xl font-bold text-xs shadow-md transition-all active:scale-[0.98]"
+                        >
+                            <CheckCircle size={16} />
+                            Self Assign Incident
+                        </button>
                     )}
 
                     {isUnderReview && (
@@ -1319,61 +1340,15 @@ const CaseAction: React.FC = () => {
                                     )}
 
                                     {caseData.correctiveActions && caseData.correctiveActions.length > 0 ? (
-                                        <div className="flex flex-col gap-4">
+                                        <div className="flex flex-col gap-3">
                                             {caseData.correctiveActions.map((act) => (
-                                                <div key={act.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3">
-                                                    <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">{act.actionText}</p>
-                                                    <div className="flex flex-wrap gap-3 items-end">
-                                                        <div className="min-w-[140px]">
-                                                            <label className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Status</label>
-                                                            <select
-                                                                disabled={!canAddAction || actionPatchingId === act.id}
-                                                                value={act.status ?? 'pending'}
-                                                                onChange={(e) =>
-                                                                    void patchCorrectiveActionRow(act.id, { status: e.target.value })
-                                                                }
-                                                                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white"
-                                                            >
-                                                                <option value="pending">Pending</option>
-                                                                <option value="in_progress">In progress</option>
-                                                                <option value="completed">Completed</option>
-                                                            </select>
+                                                <div key={act.id} className="bg-white p-4 rounded-xl border border-gray-150 shadow-sm space-y-2">
+                                                    <p className="text-xs font-semibold text-gray-850 leading-relaxed whitespace-pre-wrap">{act.actionText}</p>
+                                                    {act.notes && (
+                                                        <div className="text-[11px] text-gray-600 bg-gray-50 p-2 rounded-lg border border-gray-100 font-medium">
+                                                            <span className="font-bold text-gray-700">Notes: </span>{act.notes}
                                                         </div>
-                                                        <div className="min-w-[160px]">
-                                                            <label className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Due date</label>
-                                                            <input
-                                                                type="date"
-                                                                disabled={!canAddAction || actionPatchingId === act.id}
-                                                                value={act.dueDate ? act.dueDate.slice(0, 10) : ''}
-                                                                onChange={(e) =>
-                                                                    void patchCorrectiveActionRow(act.id, {
-                                                                        dueDate: e.target.value || null,
-                                                                    })
-                                                                }
-                                                                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5"
-                                                            />
-                                                        </div>
-                                                        {actionPatchingId === act.id && (
-                                                            <Loader2 size={16} className="animate-spin text-gold shrink-0" />
-                                                        )}
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Notes / verification</label>
-                                                        <textarea
-                                                            key={`${act.id}-notes-${act.updatedAt ?? ''}`}
-                                                            disabled={!canAddAction || actionPatchingId === act.id}
-                                                            defaultValue={act.notes ?? ''}
-                                                            onBlur={(e) => {
-                                                                const v = e.target.value.trim();
-                                                                if (v !== (act.notes ?? '').trim()) {
-                                                                    void patchCorrectiveActionRow(act.id, { notes: v || null });
-                                                                }
-                                                            }}
-                                                            rows={2}
-                                                            className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5"
-                                                            placeholder="Evidence reference, verification, owner..."
-                                                        />
-                                                    </div>
+                                                    )}
                                                 </div>
                                             ))}
                                         </div>

@@ -168,11 +168,11 @@ const HRCaseDetails: React.FC = () => {
         if (!id) return;
         setActioning(true);
         try {
-            await casesService.hrUpdateStatus(id, 'CLOSED');
-            showSuccess('HR Benefits track for this case closed successfully.');
+            await casesService.hrUpdateStatus(id, 'WCL_PROCESSED');
+            showSuccess('WCL Benefits processing completed for this case.');
             fetchData();
         } catch (err) {
-            setError('Failed to close HR case.');
+            setError('Failed to complete WCL processing.');
         } finally {
             setActioning(false);
         }
@@ -321,15 +321,15 @@ const HRCaseDetails: React.FC = () => {
                             </button>
                         )}
 
-                        {/* Close HR Case */}
+                        {/* Complete WCL Processing */}
                         {hrStatus === 'WCL_PROCESSED' && isHrAssignedToMe && (
                             <button
                                 onClick={handleCloseHrCase}
                                 disabled={actioning}
-                                className="flex items-center gap-1.5 px-4 py-2 bg-gray-900 hover:bg-black text-white rounded-xl text-xs font-bold transition-all shadow-sm disabled:opacity-50"
+                                className="flex items-center gap-1.5 px-4 py-2 bg-[#884616] hover:bg-[#723b12] text-white rounded-xl text-xs font-bold transition-all shadow-sm disabled:opacity-50"
                             >
                                 {actioning ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle size={13} />}
-                                <span>Close Case (HR Closure)</span>
+                                <span>Complete WCL Processing</span>
                             </button>
                         )}
                     </div>

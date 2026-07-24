@@ -7,7 +7,7 @@ import { useUsers } from '../../hooks/useUsers';
 import locationService, { type Province, type Building } from '../../services/location.service';
 import casesService from '../../services/cases.service';
 import { Trash2, Loader2, CheckCircle, AlertCircle, FileUp, HelpCircle, X, ArrowLeft, AlertTriangle } from 'lucide-react';
-import { type User } from '../../services/auth.service';
+import type { User as ServiceUser } from '../../services/userService';
 
 interface FormData {
     id: string;
@@ -40,16 +40,28 @@ const ReportIncident: React.FC = () => {
 
     // On-Behalf-Of States
     const [isBehalfOf, setIsBehalfOf] = useState(false);
-    const [selectedEmployee, setSelectedEmployee] = useState<User | null>(null);
+    const [selectedEmployee, setSelectedEmployee] = useState<ServiceUser | null>(null);
     const [employeeSearch, setEmployeeSearch] = useState('');
     const [showSuggestions, setShowSuggestions] = useState(false);
 
-    // Core States
-    const [formData, setFormData] = useState<FormData>({
+    // Derive provinceId from user for initial values — handle both direct province and nested department.building.province
+    const initialProvinceId = user?.province?.id || user?.department?.building?.province?.id || undefined;
+    const initialBuildingId = user?.department?.building?.id || undefined;
+    const initialDepartmentId = user?.department?.id || undefined;
+
+    // Core States - initialize with user's province so building dropdown is immediately enabled
+    const [formData, setFormData] = useState<FormData>(() => ({
         id: generateId(),
         type: 'INCIDENT',
-        media: []
-    });
+        media: [],
+        provinceId: initialProvinceId,
+        buildingId: initialBuildingId,
+        departmentId: initialDepartmentId
+    }));
+
+    // RESOLVED province ID used throughout - checks formData first, falls back to user's province
+    // This ensures the building dropdown is enabled even before formData.provinceId is synced
+    const resolvedProvinceId = formData.provinceId || user?.province?.id || user?.department?.building?.province?.id;
 
     // Date/Time States
     const [occurredAtDate, setOccurredAtDate] = useState('');
@@ -58,7 +70,7 @@ const ReportIncident: React.FC = () => {
     // Category Specific Sub-Fields
     const [natureOfInjury, setNatureOfInjury] = useState('');
     const [bodyPartAffected, setBodyPartAffected] = useState('');
-    const [selectedPersons, setSelectedPersons] = useState<User[]>([]);
+    const [selectedPersons, setSelectedPersons] = useState<ServiceUser[]>([]);
     const [personSearch, setPersonSearch] = useState('');
     const [showPersonSuggestions, setShowPersonSuggestions] = useState(false);
     const [otherSubtype, setOtherSubtype] = useState('');
@@ -81,14 +93,19 @@ const ReportIncident: React.FC = () => {
     const userRole = user?.role?.name?.toLowerCase()?.replace(/_/g, ' ')?.replace(/\s+/g, ' ')?.trim();
     const isSupervisor = userRole === 'supervisor' || userRole === 'pssc coordinator' || userRole === 'deputy director';
 
-    const currentUserProvinceId = user?.province?.id || user?.department?.building?.province?.id;
+    const currentUserProvinceId = formData.provinceId || user?.province?.id || user?.department?.building?.province?.id;
     const isNational = user?.province?.name === 'National Office';
 
     // Query employees in current province
     const { data: allEmployees } = useUsers({ role: 'EMPLOYEE' });
+    // Helper to get the province ID from a user, checking both direct provinceId and nested province object
+    const getUserProvinceId = (emp: ServiceUser): string | undefined => {
+        return emp.provinceId || emp.province?.id || undefined;
+    };
+
     const filteredEmployees = (allEmployees || []).filter(emp => {
         if (!isNational && currentUserProvinceId) {
-            const empProvinceId = emp.provinceId || emp.department?.building?.province?.id;
+            const empProvinceId = getUserProvinceId(emp);
             if (empProvinceId !== currentUserProvinceId) return false;
         }
         return emp.name?.toLowerCase().includes(employeeSearch.toLowerCase()) ||
@@ -98,7 +115,7 @@ const ReportIncident: React.FC = () => {
 
     const filteredPersons = (allEmployees || []).filter(emp => {
         if (!isNational && currentUserProvinceId) {
-            const empProvinceId = emp.provinceId || emp.department?.building?.province?.id;
+            const empProvinceId = getUserProvinceId(emp);
             if (empProvinceId !== currentUserProvinceId) return false;
         }
         return (emp.name?.toLowerCase().includes(personSearch.toLowerCase()) ||
@@ -135,13 +152,16 @@ const ReportIncident: React.FC = () => {
     const [files, setFiles] = useState<File[]>([]);
     const [uploading, setUploading] = useState<Record<string, boolean>>({});
 
-    // Dynamic Supervisor Query
-    const userProvinceId = formData.provinceId || user?.province?.id;
+    // Dynamic Supervisor Query - use resolvedProvinceId to ensure correct province filtering
     const { data: supervisors } = useUsers(
-        userProvinceId ? { provinceId: userProvinceId, role: 'SUPERVISOR' } : undefined
+        resolvedProvinceId ? { provinceId: resolvedProvinceId, role: 'SUPERVISOR' } : undefined
     );
     // If on-behalf-of, their supervisor is the logged-in supervisor
-    const supervisorName = isBehalfOf ? (user?.fullName || 'Sarah Mokae') : (supervisors && supervisors.length > 0 ? supervisors[0].name : 'Sarah Mokae');
+    const supervisorName = isBehalfOf 
+        ? (user?.fullName || user?.name || 'Supervisor') 
+        : (supervisors && supervisors.length > 0 
+            ? supervisors[0].name 
+            : (user?.province?.name ? `${user.province.name} Supervisor` : 'Gauteng Supervisor'));
 
     // Fetch Provinces on mount
     useEffect(() => {
@@ -156,22 +176,29 @@ const ReportIncident: React.FC = () => {
         fetchProvinces();
     }, []);
 
-    // Fetch Buildings when province changes
+    // Fetch Buildings when province changes OR when user is loaded with a province
+    // Uses the user's province as fallback if formData.provinceId is not yet set (handles timing edge case)
     useEffect(() => {
         const fetchBuildings = async () => {
-            if (!formData.provinceId) {
+            // Resolve provinceId from formData or user as fallback
+            const provinceId = formData.provinceId || user?.province?.id || user?.department?.building?.province?.id;
+            if (!provinceId) {
                 setBuildings([]);
                 return;
             }
             try {
-                const list = await locationService.getBuildingsByProvince(formData.provinceId);
+                // Ensure formData has the provinceId if it was resolved from user fallback
+                if (!formData.provinceId && provinceId) {
+                    setFormData(prev => ({ ...prev, provinceId }));
+                }
+                const list = await locationService.getBuildingsByProvince(provinceId);
                 setBuildings(list);
             } catch (e) {
                 console.error('Failed to load buildings', e);
             }
         };
         fetchBuildings();
-    }, [formData.provinceId]);
+    }, [formData.provinceId, user?.province?.id, user?.department?.building?.province?.id]);
 
     // Load from draft or set defaults
     useEffect(() => {
@@ -188,11 +215,11 @@ const ReportIncident: React.FC = () => {
         } else if (user) {
             setFormData(prev => ({
                 ...prev,
-                provinceId: user.province?.id || undefined,
+                provinceId: user.province?.id || user.department?.building?.province?.id || undefined,
                 buildingId: user.department?.building?.id || undefined,
                 departmentId: user.department?.id || undefined
             }));
-            
+
             // Set current date/time by default
             const now = new Date();
             const year = now.getFullYear();
@@ -200,7 +227,7 @@ const ReportIncident: React.FC = () => {
             const day = String(now.getDate()).padStart(2, '0');
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
-            
+
             setOccurredAtDate(`${year}-${month}-${day}`);
             setOccurredAtTime(`${hours}:${minutes}`);
         }
@@ -313,8 +340,7 @@ const ReportIncident: React.FC = () => {
             let description = formData.description || '';
             const cat = formData.categoryId || '';
             if (cat === 'health' || cat === 'safety') {
-                const affectedStr = selectedPersons.map(p => `${p.name} (${p.email})`).join(', ');
-                description = `[Nature of Injury: ${natureOfInjury} (${bodyPartAffected})]\n[Affected Persons: ${affectedStr}]\n\n${description}`;
+                description = `[Nature of Injury: ${natureOfInjury} (${bodyPartAffected})]\n\n${description}`;
             } else if (otherSubtype) {
                 description = `[Category Sub-type: ${otherSubtype}]\n\n${description}`;
             }
@@ -330,18 +356,13 @@ const ReportIncident: React.FC = () => {
                 buildingId: formData.buildingId,
                 provinceId: formData.provinceId,
                 departmentId: formData.departmentId,
-                peopleImpacted: selectedPersons.length,
+                peopleImpacted: 0,
                 media: formData.media || [],
                 immediateActions: formData.immediateActions ? [formData.immediateActions] : [],
                 otherActions: formData.otherActions,
                 reportedById: isBehalfOf && selectedEmployee ? selectedEmployee.id : undefined,
                 natureOfInjury: (cat === 'health' || cat === 'safety') ? natureOfInjury : undefined,
-                bodyPartAffected: (cat === 'health' || cat === 'safety') ? bodyPartAffected : undefined,
-                impactedPeople: (cat === 'health' || cat === 'safety') ? selectedPersons.map(p => ({
-                    name: p.fullName || p.name,
-                    email: p.email,
-                    phone: p.phone || ''
-                })) : undefined
+                bodyPartAffected: (cat === 'health' || cat === 'safety') ? bodyPartAffected : undefined
             };
 
             const response = await createCaseMutation.mutateAsync(caseData);
@@ -375,14 +396,14 @@ const ReportIncident: React.FC = () => {
     const isUploadingAny = Object.values(uploading).some(v => v);
     const category = formData.categoryId || '';
     const isCategoryValid = category !== '';
-    const isSubFieldsValid = 
+    const isSubFieldsValid =
         (category === 'health' || category === 'safety')
-            ? (natureOfInjury !== '' && bodyPartAffected !== '' && selectedPersons.length > 0)
+            ? (natureOfInjury !== '' && bodyPartAffected !== '')
             : (category === 'others' ? otherSubtype.trim() !== '' : true);
 
     const isBehalfOfValid = !isBehalfOf || !!selectedEmployee;
 
-    const isFormValid = 
+    const isFormValid =
         occurredAtDate !== '' &&
         occurredAtTime !== '' &&
         formData.provinceId &&
@@ -483,11 +504,11 @@ const ReportIncident: React.FC = () => {
                                                             setSelectedEmployee(emp);
                                                             setEmployeeSearch(emp.name);
                                                             setShowSuggestions(false);
-                                                            // Auto fill location details from employee
+                                                            // Auto fill location details from employee (user's province remains, departmentId from emp)
                                                             setFormData(prev => ({
                                                                 ...prev,
-                                                                provinceId: emp.provinceId || undefined,
-                                                                buildingId: emp.buildingId || undefined,
+                                                                provinceId: prev.provinceId,
+                                                                buildingId: prev.buildingId,
                                                                 departmentId: emp.departmentId || undefined
                                                             }));
                                                         }}
@@ -543,7 +564,7 @@ const ReportIncident: React.FC = () => {
                     {/* Incident Details Panel (Bordered Card) */}
                     <div className="bg-white rounded-2xl border border-gray-150 p-5 shadow-sm space-y-4">
                         <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest leading-none">Incident Details</h2>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label htmlFor="incident-date" className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Date *</label>
@@ -587,7 +608,7 @@ const ReportIncident: React.FC = () => {
                                     value={formData.buildingId || ''}
                                     onChange={(e) => setFormData(prev => ({ ...prev, buildingId: e.target.value }))}
                                     required
-                                    disabled={!formData.provinceId}
+                                    disabled={!resolvedProvinceId}
                                     className="w-full px-3.5 py-2 bg-white border border-gray-200 rounded-lg text-xs font-semibold outline-none focus:border-[#884616] transition cursor-pointer disabled:bg-gray-50 disabled:cursor-not-allowed"
                                 >
                                     <option value="" disabled>Select Office</option>
@@ -625,11 +646,10 @@ const ReportIncident: React.FC = () => {
                                                 setShowOtherModal(true);
                                             }
                                         }}
-                                        className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all ${
-                                            formData.categoryId === tile.id
-                                                ? 'border-[#884616] bg-amber-50/30 text-[#884616] font-bold shadow-sm'
-                                                : tile.color
-                                        }`}
+                                        className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all ${formData.categoryId === tile.id
+                                            ? 'border-[#884616] bg-amber-50/30 text-[#884616] font-bold shadow-sm'
+                                            : tile.color
+                                            }`}
                                     >
                                         <span className="text-xl mb-1">{tile.icon}</span>
                                         <span className="text-[10px] leading-tight">{tile.label}</span>
@@ -687,70 +707,6 @@ const ReportIncident: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* Affected Person(s) selector with Chips */}
-                                <div className="space-y-1.5">
-                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider">
-                                        Affected Person (s) *
-                                    </label>
-                                    
-                                    {/* Chips */}
-                                    {selectedPersons.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 pb-2">
-                                            {selectedPersons.map(person => (
-                                                <span
-                                                    key={person.id}
-                                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-[#884616] border border-amber-200 rounded-lg text-xs font-bold shadow-sm"
-                                                >
-                                                    {person.name} ({person.email})
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setSelectedPersons(prev => prev.filter(p => p.id !== person.id))}
-                                                        className="text-amber-500 hover:text-amber-700 font-bold ml-0.5"
-                                                    >
-                                                        ✕
-                                                    </button>
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Dropdown selector */}
-                                    <div className="relative" ref={suggestionsRef}>
-                                        <input
-                                            type="text"
-                                            value={personSearch}
-                                            onChange={(e) => {
-                                                setPersonSearch(e.target.value);
-                                                setShowPersonSuggestions(true);
-                                            }}
-                                            onFocus={() => setShowPersonSuggestions(true)}
-                                            placeholder="Select one or more people from Active Directory."
-                                            className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold outline-none focus:border-[#884616] transition"
-                                        />
-                                        {showPersonSuggestions && (
-                                            <div className="absolute z-25 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto custom-scrollbar">
-                                                {filteredPersons.length > 0 ? (
-                                                    filteredPersons.map(p => (
-                                                        <div
-                                                            key={p.id}
-                                                            onClick={() => {
-                                                                setSelectedPersons(prev => [...prev, p]);
-                                                                setPersonSearch('');
-                                                                setShowPersonSuggestions(false);
-                                                            }}
-                                                            className="px-4 py-2 hover:bg-gray-50 cursor-pointer text-xs font-medium text-gray-700 flex justify-between"
-                                                        >
-                                                            <span>{p.name} ({p.email})</span>
-                                                        </div>
-                                                    ))
-                                                ) : (
-                                                    <div className="px-4 py-3 text-xs text-gray-400 text-center font-medium">No results found</div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <p className="text-[10px] text-gray-400 font-semibold">Select one or more people from Active Directory.</p>
-                                </div>
                             </div>
                         )}
 
@@ -970,8 +926,8 @@ const ReportIncident: React.FC = () => {
                     <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl border border-gray-150 overflow-hidden animate-fadeIn">
                         <div className="flex items-center justify-between px-5 py-4 bg-gray-50 border-b border-gray-100">
                             <h3 className="font-bold text-sm text-gray-800">Specify Category Details</h3>
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 onClick={() => setShowOtherModal(false)}
                                 className="text-gray-400 hover:text-gray-600 transition"
                             >
@@ -982,18 +938,17 @@ const ReportIncident: React.FC = () => {
                             <p className="text-[11px] text-gray-500 font-medium leading-relaxed">
                                 Select one of the common other incident subtypes or enter your own custom detail below:
                             </p>
-                            
+
                             <div className="grid grid-cols-2 gap-2">
                                 {['Power Outage', 'Water Outage', 'Infrastructure', 'Cleaning', 'Sewer Blockage', 'Bad Smell', 'MVA', 'Other'].map(type => (
                                     <button
                                         key={type}
                                         type="button"
                                         onClick={() => setOtherSubtype(type)}
-                                        className={`py-2 px-3 border rounded-xl text-center text-xs font-semibold transition-all ${
-                                            otherSubtype === type
-                                                ? 'border-[#884616] bg-amber-50/30 text-[#884616]'
-                                                : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-                                        }`}
+                                        className={`py-2 px-3 border rounded-xl text-center text-xs font-semibold transition-all ${otherSubtype === type
+                                            ? 'border-[#884616] bg-amber-50/30 text-[#884616]'
+                                            : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                                            }`}
                                     >
                                         {type}
                                     </button>

@@ -592,6 +592,12 @@ export const CHIEF_DIRECTOR_SIDEBAR = [
         isSingle: true
     },
     {
+        path: '/chief-director/incident-approvals',
+        label: 'Incident Approvals',
+        icon: CheckCircle,
+        isSingle: true
+    },
+    {
         path: '/chief-director/infrastructure',
         label: 'Infrastructure Incidents',
         icon: Zap,

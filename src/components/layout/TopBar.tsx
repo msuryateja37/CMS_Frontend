@@ -3,8 +3,8 @@ import { Bell, Check, Menu } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth.store';
 import { useUIStore } from '../../store/ui.store';
-
 import { useNotifications } from '../../hooks/useNotifications';
+import { getUserRoleName, getUserRoleDisplayName } from '../../utils/rolePaths';
 
 export interface BreadcrumbItem {
     label: string;
@@ -42,9 +42,10 @@ const TopBar: React.FC<TopBarProps> = ({
     const location = useLocation();
     const pathname = location.pathname;
 
-    const isSupervisor = user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'supervisor';
-
-    const isOHSNational = user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'ohs_national_office';
+    const currentRole = getUserRoleName(user);
+    const isSupervisor = currentRole === 'supervisor';
+    const isOHSNational = currentRole === 'ohs_national_office';
+    const isOHS = currentRole === 'ohs_practitioner' || currentRole === 'ohs_national_office';
 
     const getDisplayTitle = () => {
         const path = pathname.toLowerCase();
@@ -98,9 +99,6 @@ const TopBar: React.FC<TopBarProps> = ({
         }
         return title;
     };
-
-    const isOHS = user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'ohs_practitioner' || 
-                  user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'ohs_national_office';
 
     const displayTitle = getDisplayTitle();
     let displayDescription = (isSupervisor || isOHS || isOHSNational) ? 'DLRRD Facilities Management Services' : description;
@@ -195,12 +193,7 @@ const TopBar: React.FC<TopBarProps> = ({
 
     const getUserRole = () => {
         if (userProfile) return userProfile.role;
-        if (!user?.role?.name) return 'User';
-        // Format role name: SYSTEM_ADMINISTRATOR -> System Administrator
-        return user.role.name
-            .split('_')
-            .map(word => word.charAt(0) + word.slice(1).toLowerCase())
-            .join(' ');
+        return getUserRoleDisplayName(user);
     };
 
 

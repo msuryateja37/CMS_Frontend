@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import authService from '../services/auth.service';
 import type { User, LoginCredentials } from '../services/auth.service';
+import { queryClient } from '../lib/queryClient';
 
 interface AuthState {
     user: User | null;
@@ -35,6 +36,10 @@ export const useAuthStore = create<AuthState>()(
                 set({ loading: true });
                 try {
                     const response = await authService.login(credentials);
+                    // Clear stale query cache after successful login
+                    setTimeout(() => {
+                        queryClient.clear();
+                    }, 0);
                     set({ user: response.user, isAuthenticated: true, loading: false });
                 } catch (error) {
                     set({ user: null, isAuthenticated: false, loading: false });
@@ -46,8 +51,14 @@ export const useAuthStore = create<AuthState>()(
                 set({ loading: true });
                 try {
                     await authService.logout();
-                    set({ user: null, isAuthenticated: false, loading: false });
                 } catch (error) {
+                    console.error('Logout error:', error);
+                } finally {
+                    // Safe cleanup on logout
+                    setTimeout(() => {
+                        queryClient.clear();
+                    }, 0);
+                    localStorage.removeItem('auth-storage');
                     set({ user: null, isAuthenticated: false, loading: false });
                 }
             },
@@ -57,12 +68,10 @@ export const useAuthStore = create<AuthState>()(
                 if (isInitialized || isInitializing) return;
 
                 set({ isInitializing: true });
-                const storedUser = authService.getStoredUser();
                 const token = authService.getAccessToken();
 
                 if (token) {
                     try {
-                        // If a token exists, always validate/fetch the latest user profile.
                         const currentUser = await authService.getCurrentUser();
                         set({ user: currentUser, isAuthenticated: true });
                     } catch (error) {
@@ -70,12 +79,9 @@ export const useAuthStore = create<AuthState>()(
                         set({ user: null, isAuthenticated: false });
                     }
                 } else {
-                    // No token means the session is not authenticated.
                     set({ user: null, isAuthenticated: false });
                 }
 
-                // If token exists but stored user is missing, we still rely on /auth/me above.
-                // If both are missing, this ensures stale persisted auth state is cleared.
                 set({ loading: false, isInitialized: true, isInitializing: false });
             },
 
