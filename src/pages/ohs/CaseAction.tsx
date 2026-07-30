@@ -10,11 +10,13 @@ import {
     ArrowLeft, Clock, FileText, MapPin, Calendar, Building2,
     User, AlertCircle, Shield, Users, Upload,
     Send, Loader2, MessageSquare, CheckCircle,
-    X, ArrowUpRight, Plus
+    X, ArrowUpRight, Plus, Activity
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
+import { getRoleBasePath } from '../../utils/rolePaths';
 import EscalationModal from '../../components/incident/EscalationModal';
 import { ApprovalsTab } from '../../components/incident/ApprovalsTab';
+import { SignatureInput } from '../../components/common/SignatureInput';
 
 const severityConfig: Record<string, { bg: string; text: string; dot: string }> = {
     critical: { bg: 'bg-subtle-red', text: 'text-brand-red', dot: 'bg-brand-red' },
@@ -87,7 +89,8 @@ const CaseAction: React.FC = () => {
 
     const state = location.state as Record<string, unknown> | null;
     const fromPath = state?.from as string | undefined;
-    const backTarget = fromPath === 'pool' ? '/ohs/pool' : fromPath === 'my-cases' ? '/ohs/my-cases' : '/ohs/dashboard';
+    const base = getRoleBasePath(user?.role?.name);
+    const backTarget = fromPath === 'pool' ? `${base}/pool` : fromPath === 'my-cases' ? `${base}/my-cases` : `${base}/dashboard`;
     const backLabel = fromPath === 'pool' ? 'Back' : fromPath === 'my-cases' ? 'Back to Assigned Incidents' : 'Back to Dashboard';
 
     const [caseData, setCaseData] = useState<Case | null>(null);
@@ -122,6 +125,9 @@ const CaseAction: React.FC = () => {
 
     // Send back to supervisor
     const [sendingBack, setSendingBack] = useState(false);
+    const [closingCase, setClosingCase] = useState(false);
+    const [showCloseModal, setShowCloseModal] = useState(false);
+    const [closureNotes, setClosureNotes] = useState('');
 
     // Success message
     const [successMsg, setSuccessMsg] = useState('');
@@ -158,13 +164,13 @@ const CaseAction: React.FC = () => {
 
     useEffect(() => {
         if (id) {
-            fetchCaseDetails(id);
-            fetchTimeline(id);
-            if (activeTab === 'investigation') {
-                fetchAnnexDetails(id);
-            }
+            void Promise.all([
+                fetchCaseDetails(id, !caseData),
+                fetchTimeline(id),
+                fetchAnnexDetails(id),
+            ]);
         }
-    }, [id, activeTab, caseData?.category]);
+    }, [id]);
 
     const fetchAnnexDetails = async (caseId: string) => {
         try {
@@ -180,7 +186,7 @@ const CaseAction: React.FC = () => {
 
     const fetchCaseDetails = async (caseId: string, showLoader = true) => {
         try {
-            if (showLoader) setLoading(true);
+            if (showLoader && !caseData) setLoading(true);
             const data = await casesService.getCaseById(caseId);
             setCaseData(data);
             if (data.incidentPlan) setIncidentPlan(data.incidentPlan);
@@ -188,7 +194,7 @@ const CaseAction: React.FC = () => {
             console.error('Error fetching case details:', err);
             setError('Failed to load case details.');
         } finally {
-            if (showLoader) setLoading(false);
+            setLoading(false);
         }
     };
 
@@ -212,8 +218,13 @@ const CaseAction: React.FC = () => {
         try {
             setSavingAnnex(true);
             await casesService.updateAnnexureOne(id, annexData);
+            if (caseData?.status === 'ASSIGNED_TO_OHS' || caseData?.status === 'REFERRED_TO_OHS_AND_HR' || caseData?.status === 'ASSIGNED') {
+                await casesService.updateStatus(id, 'UNDER_INVESTIGATION');
+                setCaseData((prev) => prev ? { ...prev, status: 'UNDER_INVESTIGATION' } : prev);
+            }
             showSuccess('Annexure 1 form details updated successfully.');
             void fetchAnnexDetails(id);
+            void fetchTimeline(id);
         } catch (err) {
             console.error('Error saving Annexure 1:', err);
             setError('Failed to save Annexure 1 details.');
@@ -348,27 +359,42 @@ const CaseAction: React.FC = () => {
         }
     };
 
-    const handleSendBackToSupervisor = async () => {
-        if (!id || !caseData) return;
+    const handleOpenCloseModal = () => {
+        if (!caseData) return;
+        const inApprovalStage = 
+            caseData.status === 'UNDER_PSSC_RECOMMENDATION' || 
+            caseData.status === 'UNDER_DEP_DIRECTOR_RECOMMENDATION' || 
+            caseData.status === 'UNDER_DIRECTOR_RECOMMENDATION' || 
+            caseData.status === 'DIRECTOR_APPROVAL';
 
-        // Check if evidence exists (Compulsory requirement)
-        if (!caseData.evidence || caseData.evidence.length === 0) {
-            setError('Evidence submission is compulsory. Please upload evidence before submitting for review.');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (inApprovalStage) {
+            alert('The case is currently in the recommendation/approval stage.');
             return;
         }
+        setClosureNotes('');
+        setShowCloseModal(true);
+    };
 
+    const handleConfirmCloseCase = async () => {
+        if (!id) return;
         try {
-            setSendingBack(true);
-            const updated = await casesService.updateStatus(id, 'UNDER_REVIEW');
-            mergeCase({ status: updated.status ?? 'UNDER_REVIEW' });
-            showSuccess('Case sent back to supervisor for review.');
+            setClosingCase(true);
+            setShowCloseModal(false);
+            
+            // Add closure comment if provided
+            if (closureNotes.trim()) {
+                await casesService.addComment(id, `Closure Notes: ${closureNotes.trim()}`);
+            }
+
+            const updated = await casesService.closeCase(id);
+            mergeCase({ status: updated.status ?? 'CLOSED' });
+            showSuccess('Incident closed successfully.');
             void fetchTimeline(id);
         } catch (err) {
-            console.error('Error updating status:', err);
-            setError('Failed to send case back.');
+            console.error('Error closing incident:', err);
+            setError('Failed to close incident.');
         } finally {
-            setSendingBack(false);
+            setClosingCase(false);
         }
     };
 
@@ -406,7 +432,7 @@ const CaseAction: React.FC = () => {
 
     if (loading) {
         return (
-            <DashboardLayout title="Case Details" description="Loading..." breadcrumbs={[{ label: "Dashboard", path: "/ohs/dashboard" }, { label: "Cases Under Review", path: "/ohs/cases-review" }, { label: "Loading..." }]}>
+            <DashboardLayout title="Case Details" description="Loading..." breadcrumbs={[{ label: "Dashboard", path: `${base}/dashboard` }, { label: "Cases Under Review", path: `${base}/cases-review` }, { label: "Loading..." }]}>
                 <div className="flex items-center justify-center h-96">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div>
                 </div>
@@ -416,7 +442,7 @@ const CaseAction: React.FC = () => {
 
     if (error && !caseData) {
         return (
-            <DashboardLayout title="Case Details" description="Error" breadcrumbs={[{ label: "Dashboard", path: "/ohs/dashboard" }, { label: "Cases Under Review", path: "/ohs/cases-review" }, { label: "Error" }]}>
+            <DashboardLayout title="Case Details" description="Error" breadcrumbs={[{ label: "Dashboard", path: `${base}/dashboard` }, { label: "Cases Under Review", path: `${base}/cases-review` }, { label: "Error" }]}>
                 <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl">
                     <p className="font-bold">Error</p>
                     <p className="text-sm mt-1">{error}</p>
@@ -435,13 +461,27 @@ const CaseAction: React.FC = () => {
     const isSupervisor = userRole === 'supervisor';
     const isAdmin = userRole === 'admin' || userRole === 'system administrator';
     const isOHS = userRole === 'ohs practitioner';
+    const isFacilities = userRole === 'facilities coordinator' || userRole === 'facilities_coordinator';
+    const isPractitionerOrFacilities = isOHS || isFacilities;
+    const isOHSNational = user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'ohs_national_office';
     const isCurrentAssignee = user?.id === caseData.assignedTo?.id;
-    const canEdit = !isClosed && (isCurrentAssignee || isSupervisor || isAdmin);
+    const isDirectorApproved = caseData.status === 'APPROVED' || (caseData?.approvals?.some((a: any) => 
+        a.roleName === 'Director' || 
+        a.roleName === 'Chief Director' ||
+        a.roleName === 'CHIEF_DIRECTOR'
+    ) ?? false);
+    const hasOhsGivenRecommendation = 
+        caseData.status === 'UNDER_PSSC_RECOMMENDATION' || 
+        caseData.status === 'UNDER_DEP_DIRECTOR_RECOMMENDATION' || 
+        caseData.status === 'UNDER_DIRECTOR_RECOMMENDATION' || 
+        caseData.status === 'DIRECTOR_APPROVAL';
 
-    // Practitioner-only actions
-    const canAddAction = !isClosed && isOHS && isCurrentAssignee;
-    const canAddEvidence = !isClosed && isOHS && isCurrentAssignee;
-    const canAddApproval = !isClosed && isOHS && isCurrentAssignee;
+    const canEdit = !isClosed && (isCurrentAssignee || isSupervisor || isAdmin || isFacilities) && !hasOhsGivenRecommendation;
+
+    // Practitioner/Facilities actions
+    const canAddAction = !isClosed && (isPractitionerOrFacilities || isAdmin) && (isCurrentAssignee || !caseData.assignedTo) && !hasOhsGivenRecommendation;
+    const canAddEvidence = !isClosed && (isPractitionerOrFacilities || isAdmin) && (isCurrentAssignee || !caseData.assignedTo) && !hasOhsGivenRecommendation;
+    const canAddApproval = !isClosed && (isPractitionerOrFacilities || isAdmin) && (isCurrentAssignee || !caseData.assignedTo) && !hasOhsGivenRecommendation;
 
 
 
@@ -449,7 +489,7 @@ const CaseAction: React.FC = () => {
         <DashboardLayout
             title={`Case ${caseData.incidentNumber}`}
             description="Case Details"
-            breadcrumbs={[{ label: "Dashboard", path: "/ohs/dashboard" }, { label: "Cases Under Review", path: "/ohs/cases-review" }, { label: caseData?.incidentNumber || "Case Details" }]}
+            breadcrumbs={[{ label: "Dashboard", path: `${base}/dashboard` }, { label: "Cases Under Review", path: `${base}/cases-review` }, { label: caseData?.incidentNumber || "Case Details" }]}
         >
             <div className="max-w-7xl mx-auto">
                 {/* Success Banner */}
@@ -469,6 +509,30 @@ const CaseAction: React.FC = () => {
                     </div>
                 )}
 
+                {/* Chief Director Approved Status Banner */}
+                {caseData.status === 'APPROVED' && (
+                    <div className="mb-4 flex items-center gap-3 bg-emerald-50 border border-emerald-200 text-emerald-800 px-5 py-4 rounded-xl text-xs font-semibold shadow-sm">
+                        <CheckCircle size={20} className="text-emerald-600 flex-shrink-0" />
+                        <div>
+                            <span className="font-bold uppercase tracking-wider block text-[11px] text-emerald-900">Incident Approved by Chief Director</span>
+                            <span>This case has received final Chief Director approval. You can view comments, add additional notes, and click "Close Case" to finalize it.</span>
+                        </div>
+                    </div>
+                )}
+
+                {/* Chief Director Declined Status Banner */}
+                {(caseData.status === 'UNDER_INVESTIGATION' && caseData.approvals?.some((a: any) => a.roleName?.includes('Declined'))) && (
+                    <div className="mb-4 flex items-center gap-3 bg-red-50 border border-red-200 text-red-800 px-5 py-4 rounded-xl text-xs font-semibold shadow-sm">
+                        <AlertCircle size={20} className="text-red-600 flex-shrink-0" />
+                        <div>
+                            <span className="font-bold uppercase tracking-wider block text-[11px] text-red-900">Incident Declined by Chief Director</span>
+                            <span>
+                                {caseData.approvals?.find((a: any) => a.roleName?.includes('Declined'))?.recommendationText || 'This case was returned for further investigation.'}
+                            </span>
+                        </div>
+                    </div>
+                )}
+
                 {/* Top Bar: Back + Action */}
                 <div className="flex items-center justify-between mb-6">
                     <button
@@ -481,51 +545,47 @@ const CaseAction: React.FC = () => {
 
                     {!isClosed && !isUnderReview && isCurrentAssignee && (
                         <div className="flex items-center gap-3">
+                            {(!isOHS || isOHSNational) && (
+                                <button
+                                    onClick={() => setShowEscalation(true)}
+                                    className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition-all font-semibold text-sm"
+                                >
+                                    <ArrowUpRight size={16} />
+                                    Escalate
+                                </button>
+                            )}
                             <button
-                                onClick={() => setShowEscalation(true)}
-                                className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition-all font-semibold text-sm"
+                                onClick={handleOpenCloseModal}
+                                disabled={closingCase || !isDirectorApproved}
+                                className="flex items-center gap-2 px-5 py-2.5 bg-red text-white rounded-lg hover:bg-opacity-90 transition-all font-semibold text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                title={!isDirectorApproved ? "Close button will be activated after the Chief Director has approved" : ""}
                             >
-                                <ArrowUpRight size={16} />
-                                Escalate
-                            </button>
-                            <button
-                                onClick={handleSendBackToSupervisor}
-                                disabled={sendingBack}
-                                className="flex items-center gap-2 px-5 py-2.5 bg-brown text-white rounded-lg hover:bg-opacity-90 transition-all font-semibold text-sm shadow-sm disabled:opacity-50"
-                            >
-                                {sendingBack ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-                                Submit for Review
+                                {closingCase ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
+                                Close Incident
                             </button>
                         </div>
                     )}
 
                     {!isClosed && !isUnderReview && !isCurrentAssignee && (
-                        caseData.assignedTo ? (
-                            <span className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-500 rounded-lg font-semibold text-sm">
-                                <Shield size={16} />
-                                Assigned to {caseData.assignedTo?.name || 'another practitioner'}
-                            </span>
-                        ) : (
-                            <button
-                                onClick={async () => {
-                                    try {
-                                        setLoading(true);
-                                        await casesService.pickupCase(caseData.id);
-                                        showSuccess('Case self-assigned successfully.');
-                                        fetchCaseDetails(caseData.id);
-                                        fetchTimeline(caseData.id);
-                                    } catch {
-                                        setError('Failed to self-assign incident.');
-                                    } finally {
-                                        setLoading(false);
-                                    }
-                                }}
-                                className="flex items-center gap-2 px-5 py-2.5 bg-[#2E7D32] hover:bg-[#1B5E20] text-white rounded-lg font-semibold text-sm shadow-md transition"
-                            >
-                                <CheckCircle size={16} />
-                                Self Assign Incident
-                            </button>
-                        )
+                        <button
+                            onClick={async () => {
+                                try {
+                                    setLoading(true);
+                                    await casesService.pickupCase(caseData.id);
+                                    showSuccess('Case self-assigned successfully.');
+                                    void fetchCaseDetails(caseData.id);
+                                    void fetchTimeline(caseData.id);
+                                } catch {
+                                    setError('Failed to self-assign incident.');
+                                } finally {
+                                    setLoading(false);
+                                }
+                            }}
+                            className="flex items-center gap-2 px-5 py-2.5 bg-[#884616] hover:bg-[#723b12] text-white rounded-xl font-bold text-xs shadow-md transition-all active:scale-[0.98]"
+                        >
+                            <CheckCircle size={16} />
+                            Self Assign Incident
+                        </button>
                     )}
 
                     {isUnderReview && (
@@ -774,6 +834,22 @@ const CaseAction: React.FC = () => {
                                                 </label>
                                                 <p className="text-sm font-medium text-gray-800">{caseData.peopleImpacted ?? 0}</p>
                                             </div>
+                                            {caseData.natureOfInjury && (
+                                                <div>
+                                                    <label className="flex items-center gap-1.5 text-xs text-gray-400 font-semibold mb-1">
+                                                        <Activity size={12} /> Nature of Injury
+                                                    </label>
+                                                    <p className="text-sm font-medium text-gray-850">{caseData.natureOfInjury}</p>
+                                                </div>
+                                            )}
+                                            {caseData.bodyPartAffected && (
+                                                <div>
+                                                    <label className="flex items-center gap-1.5 text-xs text-gray-400 font-semibold mb-1">
+                                                        <Activity size={12} /> Body Part Affected
+                                                    </label>
+                                                    <p className="text-sm font-medium text-gray-850">{caseData.bodyPartAffected}</p>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
@@ -1081,13 +1157,10 @@ const CaseAction: React.FC = () => {
 
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                                                 <div>
-                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Investigator Signature</label>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Type name to sign electronically"
+                                                    <SignatureInput
+                                                        label="Investigator Signature"
                                                         value={annexData.investigatorSignature || ''}
-                                                        onChange={(e) => setAnnexData({ ...annexData, investigatorSignature: e.target.value })}
-                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold font-serif italic outline-none focus:border-[#884616]"
+                                                        onChange={(val) => setAnnexData({ ...annexData, investigatorSignature: val })}
                                                     />
                                                 </div>
                                                 <div>
@@ -1116,13 +1189,11 @@ const CaseAction: React.FC = () => {
                                             </div>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Employer Signature</label>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Type name to sign"
+                                                    <SignatureInput
+                                                        label="Employer Signature"
                                                         value={annexData.employerSignature || ''}
-                                                        onChange={(e) => setAnnexData({ ...annexData, employerSignature: e.target.value })}
-                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold font-serif italic outline-none"
+                                                        onChange={(val) => setAnnexData({ ...annexData, employerSignature: val })}
+                                                        placeholder="Type name to sign"
                                                     />
                                                 </div>
                                                 <div>
@@ -1151,13 +1222,11 @@ const CaseAction: React.FC = () => {
                                             </div>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Chairperson Signature</label>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Type name to sign"
+                                                    <SignatureInput
+                                                        label="Chairperson Signature"
                                                         value={annexData.committeeChairpersonSignature || ''}
-                                                        onChange={(e) => setAnnexData({ ...annexData, committeeChairpersonSignature: e.target.value })}
-                                                        className="w-full px-3 py-2 border border-gray-250 rounded-lg text-xs font-semibold font-serif italic outline-none"
+                                                        onChange={(val) => setAnnexData({ ...annexData, committeeChairpersonSignature: val })}
+                                                        placeholder="Type name to sign"
                                                     />
                                                 </div>
                                                 <div>
@@ -1271,61 +1340,15 @@ const CaseAction: React.FC = () => {
                                     )}
 
                                     {caseData.correctiveActions && caseData.correctiveActions.length > 0 ? (
-                                        <div className="flex flex-col gap-4">
+                                        <div className="flex flex-col gap-3">
                                             {caseData.correctiveActions.map((act) => (
-                                                <div key={act.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3">
-                                                    <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">{act.actionText}</p>
-                                                    <div className="flex flex-wrap gap-3 items-end">
-                                                        <div className="min-w-[140px]">
-                                                            <label className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Status</label>
-                                                            <select
-                                                                disabled={!canAddAction || actionPatchingId === act.id}
-                                                                value={act.status ?? 'pending'}
-                                                                onChange={(e) =>
-                                                                    void patchCorrectiveActionRow(act.id, { status: e.target.value })
-                                                                }
-                                                                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white"
-                                                            >
-                                                                <option value="pending">Pending</option>
-                                                                <option value="in_progress">In progress</option>
-                                                                <option value="completed">Completed</option>
-                                                            </select>
+                                                <div key={act.id} className="bg-white p-4 rounded-xl border border-gray-150 shadow-sm space-y-2">
+                                                    <p className="text-xs font-semibold text-gray-850 leading-relaxed whitespace-pre-wrap">{act.actionText}</p>
+                                                    {act.notes && (
+                                                        <div className="text-[11px] text-gray-600 bg-gray-50 p-2 rounded-lg border border-gray-100 font-medium">
+                                                            <span className="font-bold text-gray-700">Notes: </span>{act.notes}
                                                         </div>
-                                                        <div className="min-w-[160px]">
-                                                            <label className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Due date</label>
-                                                            <input
-                                                                type="date"
-                                                                disabled={!canAddAction || actionPatchingId === act.id}
-                                                                value={act.dueDate ? act.dueDate.slice(0, 10) : ''}
-                                                                onChange={(e) =>
-                                                                    void patchCorrectiveActionRow(act.id, {
-                                                                        dueDate: e.target.value || null,
-                                                                    })
-                                                                }
-                                                                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5"
-                                                            />
-                                                        </div>
-                                                        {actionPatchingId === act.id && (
-                                                            <Loader2 size={16} className="animate-spin text-gold shrink-0" />
-                                                        )}
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Notes / verification</label>
-                                                        <textarea
-                                                            key={`${act.id}-notes-${act.updatedAt ?? ''}`}
-                                                            disabled={!canAddAction || actionPatchingId === act.id}
-                                                            defaultValue={act.notes ?? ''}
-                                                            onBlur={(e) => {
-                                                                const v = e.target.value.trim();
-                                                                if (v !== (act.notes ?? '').trim()) {
-                                                                    void patchCorrectiveActionRow(act.id, { notes: v || null });
-                                                                }
-                                                            }}
-                                                            rows={2}
-                                                            className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5"
-                                                            placeholder="Evidence reference, verification, owner..."
-                                                        />
-                                                    </div>
+                                                    )}
                                                 </div>
                                             ))}
                                         </div>
@@ -1740,6 +1763,55 @@ const CaseAction: React.FC = () => {
                     }
                 }}
             />
+
+            {/* Close Incident Modal */}
+            {showCloseModal && (
+                <div className="fixed inset-0 bg-black/45 z-50 flex items-center justify-center animate-fadeIn p-4 overflow-y-auto">
+                    <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl flex flex-col gap-4 animate-scaleUp relative">
+                        <button
+                            type="button"
+                            onClick={() => setShowCloseModal(false)}
+                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+                        >
+                            <X size={20} />
+                        </button>
+
+                        <div className="text-center pb-2 border-b border-gray-100">
+                            <h3 className="text-base font-black text-gray-800 uppercase tracking-wider text-red">Close Incident</h3>
+                            <p className="text-xs text-gray-500 mt-2 font-bold">Are you sure you want to close this incident?</p>
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                            <label className="text-[10px] font-bold text-gray-700 uppercase tracking-wider block">Closure Notes (optional)</label>
+                            <textarea
+                                value={closureNotes}
+                                onChange={(e) => setClosureNotes(e.target.value)}
+                                placeholder="Enter details about the resolution or closure notes..."
+                                className="w-full text-xs border border-gray-250 rounded-xl p-3 outline-none focus:border-[#884616] min-h-[100px] bg-white font-medium"
+                            />
+                        </div>
+
+                        <div className="flex justify-end gap-3 border-t border-gray-100 pt-3">
+                            <button
+                                type="button"
+                                onClick={() => setShowCloseModal(false)}
+                                className="px-4 py-2 bg-white border border-gray-250 hover:bg-gray-50 text-gray-600 text-xs font-bold rounded-xl transition"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                disabled={closingCase}
+                                onClick={handleConfirmCloseCase}
+                                className="px-5 py-2.5 bg-red text-white text-xs font-bold rounded-xl transition shadow flex items-center gap-1.5"
+                            >
+                                {closingCase ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
+                                Close Incident
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </DashboardLayout>
     );
 };

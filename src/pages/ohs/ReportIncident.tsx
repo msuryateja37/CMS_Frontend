@@ -14,9 +14,8 @@ import { INCIDENT_CATEGORIES } from '../../data/constants';
 const steps = [
     { id: 1, label: 'Incident type' },
     { id: 2, label: 'Basic Info' },
-    { id: 3, label: 'People & Impact' },
-    { id: 4, label: 'Attachments' },
-    { id: 5, label: 'Review' }
+    { id: 3, label: 'Attachments' },
+    { id: 4, label: 'Review' }
 ];
 
 interface Person {
@@ -198,26 +197,18 @@ const ReportIncident: React.FC = () => {
                         />
                     )}
                     {step === 3 && (
-                        <StepPeopleImpact
+                        <StepAttachment
                             data={formData}
                             onChange={updateFormData}
                             onBack={() => setStep(2)}
                             onNext={() => setStep(4)}
-                        />
-                    )}
-                    {step === 4 && (
-                        <StepAttachment
-                            data={formData}
-                            onChange={updateFormData}
-                            onBack={() => setStep(3)}
-                            onNext={() => setStep(5)}
                             categoryName={formData.categoryName}
                         />
                     )}
-                    {step === 5 && (
+                    {step === 4 && (
                         <StepReview
                             data={formData}
-                            onBack={() => setStep(4)}
+                            onBack={() => setStep(3)}
                             onSubmit={handleSubmit}
                             submitting={submitting}
                         />

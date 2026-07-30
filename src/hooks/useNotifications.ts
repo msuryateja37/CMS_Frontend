@@ -1,19 +1,23 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import notificationService from '../services/notification.service';
+import { useAuthStore } from '../store/auth.store';
 
 export const useNotifications = () => {
     const queryClient = useQueryClient();
+    const user = useAuthStore(s => s.user);
 
     const notificationsQuery = useQuery({
-        queryKey: ['notifications'],
+        queryKey: ['notifications', user?.id],
         queryFn: () => notificationService.getNotifications(),
-        refetchInterval: 5000, // Refetch every 5 seconds for immediate popups
+        enabled: !!user?.id,
+        refetchInterval: 5000,
     });
 
     const unreadCountQuery = useQuery({
-        queryKey: ['notifications', 'unread-count'],
+        queryKey: ['notifications', 'unread-count', user?.id],
         queryFn: () => notificationService.getUnreadCount(),
-        refetchInterval: 5000, // Refetch every 5 seconds
+        enabled: !!user?.id,
+        refetchInterval: 5000,
     });
 
     const markAsReadMutation = useMutation({
@@ -28,7 +32,7 @@ export const useNotifications = () => {
         mutationFn: () => notificationService.markAllAsRead(),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['notifications'] });
-            queryClient.setQueryData(['notifications', 'unread-count'], 0);
+            queryClient.setQueryData(['notifications', 'unread-count', user?.id], 0);
         },
     });
 

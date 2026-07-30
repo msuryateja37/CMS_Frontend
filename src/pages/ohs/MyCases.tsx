@@ -7,13 +7,15 @@ import { DataTable, type Column } from '../../components/common/DataTable';
 import { type Case } from '../../services/cases.service';
 import { ArrowLeft, Eye, Loader2, FilePlus } from 'lucide-react';
 import { STATUS_FILTER_OPTIONS, CATEGORY_FILTER_OPTIONS, PRIORITY_FILTER_OPTIONS, getStatusLabel } from '../../data/constants';
-import { formatCategory } from '../../utils/formatters';
+import { formatIncidentCategory } from '../../utils/formatters';
 import { useIncidents } from '../../hooks/useIncidents';
 import { useAuthStore } from '../../store/auth.store';
+import { getRoleBasePath } from '../../utils/rolePaths';
 
 const MyCases: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuthStore();
+    const base = getRoleBasePath(user?.role?.name);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [categoryFilter, setCategoryFilter] = useState('');
@@ -66,7 +68,7 @@ const MyCases: React.FC = () => {
             header: 'Category',
             accessorKey: 'category',
             sortable: true,
-            cell: (item) => <span className="text-gray-700 font-medium">{formatCategory(item.category || 'N/A')}</span>
+            cell: (item) => <span className="text-gray-700 font-medium">{formatIncidentCategory(item.category, item.description) || 'N/A'}</span>
         },
 
         {
@@ -101,7 +103,7 @@ const MyCases: React.FC = () => {
             header: 'Actions',
             cell: (item) => (
                 <button
-                    onClick={() => navigate(`/ohs/cases/${item.id}`, { state: { from: 'my-cases' } })}
+                    onClick={() => navigate(`${base}/cases/${item.id}`, { state: { from: 'my-cases' } })}
                     className="flex items-center gap-1.5 px-4 py-1.5 bg-light-gold text-brown text-xs font-bold rounded-lg hover:bg-gold/10 transition-colors whitespace-nowrap"
                 >
                     <Eye size={14} />
@@ -124,13 +126,13 @@ const MyCases: React.FC = () => {
         <DashboardLayout
             title="Assigned Incidents"
             description="Incidents currently assigned to you for investigation"
-            breadcrumbs={[{ label: "Dashboard", path: "/ohs/dashboard" }, { label: "Assigned Incidents" }]}
+            breadcrumbs={[{ label: "Dashboard", path: `${base}/dashboard` }, { label: "Assigned Incidents" }]}
         >
             <div className="flex flex-col gap-6">
                 {/* Actions Row */}
                 <div className="flex justify-between items-center mb-1">
                     <button
-                        onClick={() => navigate('/ohs/dashboard')}
+                        onClick={() => navigate(`${base}/dashboard`)}
                         className="p-2 hover:bg-gray-200 rounded-lg text-gray-500 hover:text-gray-700 transition-colors shrink-0"
                         title="Back"
                         aria-label="Back"
@@ -138,7 +140,7 @@ const MyCases: React.FC = () => {
                         <ArrowLeft size={20} />
                     </button>
                     <button
-                        onClick={() => navigate('/ohs/report-incident')}
+                        onClick={() => navigate(`${base}/report-incident`)}
                         className="flex items-center gap-2 px-4 py-2 bg-brown text-white font-bold rounded-lg hover:bg-opacity-90 transition-colors shadow-sm text-sm shrink-0"
                     >
                         <FilePlus size={16} />

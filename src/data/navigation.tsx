@@ -19,7 +19,11 @@ import {
     AlertTriangle,
     ClipboardList,
     BookOpen,
-    Bot
+    Bot,
+    Zap,
+    ArrowUpRight,
+    Gavel,
+    MapPin
 } from 'lucide-react';
 
 
@@ -467,6 +471,228 @@ export const EA_DA_SIDEBAR = [
     {
         path: '/profile',
         label: 'My Profile',
+        icon: User,
+        isSingle: true
+    }
+];
+
+export const PSSC_SIDEBAR = [
+    {
+        path: '/pssc/dashboard',
+        label: 'Dashboard',
+        icon: LayoutDashboard,
+        isSingle: true
+    },
+    {
+        path: '/pssc/report-incident',
+        label: 'Report New Incident',
+        icon: FilePlus,
+        isSingle: true
+    },
+    {
+        path: '/pssc/incidents',
+        label: 'All Incidents',
+        icon: AlertCircle,
+        isSingle: true
+    },
+    {
+        path: '/pssc/reports',
+        label: 'Reports',
+        icon: FileText,
+        isSingle: true
+    },
+    {
+        path: '/pssc/hira',
+        label: 'HIRA',
+        icon: Shield,
+        isSingle: true
+    },
+    {
+        path: '/pssc/inspection-registry',
+        label: 'Inspection Registry',
+        icon: ClipboardList,
+        isSingle: true
+    },
+    {
+        path: '/pssc/monthly-statistics',
+        label: 'Monthly Statistics',
+        icon: BarChart2,
+        isSingle: true
+    },
+    {
+        path: '/hr-team',
+        label: 'HR Team',
+        icon: UserCog,
+        isSingle: true
+    },
+    {
+        path: '/pssc/ai-assistant',
+        label: 'AI Assistant',
+        icon: MessageSquare,
+        isSingle: true
+    },
+    {
+        path: '/profile',
+        label: 'Profile',
+        icon: User,
+        isSingle: true
+    }
+];
+
+export const FACILITIES_SIDEBAR = [
+    {
+        path: '/facilities/dashboard',
+        label: 'Dashboard',
+        icon: LayoutDashboard,
+        isSingle: true
+    },
+    {
+        path: '/facilities/pool',
+        label: 'Incident Pool',
+        icon: FolderOpen,
+        isSingle: true
+    },
+    {
+        path: '/facilities/my-cases',
+        label: 'Assigned Incidents',
+        icon: Folder,
+        isSingle: true
+    },
+    {
+        path: '/facilities/report-incident',
+        label: 'Report New Incident',
+        icon: FilePlus,
+        isSingle: true
+    },
+    {
+        path: '/facilities/memorandum',
+        label: 'Memorandum',
+        icon: FileText,
+        isSingle: true
+    },
+    {
+        path: '/facilities/ai-assistant',
+        label: 'AI Assistant',
+        icon: MessageSquare,
+        isSingle: true
+    },
+    {
+        path: '/profile',
+        label: 'My Profile',
+        icon: User,
+        isSingle: true
+    }
+];
+
+export const CHIEF_DIRECTOR_SIDEBAR = [
+    {
+        path: '/chief-director/dashboard',
+        label: 'Dashboard',
+        icon: LayoutDashboard,
+        isSingle: true
+    },
+    {
+        path: '/chief-director/incident-approvals',
+        label: 'Incident Approvals',
+        icon: CheckCircle,
+        isSingle: true
+    },
+    {
+        path: '/chief-director/infrastructure',
+        label: 'Infrastructure Incidents',
+        icon: Zap,
+        isSingle: true
+    },
+    {
+        path: '/chief-director/escalations',
+        label: 'Escalation Reports',
+        icon: ArrowUpRight,
+        isSingle: true
+    },
+    {
+        path: '/chief-director/compliance',
+        label: 'Provincial Compliance',
+        icon: MapPin,
+        isSingle: true
+    },
+    {
+        path: '/chief-director/strategic-decisions',
+        label: 'Strategic Decisions',
+        icon: Gavel,
+        isSingle: true
+    },
+    {
+        path: '/chief-director/ai-assistant',
+        label: 'AI Assistant',
+        icon: Bot,
+        isSingle: true
+    },
+    {
+        path: '/profile',
+        label: 'Profile',
+        icon: User,
+        isSingle: true
+    }
+];
+
+export const DEPUTY_SIDEBAR = [
+    {
+        path: '/deputy/dashboard',
+        label: 'Dashboard',
+        icon: LayoutDashboard,
+        isSingle: true
+    },
+    {
+        path: '/deputy/report-incident',
+        label: 'Report New Incident',
+        icon: FilePlus,
+        isSingle: true
+    },
+    {
+        path: '/deputy/incidents',
+        label: 'All Incidents',
+        icon: AlertCircle,
+        isSingle: true
+    },
+    {
+        path: '/deputy/reports',
+        label: 'Reports',
+        icon: FileText,
+        isSingle: true
+    },
+    {
+        path: '/deputy/hira',
+        label: 'HIRA',
+        icon: Shield,
+        isSingle: true
+    },
+    {
+        path: '/deputy/inspection-registry',
+        label: 'Inspection Registry',
+        icon: ClipboardList,
+        isSingle: true
+    },
+    {
+        path: '/deputy/monthly-statistics',
+        label: 'Monthly Statistics',
+        icon: BarChart2,
+        isSingle: true
+    },
+    {
+        path: '/hr-team',
+        label: 'HR Team',
+        icon: UserCog,
+        isSingle: true
+    },
+    {
+        path: '/deputy/ai-assistant',
+        label: 'AI Assistant',
+        icon: MessageSquare,
+        isSingle: true
+    },
+    {
+        path: '/profile',
+        label: 'Profile',
         icon: User,
         isSingle: true
     }

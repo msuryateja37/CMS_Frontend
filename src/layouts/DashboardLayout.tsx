@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { X, Bell } from 'lucide-react';
 
 import { useAuthStore } from '../store/auth.store';
+import { getUserRoleName } from '../utils/rolePaths';
 
 interface DashboardLayoutProps {
     children: ReactNode;
@@ -96,14 +97,22 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         } catch (e) {}
         removeToast(toast.id);
         if (toast.referenceId) {
-            const roleName = user?.role?.name?.toLowerCase().replace(/\s+/g, '_') || 'employee';
+            const roleName = getUserRoleName(user) || 'employee';
             let path = `/employee/my-cases/${toast.referenceId}`;
             if (roleName === 'first_aider') {
                 path = `/first-aider/cases/${toast.referenceId}`;
-            } else if (roleName === 'ohs_practitioner') {
+            } else if (roleName === 'ohs_practitioner' || roleName === 'ohs_national_office') {
                 path = `/ohs/cases/${toast.referenceId}`;
             } else if (roleName === 'supervisor') {
                 path = `/supervisor/cases/${toast.referenceId}`;
+            } else if (roleName === 'pssc_coordinator') {
+                path = `/pssc/incidents/${toast.referenceId}`;
+            } else if (roleName === 'deputy_director') {
+                path = `/deputy/incidents/${toast.referenceId}`;
+            } else if (roleName === 'chief_director') {
+                path = `/chief-director/incidents/${toast.referenceId}`;
+            } else if (roleName === 'facilities_coordinator') {
+                path = `/facilities/cases/${toast.referenceId}`;
             } else if (roleName === 'system_administrator' || roleName === 'manager') {
                 path = `/admin/incidents/${toast.referenceId}`;
             }

@@ -9,7 +9,7 @@ import {
     ArrowLeft, Clock, FileText, MapPin, Calendar, Building2,
     User, Tag, AlertCircle, Shield, Users, Upload,
     Send, Loader2, MessageSquare, Paperclip, CheckCircle,
-    X, ArrowUpRight, Stethoscope, Hospital
+    X, ArrowUpRight, Stethoscope, Hospital, Activity
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 import EscalationModal from '../../components/incident/EscalationModal';
@@ -152,7 +152,7 @@ const FirstAiderCaseAction: React.FC = () => {
 
     const fetchCaseDetails = async (caseId: string) => {
         try {
-            setLoading(true);
+            if (!caseData) setLoading(true);
             const data = await casesService.getCaseById(caseId);
             setCaseData(data);
         } catch (err) {
@@ -621,6 +621,22 @@ const FirstAiderCaseAction: React.FC = () => {
                                     </label>
                                     <p className="text-sm font-medium text-gray-800">{caseData.peopleImpacted ?? 0}</p>
                                 </div>
+                                {caseData.natureOfInjury && (
+                                    <div>
+                                        <label className="flex items-center gap-1.5 text-xs text-gray-400 font-semibold mb-1">
+                                            <Activity size={12} /> Nature of Injury
+                                        </label>
+                                        <p className="text-sm font-medium text-gray-850">{caseData.natureOfInjury}</p>
+                                    </div>
+                                )}
+                                {caseData.bodyPartAffected && (
+                                    <div>
+                                        <label className="flex items-center gap-1.5 text-xs text-gray-400 font-semibold mb-1">
+                                            <Activity size={12} /> Body Part Affected
+                                        </label>
+                                        <p className="text-sm font-medium text-gray-855">{caseData.bodyPartAffected}</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
 

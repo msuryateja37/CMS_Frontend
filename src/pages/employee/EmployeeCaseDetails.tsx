@@ -4,8 +4,8 @@ import DashboardLayout from '../../layouts/DashboardLayout';
 import { Pill } from '../../components/common/Pill';
 import { getStatusLabel } from '../../data/constants';
 import {
-    ArrowLeft, Clock, MapPin, Calendar, Building2, User,
-    Shield, MessageSquare, AlertCircle, FileText, CheckCircle, Loader2
+    ArrowLeft, Clock, User,
+    AlertCircle, FileText, CheckCircle, Loader2
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 import { useCaseDetails, useCaseTimeline } from '../../hooks/useIncidents';
@@ -228,7 +228,14 @@ const EmployeeCaseDetails: React.FC = () => {
         );
     }
 
-    const { cleanDescription, natureOfInjury, affectedPersons, vehicleReg, driverDetails, subtype } = parseDescription(caseData.description);
+    const parsedData = parseDescription(caseData.description || '');
+    const natureOfInjury = caseData.natureOfInjury || parsedData.natureOfInjury;
+    const bodyPartAffected = caseData.bodyPartAffected || parsedData.cleanDescription.match(/\[Body Part Affected:\s*([^\]]+)\]/)?.[1] || '';
+    const cleanDescription = parsedData.cleanDescription;
+    const affectedPersons = parsedData.affectedPersons;
+    const vehicleReg = parsedData.vehicleReg;
+    const driverDetails = parsedData.driverDetails;
+    const subtype = parsedData.subtype;
 
     const getCategoryLabel = (category: string) => {
         if (!category) return 'Other';
@@ -310,17 +317,17 @@ const EmployeeCaseDetails: React.FC = () => {
                                 <div>
                                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Date</span>
                                     <span className="font-semibold text-gray-800">
-                                        {new Date(caseData.occurredAt).toLocaleDateString('en-GB', {
+                                        {caseData.occurredAt ? new Date(caseData.occurredAt).toLocaleDateString('en-GB', {
                                             day: 'numeric',
                                             month: 'short',
                                             year: 'numeric'
-                                        })}
+                                        }) : '—'}
                                     </span>
                                 </div>
                                 <div>
                                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Time</span>
                                     <span className="font-semibold text-gray-800">
-                                        {new Date(caseData.occurredAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        {caseData.occurredAt ? new Date(caseData.occurredAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
                                     </span>
                                 </div>
                                 <div>
@@ -339,6 +346,12 @@ const EmployeeCaseDetails: React.FC = () => {
                                     <div className="md:col-span-2">
                                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Nature of Injury</span>
                                         <span className="font-semibold text-gray-800">{natureOfInjury}</span>
+                                    </div>
+                                )}
+                                {bodyPartAffected && (
+                                    <div className="md:col-span-2">
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Body Part Affected</span>
+                                        <span className="font-semibold text-gray-800">{bodyPartAffected}</span>
                                     </div>
                                 )}
                                 {affectedPersons && (
@@ -409,7 +422,7 @@ const EmployeeCaseDetails: React.FC = () => {
                                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Attachments</span>
                                 {caseData.media && caseData.media.length > 0 ? (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        {caseData.media.map((file, idx) => (
+                                        {caseData.media.map((file: any, idx: number) => (
                                             <a
                                                 key={idx}
                                                 href={file.fileUrl}
@@ -923,7 +936,7 @@ const EmployeeCaseDetails: React.FC = () => {
                                     <div>
                                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Date / Time</span>
                                         <span className="font-semibold text-gray-800">
-                                            {new Date(caseData.updatedAt || caseData.occurredAt).toLocaleString('en-GB', {
+                                            {new Date(caseData.updatedAt || caseData.occurredAt || Date.now()).toLocaleString('en-GB', {
                                                 day: 'numeric',
                                                 month: 'short',
                                                 year: 'numeric',

@@ -46,15 +46,10 @@ export interface Case {
   category: string; // Changed from object to string
   reportedBy?: {
     id: string;
-    fullName: string; // Backend sends 'name' but renamed to fullName? No, backend sends name. Frontend likely maps it or service needs update.
-    // Wait, backend 'reportedBy' uses User which has 'name'. Frontend uses 'fullName'.
-    // Let's check backend return. Backend returns 'name'. 
-    // We should probably stick to what backend sends 'name', 'email'.
-    // But existing frontend code uses fullName. I should probably keep it compatible or update frontend code.
-    // Let's check backend 'getById' -> includes reportedBy: true. User model has 'name'.
-    // So backend returns 'name'. Frontend expects 'fullName'.
+    fullName?: string;
     name: string;
     email: string;
+    employeeNumber?: string;
   };
   assignedTo?: {
     id: string;
@@ -74,16 +69,24 @@ export interface Case {
     name: string;
   };
   location?: string;
-  // Province is nested in building in our new backend logic, but might be direct if updated.
-  // Backend getById doesn't include direct province relation (User has it, Building has it).
-  // We'll use building.province.
-
+  annexureOne?: any;
+  province?: {
+    id: string;
+    name: string;
+  };
+  assignments?: Array<{
+    id: string;
+    assignedTo?: { id: string; name?: string; fullName?: string; email?: string };
+    assignedById?: string;
+    assignedAt?: string;
+  }>;
   peopleImpacted?: number;
   latitude?: number;
   longitude?: number;
   immediateActions?: string;
   otherActions?: string;
   evidence?: CaseEvidence[]; // Mapped from media
+  media?: any[];
   correctiveActions?: Array<{
     id: string;
     actionText: string;
@@ -128,6 +131,8 @@ export interface Case {
   treatmentOutcome?: string;
   treatmentReferral?: string;
   treatmentReason?: string;
+  natureOfInjury?: string;
+  bodyPartAffected?: string;
 }
 
 export interface CaseApprovalAttachment {
@@ -146,7 +151,7 @@ export interface CaseApproval {
   createdAt: string;
   updatedAt?: string;
   attachments: CaseApprovalAttachment[];
-  uploadedBy?: { id: string; name: string; email?: string };
+  uploadedBy?: { id: string; name: string; email?: string; employeeNumber?: string };
 }
 
 export interface CaseEvidence {
@@ -330,7 +335,7 @@ class CasesService {
       roleName: string;
       recommenderName?: string;
       recommendationText?: string;
-      files: Array<{ fileUrl: string; fileName?: string; fileType?: string }>;
+      files?: Array<{ fileUrl: string; fileName?: string; fileType?: string }>;
     },
   ): Promise<CaseApproval> {
     const response = await api.post<CaseApproval>(`/cases/${id}/approvals`, approvalData);

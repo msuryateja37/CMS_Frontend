@@ -10,6 +10,7 @@ import {
     Shield, MessageSquare, Send, Loader2, Plus, Upload, X, AlertCircle
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCaseDetails, useCaseTimeline } from '../../hooks/useIncidents';
 import AssignmentModal from '../../components/incident/AssignmentModal';
 import EscalationModal from '../../components/incident/EscalationModal';
@@ -38,7 +39,10 @@ const severityConfig: Record<string, { bg: string; text: string; dot: string }> 
 const CaseDetails: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const { user } = useAuthStore();
+    const userRole = (user?.role?.name || (user as any)?.role || '').toLowerCase().replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+    const isChiefDirector = userRole.includes('chief director') || userRole.includes('chief_director') || (userRole.includes('chief') && userRole.includes('director')) || userRole === 'director' || (user?.role?.name || '').toUpperCase().includes('CHIEF_DIRECTOR');
 
     // Use TanStack Query hooks
     const { data: caseData, isLoading: caseLoading, error: caseError, refetch: refetchDetails } = useCaseDetails(id || '');
@@ -65,6 +69,29 @@ const CaseDetails: React.FC = () => {
 
     // Refs
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Custom wizard states
+    const [wizardStep, setWizardStep] = useState<'details' | 'preview'>('details');
+    const [isSignModalOpen, setIsSignModalOpen] = useState(false);
+    const [recommendationText, setRecommendationText] = useState('');
+    const [sigType, setSigType] = useState<'profile' | 'draw' | 'upload'>('profile');
+    const [tempSigUrl, setTempSigUrl] = useState<string | null>(null);
+    const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+    const [canvasEmpty, setCanvasEmpty] = useState(true);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const isDrawing = useRef(false);
+    const [submittingWizard, setSubmittingWizard] = useState(false);
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [signedDetails, setSignedDetails] = useState<{
+        name: string;
+        employeeId: string;
+        date: string;
+        method: string;
+        signatureUrl: string;
+    } | null>(null);
+    const [isDeclineModalOpen, setIsDeclineModalOpen] = useState(false);
+    const [declineReason, setDeclineReason] = useState('');
+    const [submittingDecline, setSubmittingDecline] = useState(false);
 
     const showSuccess = (msg: string) => {
         setSuccessMsg(msg);
@@ -93,7 +120,6 @@ const CaseDetails: React.FC = () => {
         }
     };
 
-    const userRole = user?.role?.name?.toLowerCase()?.replace(/_/g, ' ')?.replace(/\s+/g, ' ')?.trim();
     const isSupervisor = userRole === 'supervisor';
     const isAdmin = userRole === 'admin' || userRole === 'system administrator';
     const isOHS = userRole === 'ohs practitioner';
@@ -244,7 +270,929 @@ const CaseDetails: React.FC = () => {
         return severityConfig[severity.toLowerCase()] || severityConfig.medium;
     };
 
+    // Canvas drawing logic
+    const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+        isDrawing.current = true;
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        
+        const rect = canvas.getBoundingClientRect();
+        const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+        const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+        
+        ctx.beginPath();
+        ctx.moveTo(clientX - rect.left, clientY - rect.top);
+    };
 
+    const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+        if (!isDrawing.current) return;
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        
+        const rect = canvas.getBoundingClientRect();
+        const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+        const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+        
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#000000';
+        ctx.lineTo(clientX - rect.left, clientY - rect.top);
+        ctx.stroke();
+        setCanvasEmpty(false);
+    };
+
+    const stopDrawing = () => {
+        isDrawing.current = false;
+    };
+
+    const clearCanvas = () => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        setCanvasEmpty(true);
+    };
+
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setUploadedFileName(file.name);
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const result = event.target?.result as string;
+                setTempSigUrl(result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const getProfileSignature = () => {
+        if (!user?.id) return null;
+        return localStorage.getItem(`user_sig_${user.id}`);
+    };
+
+    const handleFinalSubmit = () => {
+        setIsConfirmModalOpen(true);
+    };
+
+    const executeFinalSubmit = async () => {
+        if (!id) return;
+        const isPssc = userRole === 'pssc coordinator';
+        try {
+            setSubmittingWizard(true);
+            setIsConfirmModalOpen(false);
+
+            if (isChiefDirector) {
+                await casesService.addApproval(id, {
+                    roleName: 'Chief Director',
+                    recommenderName: signedDetails?.name || user?.fullName || user?.name || 'Chief Director',
+                    recommendationText: recommendationText.trim() || 'Approved by Chief Director',
+                    files: [
+                        {
+                            fileUrl: signedDetails?.signatureUrl || localStorage.getItem(`user_sig_${user?.id}`) || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+                            fileName: signedDetails?.method || 'Chief_Director_Signature.png',
+                            fileType: 'image/png'
+                        }
+                    ]
+                });
+
+                await casesService.updateStatus(id, 'APPROVED');
+
+                await queryClient.invalidateQueries();
+
+                showSuccess('Incident approved successfully.');
+                navigate('/chief-director/incident-approvals');
+                return;
+            }
+
+            const nextStatus = isPssc ? 'UNDER_DEP_DIRECTOR_RECOMMENDATION' : 'DIRECTOR_APPROVAL';
+            
+            // Add approval record
+            await casesService.addApproval(id, {
+                roleName: isPssc ? 'PSSC Coordinator' : 'Deputy Director',
+                recommenderName: signedDetails?.name || user?.fullName || 'Nkosi Manyage',
+                recommendationText: recommendationText,
+                files: [
+                    {
+                        fileUrl: signedDetails?.signatureUrl || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+                        fileName: signedDetails?.method || 'Signature.png',
+                        fileType: 'image/png'
+                    }
+                ]
+            });
+
+            // Update case status
+            await casesService.updateStatus(id, nextStatus);
+
+            showSuccess('Recommendation submitted successfully.');
+            setTimeout(() => {
+                if (userRole === 'pssc coordinator') {
+                    navigate('/pssc/dashboard');
+                } else if (userRole === 'deputy director') {
+                    navigate('/deputy/dashboard');
+                } else {
+                    navigate('/admin/dashboard');
+                }
+            }, 1500);
+        } catch (err) {
+            console.error('Error submitting recommendation:', err);
+            showError('Failed to submit recommendation.');
+        } finally {
+            setSubmittingWizard(false);
+        }
+    };
+
+    const executeChiefDirectorDecline = async () => {
+        if (!id || !declineReason.trim()) {
+            showError('Please enter a reason for declination.');
+            return;
+        }
+        try {
+            setSubmittingDecline(true);
+            
+            await casesService.addApproval(id, {
+                roleName: 'Chief Director (Declined)',
+                recommenderName: user?.fullName || user?.name || 'Chief Director',
+                recommendationText: `DECLINED: ${declineReason.trim()}`,
+            });
+
+            await casesService.addComment(id, `[DECLINED BY CHIEF DIRECTOR] Reason for declination: ${declineReason.trim()}`);
+
+            await casesService.updateStatus(id, 'UNDER_INVESTIGATION');
+
+            showSuccess('Incident declined and returned for investigation.');
+            setIsDeclineModalOpen(false);
+            setDeclineReason('');
+            setTimeout(() => {
+                navigate('/chief-director/incident-approvals');
+            }, 1500);
+        } catch (err) {
+            console.error('Error declining incident:', err);
+            showError('Failed to decline incident.');
+        } finally {
+            setSubmittingDecline(false);
+        }
+    };
+
+    const renderPssCDeputyView = () => {
+        if (!caseData) return null;
+
+        const isPssc = userRole === 'pssc coordinator';
+        const isChiefDirectorRole = userRole === 'chief director' || userRole === 'chief_director' || userRole === 'director';
+
+        // Retrieve existing recommendations
+        const ohsApproval = caseData.approvals?.find(
+            (ap) => ap.roleName?.toLowerCase() === 'ohs practitioner'
+        );
+        const psscApproval = caseData.approvals?.find(
+            (ap) => ap.roleName?.toLowerCase() === 'provincial security coordinator' || ap.roleName?.toLowerCase() === 'pssc coordinator'
+        );
+        const deputyApproval = caseData.approvals?.find(
+            (ap) => ap.roleName?.toLowerCase() === 'deputy director' || ap.roleName?.toLowerCase() === 'deputy_director'
+        );
+        const chiefDirectorApproval = caseData.approvals?.find(
+            (ap) => ap.roleName?.toLowerCase().includes('chief director') || ap.roleName?.toLowerCase().includes('director')
+        );
+
+        const hasAnyRecommendations = !!(ohsApproval || psscApproval || deputyApproval || chiefDirectorApproval);
+
+        const isPendingRecommendation = 
+            (userRole === 'pssc coordinator' && caseData.status === 'UNDER_PSSC_RECOMMENDATION') ||
+            (userRole === 'deputy director' && caseData.status === 'UNDER_DEP_DIRECTOR_RECOMMENDATION') ||
+            (isChiefDirectorRole && (caseData.status === 'DIRECTOR_APPROVAL' || caseData.status === 'UNDER_DIRECTOR' || caseData.status === 'UNDER_DIRECTOR_RECOMMENDATION'));
+
+        const isAlreadySubmitted = 
+            (userRole === 'pssc coordinator' && caseData.status !== 'UNDER_PSSC_RECOMMENDATION') ||
+            (userRole === 'deputy director' && caseData.status !== 'UNDER_DEP_DIRECTOR_RECOMMENDATION' && caseData.status !== 'UNDER_PSSC_RECOMMENDATION') ||
+            (isChiefDirectorRole && caseData.status !== 'DIRECTOR_APPROVAL' && caseData.status !== 'UNDER_DIRECTOR' && caseData.status !== 'UNDER_DIRECTOR_RECOMMENDATION');
+
+        const submissionRecord = 
+            (userRole === 'deputy director' && deputyApproval) 
+                ? deputyApproval 
+                : psscApproval;
+
+        const signedByName = signedDetails?.name || submissionRecord?.recommenderName || user?.fullName || (userRole === 'deputy director' ? 'Gauteng Deputy Director' : 'Gauteng Pssc Coordinator');
+        const employeeIdVal = signedDetails?.employeeId || submissionRecord?.uploadedBy?.employeeNumber || user?.employeeNumber || 'EMP-DD-0042';
+        const signatureDate = signedDetails?.date || (submissionRecord?.createdAt ? new Date(submissionRecord.createdAt).toISOString().split('T')[0].replace(/-/g, '/') : (caseData.updatedAt ? new Date(caseData.updatedAt).toISOString().split('T')[0].replace(/-/g, '/') : '2026/07/17'));
+        const signatureMethod = signedDetails?.method || (submissionRecord?.attachments?.[0]?.fileName?.toLowerCase()?.includes('upload') || submissionRecord?.attachments?.[0]?.fileName?.toLowerCase()?.includes('device') ? 'Upload from device' : (submissionRecord?.attachments?.[0]?.fileName?.includes('Profile') ? 'Profile E-Signature' : 'Hand-drawn (Canvas)'));
+
+        const correctiveActionsList = caseData.correctiveActions || [];
+        const hasAnyActionItems = correctiveActionsList.length > 0;
+
+        if (wizardStep === 'preview') {
+            return (
+                <DashboardLayout
+                    title={`Incident ${caseData.incidentNumber}`}
+                    description="Preview Before Submission"
+                    breadcrumbs={[{ label: "Dashboard" }, { label: "Incident Details" }, { label: "Preview" }]}
+                >
+                    <div className="max-w-4xl mx-auto flex flex-col gap-6 relative">
+                        {/* Top Bar Back Button */}
+                        <div className="flex items-center justify-between mb-2">
+                            <button
+                                type="button"
+                                onClick={() => setWizardStep('details')}
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 font-bold text-xs rounded-xl shadow-sm transition cursor-pointer"
+                            >
+                                <ArrowLeft size={16} />
+                                <span>Back to Incident Details</span>
+                            </button>
+                        </div>
+
+                        {/* Preview Banner */}
+                        <div className="bg-[#884616] text-white rounded-2xl p-5 shadow-sm">
+                            <h2 className="text-base font-black uppercase tracking-wider">Preview Before Submission</h2>
+                            <p className="text-xs text-gold-100 mt-1 font-medium">Please review all details carefully before final submission</p>
+                        </div>
+
+                        {/* Incident Details Card */}
+                        <div className="bg-white rounded-2xl border border-gray-150 p-6 space-y-4 shadow-sm">
+                            <h3 className="text-xs font-black text-gray-800 uppercase tracking-wider border-b border-gray-100 pb-2">Incident Details</h3>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 text-xs font-semibold text-gray-700">
+                                <div>
+                                    <span className="text-[10px] text-gray-400 uppercase tracking-wider block mb-0.5">ID</span>
+                                    <span>{caseData.incidentNumber}</span>
+                                </div>
+                                <div>
+                                    <span className="text-[10px] text-gray-400 uppercase tracking-wider block mb-0.5">Category</span>
+                                    <span>{formatCategory(caseData.category)}</span>
+                                </div>
+                                <div>
+                                    <span className="text-[10px] text-gray-400 uppercase tracking-wider block mb-0.5">Province</span>
+                                    <span>{caseData.building?.province?.name || 'GP'}</span>
+                                </div>
+                                <div>
+                                    <span className="text-[10px] text-gray-400 uppercase tracking-wider block mb-0.5">Date</span>
+                                    <span>{caseData.occurredAt ? new Date(caseData.occurredAt).toLocaleDateString('en-GB') : '—'}</span>
+                                </div>
+                                <div>
+                                    <span className="text-[10px] text-gray-400 uppercase tracking-wider block mb-0.5">Location</span>
+                                    <span>{caseData.location || '—'}</span>
+                                </div>
+                                <div>
+                                    <span className="text-[10px] text-gray-400 uppercase tracking-wider block mb-0.5">Reported By</span>
+                                    <span>{caseData.reportedBy?.name || '—'}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Investigation Details Card */}
+                        <div className="bg-white rounded-2xl border border-gray-150 p-6 space-y-4 shadow-sm">
+                            <h3 className="text-xs font-black text-gray-800 uppercase tracking-wider border-b border-gray-100 pb-2">Investigation Details</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold text-gray-700 mb-2">
+                                <div>
+                                    <span className="text-[10px] text-gray-400 uppercase tracking-wider block mb-0.5">Investigated By</span>
+                                    <span>Gauteng Ohs Practitioner — OHS Practitioner, Gauteng</span>
+                                </div>
+                                <div>
+                                    <span className="text-[10px] text-gray-400 uppercase tracking-wider block mb-0.5">Investigation Date</span>
+                                    <span>{caseData.annexureOne?.investigationDate || (caseData.occurredAt ? new Date(new Date(caseData.occurredAt).getTime() + 86400000).toLocaleDateString('en-GB') : '—')}</span>
+                                </div>
+                            </div>
+                            <div>
+                                <span className="text-[10px] text-gray-400 uppercase tracking-wider block mb-1">Investigation Report</span>
+                                <p className="text-xs text-gray-650 bg-gray-50 border border-gray-100 p-3.5 rounded-xl font-medium leading-relaxed font-mono whitespace-pre-wrap">
+                                    {caseData.annexureOne?.incidentShortDesc || 'Investigation report not given by OHS practitioner.'}
+                                </p>
+                            </div>
+                            {caseData.annexureOne?.suspectedCause && (
+                                <div>
+                                    <span className="text-[10px] text-gray-400 uppercase tracking-wider block mb-1">Suspected Cause</span>
+                                    <p className="text-xs text-gray-650 bg-gray-50 border border-gray-100 p-3.5 rounded-xl font-medium leading-relaxed font-mono whitespace-pre-wrap">
+                                        {caseData.annexureOne.suspectedCause}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Action Items Card */}
+                        {hasAnyActionItems && (
+                            <div className="bg-white rounded-2xl border border-gray-150 p-6 space-y-4 shadow-sm">
+                                <h3 className="text-xs font-black text-gray-800 uppercase tracking-wider border-b border-gray-100 pb-2">Action Items</h3>
+                                <div className="space-y-3">
+                                    <span className="text-[10px] text-gray-400 uppercase tracking-wider block mb-1 font-bold">Tracked Corrective Actions</span>
+                                    {correctiveActionsList.map((act) => (
+                                        <div key={act.id} className="p-3 bg-gray-50 border border-gray-100 rounded-xl flex justify-between items-center text-xs font-semibold text-gray-700">
+                                            <span>{act.actionText}</span>
+                                            <span className="text-[10px] text-gray-400 font-bold bg-gray-100 px-2.5 py-1 rounded-md">STATUS: {act.status?.toUpperCase() || 'PENDING'}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Recommendation Card */}
+                        <div className="bg-[#FAF6F0] rounded-2xl border border-gold/20 p-6 space-y-3 shadow-sm">
+                            <h3 className="text-xs font-black text-[#884616] uppercase tracking-wider">Your Recommendation</h3>
+                            <p className="text-xs font-semibold text-gray-700 italic leading-relaxed">
+                                "{recommendationText}"
+                            </p>
+                        </div>
+
+                        {/* Submission Details Card */}
+                        <div className="bg-white rounded-2xl border border-gray-150 p-6 space-y-4 shadow-sm">
+                            <h3 className="text-xs font-black text-gray-800 uppercase tracking-wider border-b border-gray-100 pb-2">Submission Details</h3>
+                            <div className="grid grid-cols-[120px_1fr] gap-x-6 gap-y-3 text-xs font-semibold text-gray-700">
+                                <span className="text-gray-450 font-bold">Signed By</span>
+                                <span className="text-gray-800 font-bold">{signedByName}</span>
+                                <span className="text-gray-450 font-bold">Employee ID</span>
+                                <span className="text-gray-800 font-bold">{employeeIdVal}</span>
+                                <span className="text-gray-450 font-bold">Date</span>
+                                <span className="text-gray-800 font-bold">{signatureDate}</span>
+                                <span className="text-gray-450 font-bold">Signature Method</span>
+                                <span className="text-gray-800 font-bold">{signatureMethod}</span>
+                            </div>
+                        </div>
+
+                        {/* Actions footer */}
+                        <div className="flex gap-4">
+                            <button
+                                type="button"
+                                onClick={() => setWizardStep('details')}
+                                className="px-5 py-2.5 bg-white border border-gray-250 hover:bg-gray-50 text-gray-600 font-bold text-xs rounded-lg transition"
+                            >
+                                Back
+                            </button>
+                            <button
+                                type="button"
+                                disabled={submittingWizard}
+                                onClick={handleFinalSubmit}
+                                className="px-6 py-2.5 bg-[#884616] hover:bg-[#723b12] text-white font-bold text-xs rounded-lg transition shadow flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {submittingWizard ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" /> {isChiefDirectorRole ? 'Approving...' : 'Submitting...'}
+                                    </>
+                                ) : (
+                                    isChiefDirectorRole
+                                        ? 'Approve Incident'
+                                        : userRole === 'pssc coordinator'
+                                            ? 'Submit to Deputy Director'
+                                            : 'Submit to Director'
+                                )}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Confirm Submission Modal */}
+                    {isConfirmModalOpen && (
+                        <div className="fixed inset-0 bg-black/45 z-50 flex items-center justify-center animate-fadeIn p-4">
+                            <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl flex flex-col gap-4 animate-scaleUp relative text-center">
+                                <h3 className="text-sm font-black text-gray-800 uppercase tracking-wider">
+                                    {isChiefDirectorRole ? 'Confirm Incident Approval' : 'Confirm Submission'}
+                                </h3>
+                                <p className="text-xs text-gray-500 font-semibold leading-relaxed">
+                                    {isChiefDirectorRole
+                                        ? 'Are you sure you want to approve this incident?'
+                                        : userRole === 'pssc coordinator' 
+                                            ? 'Are you sure you want to submit this recommendation to the Deputy Director?' 
+                                            : 'Are you sure you want to submit this recommendation to the Director?'}
+                                </p>
+                                <div className="flex justify-center gap-3 mt-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsConfirmModalOpen(false)}
+                                        className="px-4 py-2 bg-white border border-gray-250 hover:bg-gray-50 text-gray-600 text-xs font-bold rounded-xl transition"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={executeFinalSubmit}
+                                        className="px-5 py-2.5 bg-[#884616] hover:bg-[#723b12] text-white text-xs font-bold rounded-xl transition shadow"
+                                    >
+                                        {isChiefDirectorRole ? 'Confirm Approval' : 'Confirm'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </DashboardLayout>
+            );
+        }
+
+        return (
+            <DashboardLayout
+                title={`Incident ${caseData.incidentNumber}`}
+                description="Incident Details"
+                breadcrumbs={[{ label: "Dashboard" }, { label: "Incident Details" }]}
+            >
+                <div className="max-w-4xl mx-auto flex flex-col gap-6 relative">
+                    {/* Left Side Back Arrow Button */}
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (isChiefDirectorRole) {
+                                    navigate('/chief-director/incident-approvals');
+                                } else {
+                                    navigate(-1);
+                                }
+                            }}
+                            className="p-2.5 rounded-xl bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 hover:text-gray-900 transition shadow-sm cursor-pointer"
+                            title="Back"
+                        >
+                            <ArrowLeft size={20} />
+                        </button>
+                    </div>
+
+                    {caseData.status === 'CLOSED' && (
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4.5 flex items-center gap-3 text-xs text-emerald-800 font-bold shadow-sm">
+                            <CheckCircle className="text-emerald-600 shrink-0" size={22} />
+                            <div>
+                                <span className="text-sm font-black block text-emerald-900">Incident Closed — View Only Mode</span>
+                                <p className="text-xs text-emerald-700 font-medium mt-0.5">
+                                    This incident has been fully closed. All recommendations, actions, and authorization signatures are stored in read-only format.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+                    {caseData.status === 'APPROVED' && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4.5 flex items-center gap-3 text-xs text-blue-800 font-bold shadow-sm">
+                            <CheckCircle className="text-blue-600 shrink-0" size={22} />
+                            <div>
+                                <span className="text-sm font-black block text-blue-900">Chief Director Approved — Pending OHS Final Case Closure</span>
+                                <p className="text-xs text-blue-700 font-medium mt-0.5">
+                                    The Chief Director has reviewed and approved this incident. The OHS Practitioner can review comments and click "Close Incident" to finalize the case.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Incident Details Card */}
+                    <div className="bg-white rounded-2xl border border-gray-150 p-6 space-y-4 shadow-sm">
+                        <h3 className="text-xs font-black text-gray-800 uppercase tracking-wider border-b border-gray-100 pb-2">Incident Details</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 text-xs font-semibold text-gray-700">
+                            <div>
+                                <span className="text-[10px] text-gray-400 uppercase tracking-wider block mb-0.5">Incident ID</span>
+                                <span>{caseData.incidentNumber}</span>
+                            </div>
+                            <div>
+                                <span className="text-[10px] text-gray-400 uppercase tracking-wider block mb-0.5">Category</span>
+                                <span>{formatCategory(caseData.category)}</span>
+                            </div>
+                            <div>
+                                <span className="text-[10px] text-gray-400 uppercase tracking-wider block mb-0.5">Province</span>
+                                <span>{caseData.building?.province?.name || 'GP'}</span>
+                            </div>
+                            <div>
+                                <span className="text-[10px] text-gray-400 uppercase tracking-wider block mb-0.5">Status</span>
+                                <span className="text-blue-600 font-bold">{getStatusLabel(caseData.status)}</span>
+                            </div>
+                            <div>
+                                <span className="text-[10px] text-gray-400 uppercase tracking-wider block mb-0.5">Date</span>
+                                <span>{caseData.occurredAt ? new Date(caseData.occurredAt).toLocaleDateString('en-GB') : '—'}</span>
+                            </div>
+                            <div>
+                                <span className="text-[10px] text-gray-400 uppercase tracking-wider block mb-0.5">Location</span>
+                                <span>{caseData.location || '—'}</span>
+                            </div>
+                            <div>
+                                <span className="text-[10px] text-gray-400 uppercase tracking-wider block mb-0.5">Reported By</span>
+                                <span>{caseData.reportedBy?.name || '—'}</span>
+                            </div>
+                            <div>
+                                <span className="text-[10px] text-gray-400 uppercase tracking-wider block mb-0.5">Assigned To</span>
+                                <span>{caseData.assignedTo?.name || 'Gauteng Ohs Practitioner'}</span>
+                            </div>
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-gray-100">
+                            <span className="text-[10px] text-gray-400 uppercase tracking-wider block mb-2 font-bold">Description</span>
+                            <p className="text-xs text-gray-700 leading-relaxed font-medium bg-gray-50 border border-gray-100 p-3.5 rounded-xl whitespace-pre-wrap">
+                                {caseData.description}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Investigation Details Card */}
+                    <div className="bg-white rounded-2xl border border-gray-150 p-6 space-y-4 shadow-sm">
+                        <h3 className="text-xs font-black text-gray-800 uppercase tracking-wider border-b border-gray-100 pb-2">Investigation Details</h3>
+                        <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-gray-700">
+                            <div>
+                                <span className="text-[10px] text-gray-400 uppercase tracking-wider block mb-0.5">Investigated By</span>
+                                <span>Gauteng Ohs Practitioner — OHS Practitioner, Gauteng</span>
+                            </div>
+                            <div>
+                                <span className="text-[10px] text-gray-400 uppercase tracking-wider block mb-0.5">Investigation Date</span>
+                                <span>{caseData.annexureOne?.investigationDate || (caseData.occurredAt ? new Date(new Date(caseData.occurredAt).getTime() + 86400000).toLocaleDateString('en-GB') : '—')}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <span className="text-[10px] text-gray-400 uppercase tracking-wider block mb-1">Investigation Report</span>
+                            <p className="text-xs text-gray-650 bg-gray-50 border border-gray-100 p-3.5 rounded-xl font-medium leading-relaxed font-mono whitespace-pre-wrap">
+                                {caseData.annexureOne?.incidentShortDesc || 'Investigation report not given by OHS practitioner.'}
+                            </p>
+                        </div>
+                        {caseData.annexureOne?.suspectedCause && (
+                            <div>
+                                <span className="text-[10px] text-gray-400 uppercase tracking-wider block mb-1">Suspected Cause</span>
+                                <p className="text-xs text-gray-650 bg-gray-50 border border-gray-100 p-3.5 rounded-xl font-medium leading-relaxed font-mono whitespace-pre-wrap">
+                                    {caseData.annexureOne.suspectedCause}
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Action Items Card */}
+                    {hasAnyActionItems && (
+                        <div className="bg-white rounded-2xl border border-gray-150 p-6 space-y-4 shadow-sm">
+                            <h3 className="text-xs font-black text-gray-800 uppercase tracking-wider border-b border-gray-100 pb-2">Action Items</h3>
+                            <div className="space-y-3">
+                                <span className="text-[10px] text-gray-400 uppercase tracking-wider block mb-1 font-bold">Tracked Corrective Actions</span>
+                                {correctiveActionsList.map((act) => (
+                                    <div key={act.id} className="p-3 bg-gray-50 border border-gray-100 rounded-xl flex justify-between items-center text-xs font-semibold text-gray-700">
+                                        <span>{act.actionText}</span>
+                                        <span className="text-[10px] text-gray-400 font-bold bg-gray-100 px-2.5 py-1 rounded-md">STATUS: {act.status?.toUpperCase() || 'PENDING'}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Existing Recommendations Card */}
+                    {hasAnyRecommendations && (
+                        <div className="bg-white rounded-2xl border border-gray-150 p-6 space-y-4 shadow-sm">
+                            <h3 className="text-xs font-black text-gray-800 uppercase tracking-wider border-b border-gray-100 pb-2">Existing Recommendations</h3>
+                            <div className="space-y-3 font-semibold text-xs text-gray-700 italic">
+                                {ohsApproval && (
+                                    <div className="p-3 bg-gray-50 border border-gray-100 rounded-xl leading-relaxed">
+                                        <span className="text-[10px] text-[#884616] font-extrabold uppercase tracking-wide block mb-1">OHS Practitioner Recommendation</span>
+                                        "{ohsApproval.recommendationText || 'No recommendation text provided.'}"
+                                    </div>
+                                )}
+                                {psscApproval && (
+                                    <div className="p-3 bg-gray-50 border border-gray-100 rounded-xl leading-relaxed">
+                                        <span className="text-[10px] text-indigo-600 font-extrabold uppercase tracking-wide block mb-1">PSSC Coordinator Recommendation</span>
+                                        "{psscApproval.recommendationText || 'No recommendation text provided.'}"
+                                        <span className="text-[10px] text-gray-500 block mt-2 font-bold">— Signed by {psscApproval.recommenderName || 'PSSC Coordinator'}</span>
+                                    </div>
+                                )}
+                                {deputyApproval && (
+                                    <div className="p-3 bg-gray-50 border border-gray-100 rounded-xl leading-relaxed">
+                                        <span className="text-[10px] text-green-700 font-extrabold uppercase tracking-wide block mb-1">Deputy Director Recommendation</span>
+                                        "{deputyApproval.recommendationText || 'No recommendation text provided.'}"
+                                        <span className="text-[10px] text-gray-400 block mt-1 font-bold">— Signed by {deputyApproval.recommenderName}</span>
+                                    </div>
+                                )}
+                                {chiefDirectorApproval && (
+                                    <div className={`p-3 border rounded-xl leading-relaxed ${chiefDirectorApproval.recommendationText?.includes('DECLINED') ? 'bg-red-50 border-red-200 text-red-800' : 'bg-emerald-50 border-emerald-200 text-emerald-800'}`}>
+                                        <span className="text-[10px] font-extrabold uppercase tracking-wide block mb-1">Chief Director Decision</span>
+                                        "{chiefDirectorApproval.recommendationText || 'No recommendation details recorded.'}"
+                                        <span className="text-[10px] opacity-75 block mt-1 font-bold">— Signed by {chiefDirectorApproval.recommenderName}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Submission Details Card */}
+                    {isAlreadySubmitted && (
+                        <div className="bg-white rounded-2xl border border-gray-150 p-6 space-y-4 shadow-sm">
+                            <h3 className="text-xs font-black text-gray-800 uppercase tracking-wider border-b border-gray-100 pb-2">Submission Details</h3>
+                            <div className="grid grid-cols-[120px_1fr] gap-x-6 gap-y-3 text-xs font-semibold text-gray-700">
+                                <span className="text-gray-450 font-bold">Signed By</span>
+                                <span className="text-gray-800 font-bold">{signedByName}</span>
+                                <span className="text-gray-450 font-bold">Employee ID</span>
+                                <span className="text-gray-800 font-bold">{employeeIdVal}</span>
+                                <span className="text-gray-450 font-bold">Date</span>
+                                <span className="text-gray-800 font-bold">{signatureDate}</span>
+                                <span className="text-gray-450 font-bold">Signature Method</span>
+                                <span className="text-gray-800 font-bold">{signatureMethod}</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Add Recommendation / Action Card */}
+                    {isPendingRecommendation && (
+                        <>
+                            {isChiefDirectorRole ? (
+                                <div className="bg-white rounded-2xl border border-gold/30 p-6 space-y-4 shadow-sm bg-gradient-to-br from-white to-gold/5">
+                                    <div>
+                                        <h3 className="text-xs font-black text-[#884616] uppercase tracking-wider">Chief Director Action &amp; Authorization</h3>
+                                        <p className="text-[10px] text-gray-400 mt-1 font-semibold">
+                                            Review the incident report and prior recommendations. Approve to finalize or Decline to return the case for re-investigation.
+                                        </p>
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[10px] font-bold text-gray-700 uppercase tracking-wider block">Approval Notes / Comments (Optional)</label>
+                                        <textarea
+                                            value={recommendationText}
+                                            onChange={(e) => setRecommendationText(e.target.value)}
+                                            placeholder="Enter any additional executive notes or instructions..."
+                                            className="w-full text-xs border border-gray-250 rounded-xl p-3.5 outline-none focus:border-[#884616] min-h-[100px] bg-white font-medium"
+                                        />
+                                    </div>
+                                    <div className="flex justify-end gap-3 pt-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsDeclineModalOpen(true)}
+                                            className="px-5 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-bold text-xs rounded-xl transition shadow-sm flex items-center gap-1.5 cursor-pointer"
+                                        >
+                                            <X size={16} /> Decline Incident
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setIsSignModalOpen(true);
+                                            }}
+                                            className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition shadow-md flex items-center gap-1.5 cursor-pointer"
+                                        >
+                                            <CheckCircle size={16} /> Approve Incident
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="bg-white rounded-2xl border border-gold/30 p-6 space-y-4 shadow-sm bg-gradient-to-br from-white to-gold/5">
+                                        <div>
+                                            <h3 className="text-xs font-black text-[#884616] uppercase tracking-wider">Add Recommendation</h3>
+                                            <p className="text-[10px] text-gray-400 mt-1 font-semibold">
+                                                Your recommendation will be submitted to the {isPssc ? 'Deputy Director' : 'Director'} for final approval.
+                                            </p>
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-[10px] font-bold text-gray-700 uppercase tracking-wider block">Enter your recommendations *</label>
+                                            <textarea
+                                                value={recommendationText}
+                                                onChange={(e) => setRecommendationText(e.target.value)}
+                                                placeholder="Enter your detailed recommendations based on the investigation findings..."
+                                                className="w-full text-xs border border-gray-250 rounded-xl p-3.5 outline-none focus:border-[#884616] min-h-[120px] bg-white font-medium"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Next Button Footer */}
+                                    <div className="flex justify-end pt-2">
+                                        <button
+                                            type="button"
+                                            disabled={!recommendationText.trim()}
+                                            onClick={() => {
+                                                setIsSignModalOpen(true);
+                                            }}
+                                            className="px-6 py-2.5 bg-[#884616] hover:bg-[#723b12] text-white font-bold text-xs rounded-lg transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                        >
+                                            Next &gt;
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </>
+                    )}
+                </div>
+
+                {/* Sign Before Submission Modal */}
+                {isSignModalOpen && (
+                    <div className="fixed inset-0 bg-black/45 z-50 flex items-center justify-center animate-fadeIn p-4 overflow-y-auto">
+                        <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl flex flex-col gap-4 animate-scaleUp relative max-h-[90vh]">
+                            <button
+                                type="button"
+                                onClick={() => setIsSignModalOpen(false)}
+                                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+                            >
+                                <X size={20} />
+                            </button>
+
+                            <div className="text-center pb-2 border-b border-gray-100">
+                                <h3 className="text-base font-black text-gray-800 uppercase tracking-wider">Sign Before Submission</h3>
+                                <p className="text-[10px] text-gray-400 mt-1 font-semibold">An e-signature is required to proceed</p>
+                            </div>
+
+                            {/* Sign Tabs */}
+                            <div className="grid grid-cols-3 gap-2 bg-gray-50 p-1 rounded-xl">
+                                <button
+                                    type="button"
+                                    onClick={() => setSigType('profile')}
+                                    className={`py-2 rounded-lg text-xs font-bold transition text-center ${
+                                        sigType === 'profile'
+                                            ? 'bg-white text-[#884616] shadow-sm'
+                                            : 'text-gray-500 hover:text-gray-800'
+                                    }`}
+                                >
+                                    Use Profile Signature
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { setSigType('draw'); clearCanvas(); }}
+                                    className={`py-2 rounded-lg text-xs font-bold transition text-center ${
+                                        sigType === 'draw'
+                                            ? 'bg-white text-[#884616] shadow-sm'
+                                            : 'text-gray-500 hover:text-gray-800'
+                                    }`}
+                                >
+                                    Draw Signature
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setSigType('upload')}
+                                    className={`py-2 rounded-lg text-xs font-bold transition text-center ${
+                                        sigType === 'upload'
+                                            ? 'bg-white text-[#884616] shadow-sm'
+                                            : 'text-gray-500 hover:text-gray-800'
+                                    }`}
+                                >
+                                    Upload Signature
+                                </button>
+                            </div>
+
+                            {/* Sign Tab Contents */}
+                            <div className="min-h-[160px] flex items-center justify-center bg-gray-50/50 border border-gray-150 rounded-xl p-4">
+                                {sigType === 'profile' && (() => {
+                                    const profSig = getProfileSignature();
+                                    if (profSig) {
+                                        return (
+                                            <div className="flex flex-col items-center gap-2 w-full">
+                                                <span className="text-[10px] text-green-700 font-bold">✓ Saved signature loaded from profile</span>
+                                                <img src={profSig} alt="Profile Signature" className="max-h-24 bg-white p-2 border border-gray-250 rounded-lg shadow-sm" />
+                                            </div>
+                                        );
+                                    }
+                                    return (
+                                        <div className="text-center p-4">
+                                            <AlertCircle className="w-8 h-8 text-amber-500 mx-auto mb-2" />
+                                            <p className="text-xs text-gray-500 font-bold">No saved signature found in your profile</p>
+                                            <p className="text-[10px] text-gray-400 mt-1 font-medium">Please draw or upload one, or save a signature in your Profile tab first.</p>
+                                        </div>
+                                    );
+                                })()}
+
+                                {sigType === 'draw' && (
+                                    <div className="flex flex-col items-center gap-3 w-full">
+                                        <canvas
+                                            ref={canvasRef}
+                                            width={460}
+                                            height={140}
+                                            onMouseDown={startDrawing}
+                                            onMouseMove={draw}
+                                            onMouseUp={stopDrawing}
+                                            onMouseLeave={stopDrawing}
+                                            onTouchStart={startDrawing}
+                                            onTouchEnd={stopDrawing}
+                                            className="w-full bg-white border border-gray-250 rounded-xl cursor-crosshair max-w-[460px] shadow-inner"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={clearCanvas}
+                                            className="text-[10px] text-gray-400 hover:text-red border-b border-dashed border-red/40"
+                                        >
+                                            Clear signature
+                                        </button>
+                                    </div>
+                                )}
+
+                                {sigType === 'upload' && (
+                                    <div className="flex flex-col items-center gap-3 w-full">
+                                        <Upload className="w-8 h-8 text-gray-400" />
+                                        <label className="px-4 py-2 bg-[#884616] hover:bg-[#723b12] text-white font-bold text-xs rounded-lg transition cursor-pointer shadow">
+                                            Choose File
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleFileUpload}
+                                                className="hidden"
+                                            />
+                                        </label>
+                                        {uploadedFileName ? (
+                                            <span className="text-xs text-green-700 font-bold">✓ {uploadedFileName} uploaded</span>
+                                        ) : (
+                                            <span className="text-[10px] text-gray-400">PNG, JPG recommended</span>
+                                        )}
+                                        {tempSigUrl && (
+                                            <img src={tempSigUrl} alt="Uploaded Signature" className="max-h-20 bg-white p-2 border border-gray-200 rounded-lg shadow-sm" />
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Modal Footer Buttons */}
+                            <div className="flex justify-end gap-3 border-t border-gray-100 pt-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsSignModalOpen(false)}
+                                    className="px-4 py-2 bg-white border border-gray-250 hover:bg-gray-50 text-gray-600 text-xs font-bold rounded-xl transition"
+                                >
+                                    Back
+                                </button>
+                                <button
+                                    type="button"
+                                    disabled={(sigType === 'profile' && !getProfileSignature()) || (sigType === 'draw' && canvasEmpty) || (sigType === 'upload' && !tempSigUrl)}
+                                    onClick={() => {
+                                        setIsSignModalOpen(false);
+                                        setWizardStep('preview');
+                                        
+                                        // Save signature details for preview display
+                                        let methodStr = 'Profile E-Signature';
+                                        let sigUrlVal = getProfileSignature() || '';
+                                        if (sigType === 'draw') {
+                                            methodStr = 'Hand-drawn (Canvas)';
+                                            sigUrlVal = canvasRef.current?.toDataURL() || '';
+                                        } else if (sigType === 'upload') {
+                                            methodStr = 'Upload from device';
+                                            sigUrlVal = tempSigUrl || '';
+                                        }
+                                        
+                                        setSignedDetails({
+                                            name: user?.fullName || user?.name || (userRole === 'deputy director' ? 'Gauteng Deputy Director' : 'Gauteng Pssc Coordinator'),
+                                            employeeId: user?.employeeNumber || 'EMP-DD-0042',
+                                            date: new Date().toISOString().split('T')[0].replace(/-/g, '/'),
+                                            method: methodStr,
+                                            signatureUrl: sigUrlVal
+                                        });
+                                    }}
+                                    className="px-5 py-2.5 bg-[#884616] hover:bg-[#723b12] text-white text-xs font-bold rounded-xl transition shadow disabled:opacity-50"
+                                >
+                                    Sign &amp; Preview
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Confirm Submission Modal */}
+                {isConfirmModalOpen && (
+                    <div className="fixed inset-0 bg-black/45 z-50 flex items-center justify-center animate-fadeIn p-4">
+                        <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl flex flex-col gap-4 animate-scaleUp relative text-center">
+                            <h3 className="text-sm font-black text-gray-800 uppercase tracking-wider">Confirm Submission</h3>
+                            <p className="text-xs text-gray-500 font-semibold leading-relaxed">
+                                {userRole === 'pssc coordinator' 
+                                    ? 'Are you sure you want to submit this recommendation to the Deputy Director?' 
+                                    : 'Are you sure you want to submit this recommendation to the Director?'}
+                            </p>
+                            <div className="flex justify-center gap-3 mt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsConfirmModalOpen(false)}
+                                    className="px-4 py-2 bg-white border border-gray-250 hover:bg-gray-50 text-gray-600 text-xs font-bold rounded-xl transition"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={executeFinalSubmit}
+                                    className="px-5 py-2.5 bg-[#884616] hover:bg-[#723b12] text-white text-xs font-bold rounded-xl transition shadow"
+                                >
+                                    Confirm
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Decline Reason Modal */}
+                {isDeclineModalOpen && (
+                    <div className="fixed inset-0 bg-black/45 z-50 flex items-center justify-center animate-fadeIn p-4">
+                        <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl flex flex-col gap-4 animate-scaleUp relative">
+                            <button
+                                type="button"
+                                onClick={() => setIsDeclineModalOpen(false)}
+                                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+                            >
+                                <X size={20} />
+                            </button>
+                            <div className="text-center pb-2 border-b border-gray-100">
+                                <h3 className="text-base font-black text-red-700 uppercase tracking-wider">Decline Incident</h3>
+                                <p className="text-[10px] text-gray-400 mt-1 font-semibold">
+                                    State the reason for declining this incident. The status will return to Under Investigation for OHS.
+                                </p>
+                            </div>
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-[10px] font-bold text-gray-700 uppercase tracking-wider block">Reason for Declination *</label>
+                                <textarea
+                                    value={declineReason}
+                                    onChange={(e) => setDeclineReason(e.target.value)}
+                                    placeholder="Provide explicit reasons for declining this case..."
+                                    className="w-full text-xs border border-gray-250 rounded-xl p-3 outline-none focus:border-red-600 min-h-[110px] bg-white font-medium"
+                                    required
+                                />
+                            </div>
+                            <div className="flex justify-end gap-3 mt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsDeclineModalOpen(false)}
+                                    className="px-4 py-2 bg-white border border-gray-250 hover:bg-gray-50 text-gray-600 text-xs font-bold rounded-xl transition"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    disabled={!declineReason.trim() || submittingDecline}
+                                    onClick={executeChiefDirectorDecline}
+                                    className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition shadow flex items-center gap-1.5 disabled:opacity-50"
+                                >
+                                    {submittingDecline ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirm Decline'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </DashboardLayout>
+        );
+    };
 
     if (caseLoading) {
         return (
@@ -259,13 +1207,41 @@ const CaseDetails: React.FC = () => {
     if (caseError || !caseData) {
         return (
             <DashboardLayout title="Incident Details" description="Error" breadcrumbs={[{ label: "Dashboard" }, { label: "Error" }]}>
-                <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl">
-                    <p className="font-bold">Error</p>
-                    <p className="text-sm mt-1">{(caseError as { message?: string })?.message || 'Incident not found.'}</p>
-                    <button onClick={() => navigate(-1)} className="mt-3 bg-red-100 px-4 py-2 rounded-lg text-red-800 font-bold text-sm">Go Back</button>
+                <div className="max-w-2xl mx-auto space-y-4">
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (isChiefDirector) {
+                                    navigate('/chief-director/incident-approvals');
+                                } else {
+                                    navigate(-1);
+                                }
+                            }}
+                            className="p-2.5 rounded-xl bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 hover:text-gray-900 transition shadow-sm cursor-pointer"
+                            title="Back"
+                        >
+                            <ArrowLeft size={20} />
+                        </button>
+                    </div>
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-5 rounded-2xl shadow-sm space-y-3">
+                        <div className="flex items-center gap-2 font-bold text-sm">
+                            <AlertCircle size={18} />
+                            <span>Incident Not Found</span>
+                        </div>
+                        <p className="text-xs text-red-600 leading-relaxed font-medium">
+                            {(caseError as { message?: string })?.message || 'The requested incident could not be found or may have been updated.'}
+                        </p>
+                    </div>
                 </div>
             </DashboardLayout>
         );
+    }
+
+    const isPsscOrDeputy = userRole === 'pssc coordinator' || userRole === 'deputy director' || isChiefDirector;
+
+    if (isPsscOrDeputy) {
+        return renderPssCDeputyView();
     }
 
     const sevStyle = getSeverityStyle(caseData.severity);
@@ -385,7 +1361,7 @@ const CaseDetails: React.FC = () => {
                             </span>
                             <Pill
                                 label={getStatusLabel(caseData.status)}
-                                variant={caseData.status.toLowerCase().replace('_', ' ')}
+                                variant={caseData.status ? caseData.status.toLowerCase().replace('_', ' ') : 'default'}
                             />
                             {caseData.severity && (
                                 <Pill
@@ -642,7 +1618,7 @@ const CaseDetails: React.FC = () => {
                                                 <span className="text-xs text-gray-500 font-semibold">Status</span>
                                                 <Pill
                                                     label={getStatusLabel(caseData.status)}
-                                                    variant={caseData.status.toLowerCase().replace('_', ' ')}
+                                                    variant={caseData.status ? caseData.status.toLowerCase().replace('_', ' ') : 'default'}
                                                 />
                                             </div>
                                             <div className="flex justify-between items-center py-2 border-b border-gray-100">

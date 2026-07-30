@@ -37,10 +37,20 @@ export const STATUS_FILTER_OPTIONS = [
 ];
 
 /** Maps a raw DB status value to a human-readable display label */
-export function getStatusLabel(status: string): string {
-    if (status === 'RAISED') return 'Open';
-    if (status === 'POOL') return 'Unassigned';
-    return status.replace(/_/g, ' ');
+export function getStatusLabel(status?: string | null): string {
+    if (!status) return '';
+    if (status === 'NEW' || status === 'RAISED') return 'New';
+    if (status === 'POOL' || status === 'UNASSIGNED') return 'Unassigned';
+    if (status === 'UNDER_FACILITIES_COORDINATOR') return 'Under Facilities Coordinator';
+    if (status === 'REFERRED_TO_OHS_AND_HR') return 'Referred to OHS & HR';
+    if (status === 'ASSIGNED_TO_OHS') return 'Assigned to OHS';
+    if (status === 'UNDER_INVESTIGATION') return 'Under Investigation';
+    if (status === 'UNDER_PSSC_RECOMMENDATION') return 'Under PSSC Recommendation';
+    if (status === 'UNDER_DEP_DIRECTOR_RECOMMENDATION') return 'Under Deputy Director Recommendation';
+    if (status === 'DIRECTOR_APPROVAL') return 'Chief Director Approval';
+    if (status === 'APPROVED') return 'Chief Director Approved';
+    if (status === 'CLOSED') return 'Closed';
+    return status.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
 }
 
 export const CATEGORY_FILTER_OPTIONS = [

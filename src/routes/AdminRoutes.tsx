@@ -57,6 +57,27 @@ import NationalDashboard from '../pages/ohs_national/NationalDashboard';
 import NationalLoggedIncidents from '../pages/ohs_national/NationalLoggedIncidents';
 import NationalAdministration from '../pages/ohs_national/NationalAdministration';
 import NationalAIAssistant from '../pages/ohs_national/NationalAIAssistant';
+import PlaceholderPage from '../components/common/PlaceholderPage';
+import OHSSafetyAiAssistant from '../pages/employee/OHSSafetyAiAssistant';
+import PssCDashboard from '../pages/pssc/Dashboard';
+import PssCReports from '../pages/pssc/Reports';
+import PssCInspectionRegistry from '../pages/pssc/InspectionRegistry';
+import PssCMonthlyStatistics from '../pages/pssc/MonthlyStatistics';
+
+import DeputyDashboard from '../pages/deputy/Dashboard';
+import DeputyReports from '../pages/deputy/Reports';
+import DeputyInspectionRegistry from '../pages/deputy/InspectionRegistry';
+import DeputyMonthlyStatistics from '../pages/deputy/MonthlyStatistics';
+
+import ChiefDirectorDashboard from '../pages/chief_director/Dashboard';
+import ChiefDirectorInfrastructure from '../pages/chief_director/InfrastructureIncidents';
+import ChiefDirectorEscalations from '../pages/chief_director/EscalationReports';
+import ChiefDirectorStrategicDecisions from '../pages/chief_director/StrategicDecisions';
+import ChiefDirectorCompliance from '../pages/chief_director/ProvincialCompliance';
+import ChiefDirectorAIAssistant from '../pages/chief_director/AIAssistant';
+import ChiefDirectorIncidentApprovals from '../pages/chief_director/IncidentApprovals';
+
+import FacilitiesMemorandum from '../pages/facilities/Memorandum';
 
 const AdminRoutes = () => {
     return (
@@ -145,6 +166,57 @@ const AdminRoutes = () => {
 
             {/* Common Routes */}
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+
+            {/* PSSC Coordinator specific routes */}
+            <Route path="/pssc/dashboard" element={<ProtectedRoute><PssCDashboard /></ProtectedRoute>} />
+            <Route path="/pssc/reports" element={<ProtectedRoute><PssCReports /></ProtectedRoute>} />
+            <Route path="/pssc/inspection-registry" element={<ProtectedRoute><PssCInspectionRegistry /></ProtectedRoute>} />
+            <Route path="/pssc/monthly-statistics" element={<ProtectedRoute><PssCMonthlyStatistics /></ProtectedRoute>} />
+            <Route path="/pssc/incidents" element={<ProtectedRoute><IncidentManagement /></ProtectedRoute>} />
+            <Route path="/pssc/incidents/:id" element={<ProtectedRoute><CaseDetails /></ProtectedRoute>} />
+            <Route path="/pssc/report-incident" element={<ProtectedRoute><ReportIncident /></ProtectedRoute>} />
+            <Route path="/pssc/hira" element={<ProtectedRoute><OHSHira /></ProtectedRoute>} />
+            <Route path="/pssc/ai-assistant" element={<ProtectedRoute><OHSSafetyAiAssistant /></ProtectedRoute>} />
+
+            {/* Deputy Director specific routes */}
+            <Route path="/deputy/dashboard" element={<ProtectedRoute><DeputyDashboard /></ProtectedRoute>} />
+            <Route path="/deputy/reports" element={<ProtectedRoute><DeputyReports /></ProtectedRoute>} />
+            <Route path="/deputy/inspection-registry" element={<ProtectedRoute><DeputyInspectionRegistry /></ProtectedRoute>} />
+            <Route path="/deputy/monthly-statistics" element={<ProtectedRoute><DeputyMonthlyStatistics /></ProtectedRoute>} />
+            <Route path="/deputy/incidents" element={<ProtectedRoute><IncidentManagement /></ProtectedRoute>} />
+            <Route path="/deputy/incidents/:id" element={<ProtectedRoute><CaseDetails /></ProtectedRoute>} />
+            <Route path="/deputy/report-incident" element={<ProtectedRoute><ReportIncident /></ProtectedRoute>} />
+            <Route path="/deputy/hira" element={<ProtectedRoute><OHSHira /></ProtectedRoute>} />
+            <Route path="/deputy/ai-assistant" element={<ProtectedRoute><OHSSafetyAiAssistant /></ProtectedRoute>} />
+
+            {/* Facilities Co Coordinator routes (reuse the OHS Practitioner workflow) */}
+            <Route path="/facilities/dashboard" element={<ProtectedRoute><OHSDashboard /></ProtectedRoute>} />
+            <Route path="/facilities/pool" element={<ProtectedRoute><CasePool /></ProtectedRoute>} />
+            <Route path="/facilities/my-cases" element={<ProtectedRoute><OHSMyCases /></ProtectedRoute>} />
+            <Route path="/facilities/cases/:id" element={<ProtectedRoute><OHSCaseAction /></ProtectedRoute>} />
+            <Route path="/facilities/cases-review" element={<ProtectedRoute><OHSCasesReview /></ProtectedRoute>} />
+            <Route path="/facilities/report-incident" element={<ProtectedRoute><ReportIncident /></ProtectedRoute>} />
+            <Route path="/facilities/submit-case" element={<ProtectedRoute><ReportIncident /></ProtectedRoute>} />
+            <Route path="/facilities/report-incident/success" element={<ProtectedRoute><CaseSubmissionSuccess /></ProtectedRoute>} />
+            <Route path="/facilities/submit-case/success" element={<ProtectedRoute><CaseSubmissionSuccess /></ProtectedRoute>} />
+            <Route path="/facilities/ai-assistant" element={<ProtectedRoute><OHSSafetyAiAssistant /></ProtectedRoute>} />
+            <Route path="/facilities/memorandum" element={<ProtectedRoute><FacilitiesMemorandum /></ProtectedRoute>} />
+            <Route path="/facilities/cases/:id/memorandum" element={<ProtectedRoute><FacilitiesMemorandum /></ProtectedRoute>} />
+            <Route path="/facilities" element={<Navigate to="/facilities/dashboard" replace />} />
+
+            {/* Chief Director (DDG / Executive Management) specific routes */}
+            <Route path="/chief-director/dashboard" element={<ProtectedRoute><ChiefDirectorDashboard /></ProtectedRoute>} />
+            <Route path="/chief-director/incident-approvals" element={<ProtectedRoute><ChiefDirectorIncidentApprovals /></ProtectedRoute>} />
+            <Route path="/chief-director/incidents/:id" element={<ProtectedRoute><CaseDetails /></ProtectedRoute>} />
+            <Route path="/chief-director/infrastructure" element={<ProtectedRoute><ChiefDirectorInfrastructure /></ProtectedRoute>} />
+            <Route path="/chief-director/escalations" element={<ProtectedRoute><ChiefDirectorEscalations /></ProtectedRoute>} />
+            <Route path="/chief-director/strategic-decisions" element={<ProtectedRoute><ChiefDirectorStrategicDecisions /></ProtectedRoute>} />
+            <Route path="/chief-director/compliance" element={<ProtectedRoute><ChiefDirectorCompliance /></ProtectedRoute>} />
+            <Route path="/chief-director/ai-assistant" element={<ProtectedRoute><ChiefDirectorAIAssistant /></ProtectedRoute>} />
+            <Route path="/chief-director" element={<Navigate to="/chief-director/dashboard" replace />} />
+
+            <Route path="/hr-team" element={<ProtectedRoute><PlaceholderPage title="HR Team" /></ProtectedRoute>} />
+            <Route path="/ai-assistant" element={<ProtectedRoute><OHSSafetyAiAssistant /></ProtectedRoute>} />
 
             {/* Catch all redirect to login */}
             <Route path="*" element={<Navigate to="/" replace />} />

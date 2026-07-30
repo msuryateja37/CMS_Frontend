@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import casesService, { type Case, type CaseApproval } from '../../services/cases.service';
-import { Shield, Plus, Upload, Loader2, Pencil, Trash2, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { Shield, Plus, Upload, Loader2, Pencil, Trash2, X, CheckCircle, AlertCircle, Send } from 'lucide-react';
 
 const provincialNames = [
     "Eastern Cape",
@@ -16,13 +16,18 @@ const provincialNames = [
 
 const PROVINCIAL_APPROVAL_ROLES = [
     { roleName: 'Provincial Security Coordinator', label: 'Provincial Security Coordinator / Director PSSC for recommendations', hint: 'Recommendations report' },
-    { roleName: 'Chief Director (Provincial)', label: 'Chief Director for approval', hint: 'Final approved report' },
 ];
 
 const NATIONAL_APPROVAL_ROLES = [
     { roleName: 'Assistant Director', label: 'Assistant Director: OHS for Recommendations', hint: 'Recommendations report' },
     { roleName: 'Director', label: 'Director: Document Security Compliance & OHS for recommendations', hint: 'Recommendations report' },
-    { roleName: 'Chief Director (National)', label: 'Chief Director: Security and Facilities Management Services for approval', hint: 'Final approved report' },
+];
+
+const ALL_RECOMMENDATION_ROLES = [
+    { roleName: 'OHS Practitioner', label: 'OHS Practitioner Recommendation', hint: 'Recommendation report', aliases: ['OHS Practitioner'] },
+    { roleName: 'PSSC Coordinator', label: 'Provincial Security Coordinator / Director PSSC for recommendations', hint: 'Recommendations report', aliases: ['Provincial Security Coordinator', 'PSSC Coordinator'] },
+    { roleName: 'Deputy Director', label: 'Deputy Director Recommendation', hint: 'Approvals/Recommendations report', aliases: ['Deputy Director', 'Deputy_Director'] },
+    { roleName: 'Director', label: 'Director: Document Security Compliance & OHS for recommendations', hint: 'Recommendations report', aliases: ['Director'] },
 ];
 
 function normalizeApprovals(raw: unknown): CaseApproval[] {
@@ -90,6 +95,10 @@ export const ApprovalsTab: React.FC<ApprovalsTabProps> = ({
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
+    const [showOhsSubmitModal, setShowOhsSubmitModal] = useState(false);
+    const [ohsRecText, setOhsRecText] = useState('');
+    const [submittingOhsRec, setSubmittingOhsRec] = useState(false);
+
     // Refs
     const newApprFilesInputRef = useRef<HTMLInputElement>(null);
     const extraAttachInputRef = useRef<HTMLInputElement>(null);
@@ -109,6 +118,43 @@ export const ApprovalsTab: React.FC<ApprovalsTabProps> = ({
     const provinceName = caseData.building?.province?.name || '';
     const isProvincial = provincialNames.includes(provinceName);
     const rolesList = isProvincial ? PROVINCIAL_APPROVAL_ROLES : NATIONAL_APPROVAL_ROLES;
+
+    const userRole = user?.role?.name?.toLowerCase()?.replace(/_/g, ' ')?.replace(/\s+/g, ' ')?.trim();
+    const isOHS = userRole === 'ohs practitioner';
+
+    const handleSendOhsRecommendation = async () => {
+        try {
+            setSubmittingOhsRec(true);
+            setShowOhsSubmitModal(false);
+
+            // 1. Add OHS Practitioner recommendation approval record
+            const savedSig = localStorage.getItem(`user_sig_${user?.id}`);
+            await casesService.addApproval(caseId, {
+                roleName: 'OHS Practitioner',
+                recommenderName: user?.fullName || user?.name || 'T. Dlamini',
+                recommendationText: ohsRecText.trim() || undefined,
+                files: [
+                    {
+                        fileUrl: savedSig || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+                        fileName: 'OHS_Signature.png',
+                        fileType: 'image/png'
+                    }
+                ]
+            });
+
+            // 2. Transition case status to UNDER_PSSC_RECOMMENDATION
+            await casesService.updateStatus(caseId, 'UNDER_PSSC_RECOMMENDATION');
+
+            showSuccess('Recommendation submitted to PSSC Coordinator successfully.');
+            setOhsRecText('');
+            onSuccess();
+        } catch (err) {
+            console.error('Error sending OHS recommendation:', err);
+            showError('Failed to send recommendation.');
+        } finally {
+            setSubmittingOhsRec(false);
+        }
+    };
 
     const openNewApprovalForm = (roleName: string) => {
         setNewApprovalForRole(roleName);
@@ -294,278 +340,133 @@ export const ApprovalsTab: React.FC<ApprovalsTabProps> = ({
                     <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Approvals & recommendations</h4>
                 </div>
 
-                <div className={`grid gap-4 items-start ${isProvincial ? 'md:grid-cols-2' : 'md:grid-cols-3'}`}>
-                    {rolesList.map((def) => {
+                <div className="w-full">
+                    {ALL_RECOMMENDATION_ROLES.filter((def) => def.roleName === 'PSSC Coordinator').map((def) => {
                         const approvalsList = normalizeApprovals(caseData.approvals);
-                        const forRole = approvalsList.filter((a) => a.roleName === def.roleName);
+                        const forRole = approvalsList.filter((a) => {
+                            if (def.aliases) {
+                                return def.aliases.some(alias => a.roleName?.toLowerCase() === alias.toLowerCase());
+                            }
+                            return a.roleName?.toLowerCase() === def.roleName.toLowerCase();
+                        });
+                        const isSentToPssc = caseData.status === 'UNDER_PSSC_RECOMMENDATION' || 
+                            caseData.status === 'UNDER_DEP_DIRECTOR_RECOMMENDATION' || 
+                            caseData.status === 'DIRECTOR_APPROVAL' || 
+                            caseData.status === 'APPROVED' || 
+                            caseData.status === 'CLOSED';
+
                         return (
                             <div
                                 key={def.roleName}
-                                className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-3 text-left min-w-0 w-full overflow-hidden"
+                                className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col gap-4 text-left w-full overflow-hidden animate-fadeIn"
                             >
                                 <div className="w-full min-w-0">
-                                    <h5 className="font-bold text-sm text-gray-900 break-words">{def.label}</h5>
-                                    <p className="text-xs text-gray-500 mt-0.5 break-words">{def.hint}</p>
+                                    <h5 className="font-bold text-base text-gray-900">{def.label}</h5>
+                                    <p className="text-xs text-gray-500 mt-1">{def.hint}</p>
                                 </div>
 
                                 {forRole.length > 0 && (
-                                    <div className="space-y-3 max-h-72 overflow-y-auto pr-1 w-full min-w-0">
+                                    <div className="space-y-3 w-full">
                                         {forRole.map((ap) => (
                                             <div
                                                 key={ap.id}
-                                                className="rounded-lg border border-gray-100 bg-gray-50/80 p-3 space-y-2 w-full min-w-0 overflow-hidden"
+                                                className="rounded-xl border border-gray-100 bg-gray-50/90 p-4 space-y-2 w-full"
                                             >
-                                                <div className="flex justify-between gap-2 items-start w-full min-w-0">
+                                                <div className="flex justify-between gap-2 items-start w-full">
                                                     <div className="min-w-0 flex-1">
-                                                        <p className="text-xs font-bold text-gray-700 break-words">
-                                                            {ap.recommenderName?.trim() || 'Name not recorded'}
-                                                        </p>
-                                                        {ap.recommendationText ? (
-                                                            <p className="text-xs text-gray-600 mt-1 whitespace-pre-wrap">
-                                                                {ap.recommendationText}
-                                                            </p>
-                                                        ) : null}
+                                                         {ap.recommendationText ? (
+                                                             <p className="text-xs text-gray-600 mt-1 whitespace-pre-wrap italic">
+                                                                 "{ap.recommendationText}"
+                                                             </p>
+                                                         ) : null}
+                                                         <span className="text-[10px] text-gray-500 block mt-2 font-bold">— Signed by {ap.recommenderName?.trim() || 'PSSC Coordinator'}</span>
                                                     </div>
-                                                    {canEdit && (
-                                                        <div className="flex shrink-0 gap-1">
-                                                            <button
-                                                                type="button"
-                                                                title="Edit name & recommendation text"
-                                                                onClick={() =>
-                                                                    setEditingApprovalMeta({
-                                                                        id: ap.id,
-                                                                        recommenderName: ap.recommenderName ?? '',
-                                                                        recommendationText: ap.recommendationText ?? '',
-                                                                    })
-                                                                }
-                                                                className="p-1.5 rounded-md text-gray-500 hover:bg-white hover:text-gray-800"
-                                                            >
-                                                                <Pencil size={14} />
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                title="Delete this record"
-                                                                disabled={deletingApprovalId === ap.id}
-                                                                onClick={() => {
-                                                                    if (window.confirm('Remove this approval record and all its files?')) {
-                                                                        void removeApprovalRecord(ap.id);
-                                                                    }
-                                                                }}
-                                                                className="p-1.5 rounded-md text-gray-500 hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
-                                                            >
-                                                                {deletingApprovalId === ap.id ? (
-                                                                    <Loader2 size={14} className="animate-spin" />
-                                                                ) : (
-                                                                    <Trash2 size={14} />
-                                                                )}
-                                                            </button>
-                                                        </div>
-                                                    )}
                                                 </div>
-
-                                                {editingApprovalMeta?.id === ap.id && (
-                                                    <div className="space-y-2 pt-2 border-t border-gray-200">
-                                                        <input
-                                                            className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5"
-                                                            placeholder="Name of person who gave the recommendation / approval"
-                                                            value={editingApprovalMeta.recommenderName}
-                                                            onChange={(e) =>
-                                                                setEditingApprovalMeta((m) =>
-                                                                    m ? { ...m, recommenderName: e.target.value } : m,
-                                                                )
-                                                            }
-                                                        />
-                                                        <textarea
-                                                            className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 min-h-[72px]"
-                                                            placeholder="Written recommendation or conditions"
-                                                            value={editingApprovalMeta.recommendationText}
-                                                            onChange={(e) =>
-                                                                setEditingApprovalMeta((m) =>
-                                                                    m ? { ...m, recommendationText: e.target.value } : m,
-                                                                )
-                                                            }
-                                                        />
-                                                        <div className="flex justify-end gap-2">
-                                                            <button
-                                                                type="button"
-                                                                className="text-xs font-semibold text-gray-500"
-                                                                onClick={() => setEditingApprovalMeta(null)}
-                                                            >
-                                                                Cancel
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                disabled={savingApprovalMetaId === ap.id}
-                                                                onClick={() => void saveApprovalMeta()}
-                                                                className="text-xs font-semibold text-white bg-brown px-3 py-1.5 rounded-lg disabled:opacity-50"
-                                                            >
-                                                                {savingApprovalMetaId === ap.id ? 'Saving…' : 'Save'}
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                <div className="space-y-1.5 w-full min-w-0">
-                                                    {ap.attachments && ap.attachments.map((att) => (
-                                                        <div
-                                                            key={att.id}
-                                                            className="flex items-center gap-2 bg-white rounded-md border border-gray-100 px-2 py-1.5 w-full min-w-0 overflow-hidden"
-                                                        >
-                                                            <a
-                                                                href={
-                                                                    att.fileUrl?.match(/^\s*(javascript|data|vbscript):/i)
-                                                                        ? '#'
-                                                                        : att.fileUrl
-                                                                }
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="text-xs text-gold font-medium truncate flex-1 min-w-0"
-                                                            >
-                                                                {att.fileName || 'Document'}
-                                                            </a>
-                                                            {canEdit && (
-                                                                <button
-                                                                    type="button"
-                                                                    disabled={
-                                                                        deletingAttachmentKey === `${ap.id}:${att.id}` ||
-                                                                        String(att.id).startsWith('legacy-')
-                                                                    }
-                                                                    onClick={() => void removeApprovalAttachment(ap.id, att.id)}
-                                                                    className="text-gray-400 hover:text-red-500 shrink-0 disabled:opacity-30"
-                                                                >
-                                                                    {deletingAttachmentKey === `${ap.id}:${att.id}` ? (
-                                                                        <Loader2 size={12} className="animate-spin" />
-                                                                    ) : (
-                                                                        <X size={12} />
-                                                                    )}
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    ))}
-                                                </div>
-
-                                                {canEdit && (
-                                                    <button
-                                                        type="button"
-                                                        disabled={uploadingExtraAttachments}
-                                                        onClick={() => triggerExtraAttachments(ap.id)}
-                                                        className="w-full mt-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-brown border border-gold/30 rounded-lg py-1.5 hover:bg-gold/5 disabled:opacity-50"
-                                                    >
-                                                        {uploadingExtraAttachments && extraAttachApprovalId === ap.id ? (
-                                                            <Loader2 size={14} className="animate-spin" />
-                                                        ) : (
-                                                            <Upload size={14} />
-                                                        )}
-                                                        Add more files
-                                                    </button>
-                                                )}
-                                                <p className="text-[10px] text-gray-500">
-                                                    {new Date(ap.createdAt).toLocaleString('en-GB', {
-                                                        day: '2-digit',
-                                                        month: 'short',
-                                                        year: 'numeric',
-                                                        hour: '2-digit',
-                                                        minute: '2-digit',
-                                                    })}
-                                                    {ap.uploadedBy?.name ? ` · logged by ${ap.uploadedBy.name}` : ''}
-                                                </p>
                                             </div>
                                         ))}
                                     </div>
                                 )}
 
-                                {forRole.length === 0 && !canEdit && (
-                                    <div className="text-xs text-gray-400 italic py-2">
-                                        No recommendation or approval recorded
+                                {!isSentToPssc ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setOhsRecText('');
+                                            setShowOhsSubmitModal(true);
+                                        }}
+                                        className="w-full mt-2 flex items-center justify-center gap-2 px-5 py-3 bg-[#884616] hover:bg-[#723b12] text-white text-xs font-bold rounded-xl transition shadow-md active:scale-[0.98]"
+                                    >
+                                        <Send size={16} /> Send to PSSC Coordinator
+                                    </button>
+                                ) : (
+                                    <div className="w-full mt-2 text-center py-3 px-4 bg-amber-50 border border-amber-200 rounded-xl font-bold text-xs text-[#884616] shadow-sm flex items-center justify-center gap-2">
+                                        <span>
+                                            {caseData.status === 'UNDER_DEP_DIRECTOR_RECOMMENDATION'
+                                                ? 'PSSC Approved — Under Deputy Director Approval'
+                                                : caseData.status === 'DIRECTOR_APPROVAL'
+                                                ? 'Deputy Director Approved — Under Chief Director Approval'
+                                                : caseData.status === 'APPROVED'
+                                                ? 'Approved by Chief Director'
+                                                : caseData.status === 'CLOSED'
+                                                ? 'Case Closed & Approved'
+                                                : 'Under PSSC Coordinator Approval'}
+                                        </span>
                                     </div>
-                                )}
-
-                                {canEdit && (
-                                    <>
-                                        {newApprovalForRole === def.roleName ? (
-                                            <div className="rounded-lg border border-dashed border-gold/40 bg-gold/5 p-3 space-y-2">
-                                                <p className="text-xs font-bold text-gray-700">New record</p>
-                                                <input
-                                                    className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white"
-                                                    placeholder="Name of person who gave the recommendation / approval *"
-                                                    value={newApprRecommender}
-                                                    onChange={(e) => setNewApprRecommender(e.target.value)}
-                                                />
-                                                <textarea
-                                                    className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white min-h-[64px]"
-                                                    placeholder="Written recommendation (optional)"
-                                                    value={newApprText}
-                                                    onChange={(e) => setNewApprText(e.target.value)}
-                                                />
-                                                <div className="flex flex-wrap items-center gap-2">
-                                                    <button
-                                                        type="button"
-                                                        disabled={uploadingNewFile}
-                                                        onClick={() => newApprFilesInputRef.current?.click()}
-                                                        className="text-xs font-semibold px-2 py-1.5 rounded-md bg-white border border-gray-200 flex items-center gap-1.5 hover:bg-gray-50 disabled:opacity-50"
-                                                    >
-                                                        {uploadingNewFile ? (
-                                                            <Loader2 size={12} className="animate-spin text-gold" />
-                                                        ) : (
-                                                            <Upload size={12} />
-                                                        )}
-                                                        {newApprFile ? 'Change file' : 'Choose file *'}
-                                                    </button>
-                                                    {newApprFile && (
-                                                        <div className="flex items-center gap-1 text-[10px] bg-white border border-gray-200 rounded px-2 py-1 truncate max-w-[180px]">
-                                                            <span className="truncate">{newApprFile.fileName}</span>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setNewApprFile(null)}
-                                                                className="text-gray-400 hover:text-red-500 ml-1"
-                                                            >
-                                                                <X size={10} />
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="flex justify-end gap-2 pt-1">
-                                                    <button
-                                                        type="button"
-                                                        className="text-xs font-semibold text-gray-500"
-                                                        onClick={() => {
-                                                            setNewApprovalForRole(null);
-                                                            setNewApprFile(null);
-                                                        }}
-                                                    >
-                                                        Cancel
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        disabled={submittingNewApproval || uploadingNewFile}
-                                                        onClick={() => void submitNewApprovalForRole(def.roleName)}
-                                                        className="text-xs font-semibold text-white bg-brown px-3 py-1.5 rounded-lg disabled:opacity-50 inline-flex items-center gap-1"
-                                                    >
-                                                        {submittingNewApproval ? (
-                                                            <Loader2 size={14} className="animate-spin" />
-                                                        ) : (
-                                                            <Upload size={14} />
-                                                        )}
-                                                        Save record
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <button
-                                                type="button"
-                                                onClick={() => openNewApprovalForm(def.roleName)}
-                                                className="mt-auto w-full flex items-center justify-center gap-2 px-3 py-2 bg-brown text-white text-xs font-semibold rounded-lg hover:bg-opacity-90"
-                                            >
-                                                <Plus size={14} /> Add recommendation / approval
-                                            </button>
-                                        )}
-                                    </>
                                 )}
                             </div>
                         );
                     })}
                 </div>
             </div>
+
+            {/* OHS Practitioner Recommendation Modal */}
+            {showOhsSubmitModal && (
+                <div className="fixed inset-0 bg-black/45 z-55 flex items-center justify-center animate-fadeIn p-4 overflow-y-auto">
+                    <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl flex flex-col gap-4 animate-scaleUp relative">
+                        <button
+                            type="button"
+                            onClick={() => setShowOhsSubmitModal(false)}
+                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+                        >
+                            <X size={20} />
+                        </button>
+
+                        <div className="text-center pb-2 border-b border-gray-100">
+                            <h3 className="text-base font-black text-gray-800 uppercase tracking-wider">Send Recommendation/Approval</h3>
+                            <p className="text-[10px] text-gray-400 mt-1 font-semibold">You are submitting your recommendation to the PSSC Coordinator</p>
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                            <label className="text-[10px] font-bold text-gray-700 uppercase tracking-wider block">Add your recommendation (optional)</label>
+                            <textarea
+                                value={ohsRecText}
+                                onChange={(e) => setOhsRecText(e.target.value)}
+                                placeholder="Enter OHS recommendation for the PSSC Coordinator..."
+                                className="w-full text-xs border border-gray-250 rounded-xl p-3 outline-none focus:border-[#884616] min-h-[100px] bg-white font-medium text-gray-800"
+                            />
+                        </div>
+
+                        <div className="flex justify-end gap-3 border-t border-gray-100 pt-3">
+                            <button
+                                type="button"
+                                onClick={() => setShowOhsSubmitModal(false)}
+                                className="px-4 py-2 bg-white border border-gray-250 hover:bg-gray-50 text-gray-600 text-xs font-bold rounded-xl transition"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                disabled={submittingOhsRec}
+                                onClick={handleSendOhsRecommendation}
+                                className="px-5 py-2.5 bg-[#884616] hover:bg-[#723b12] text-white text-xs font-bold rounded-xl transition shadow flex items-center gap-1.5"
+                            >
+                                {submittingOhsRec ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                                Send
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

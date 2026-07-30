@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
+import { getUserDashboardPath } from '../utils/rolePaths';
 
 const Login: React.FC = () => {
     const navigate = useNavigate();
@@ -18,7 +19,7 @@ const Login: React.FC = () => {
         if (['Eastern Cape', 'Northern Cape', 'North West'].includes(ssoProvince) && ssoRole === 'OHS_PRACTITIONER') {
             setSsoRole('EMPLOYEE');
         }
-        if (ssoProvince !== 'National Office' && ssoRole === 'OHS_NATIONAL_OFFICE') {
+        if (ssoProvince !== 'National Office' && (ssoRole === 'OHS_NATIONAL_OFFICE' || ssoRole === 'CHIEF_DIRECTOR')) {
             setSsoRole('EMPLOYEE');
         }
     }, [ssoProvince, ssoRole]);
@@ -42,7 +43,11 @@ const Login: React.FC = () => {
         { id: 'FIRST_AIDER', label: 'First Aider', prefix: 'firstaider' },
         { id: 'OHS_PRACTITIONER', label: 'OHS Practitioner', prefix: 'ohspractitioner' },
         { id: 'OHS_NATIONAL_OFFICE', label: 'OHS National Office', prefix: 'ohspractitioner' },
-        { id: 'HR', label: 'HR Officer', prefix: 'hr' }
+        { id: 'HR', label: 'HR Officer', prefix: 'hr' },
+        { id: 'PSSC_COORDINATOR', label: 'PSSC Coordinator', prefix: 'pssccoordinator' },
+        { id: 'DEPUTY_DIRECTOR', label: 'Deputy Director', prefix: 'deputydirector' },
+        { id: 'CHIEF_DIRECTOR', label: 'Chief Director', prefix: 'chiefdirector' },
+        { id: 'FACILITIES_COORDINATOR', label: 'Facilities Co Coordinator', prefix: 'facilitiescoordinator' }
     ];
 
     // Redirect if already authenticated
@@ -50,27 +55,8 @@ const Login: React.FC = () => {
         if (!isInitialized) return;
 
         if (isAuthenticated && user) {
-            const roleName = user.role?.name?.toLowerCase().replace(/\s+/g, '_');
-
-            // Route based on role (normalized to lowercase with underscores)
-            if (roleName === 'employee') {
-                navigate('/employee/dashboard');
-            } else if (roleName === 'supervisor') {
-                navigate('/supervisor/dashboard');
-            } else if (roleName === 'ohs_practitioner' || roleName === 'ohs_national_office') {
-                navigate('/ohs/dashboard');
-            } else if (roleName === 'first_aider') {
-                navigate('/first-aider/dashboard');
-            } else if (roleName === 'hr') {
-                navigate('/hr/dashboard');
-            } else if (roleName === 'finance_official') {
-                navigate('/finance/dashboard');
-            } else if (roleName === 'system_administrator' || roleName === 'manager') {
-                navigate('/admin/dashboard');
-            } else {
-                // Default fallback
-                navigate('/admin/dashboard');
-            }
+            const targetPath = getUserDashboardPath(user);
+            navigate(targetPath);
         }
     }, [isAuthenticated, isInitialized, user, navigate]);
 
@@ -270,7 +256,7 @@ const Login: React.FC = () => {
                                             if (['Eastern Cape', 'Northern Cape', 'North West'].includes(ssoProvince) && role.id === 'OHS_PRACTITIONER') {
                                                 return false;
                                             }
-                                            if (role.id === 'OHS_NATIONAL_OFFICE') {
+                                            if (role.id === 'OHS_NATIONAL_OFFICE' || role.id === 'CHIEF_DIRECTOR') {
                                                 return ssoProvince === 'National Office';
                                             }
                                             return true;

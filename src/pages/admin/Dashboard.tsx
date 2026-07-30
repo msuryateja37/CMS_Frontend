@@ -13,8 +13,21 @@ import { ClipboardList, CheckCircle2, Clock, AlertCircle, ChevronDown, MoreHoriz
 import { useIncidents } from '../../hooks/useIncidents';
 import { Select } from '../../components/common/Select';
 import { PROVINCES } from '../../data/constants';
+import { useAuthStore } from '../../store/auth.store';
+import PssCDashboard from '../pssc/Dashboard';
+import DeputyDashboard from '../deputy/Dashboard';
 
 const Dashboard: React.FC = () => {
+    const { user } = useAuthStore();
+    const userRole = user?.role?.name?.toLowerCase().replace(/\s+/g, '_');
+
+    if (userRole === 'pssc_coordinator') {
+        return <PssCDashboard />;
+    }
+    if (userRole === 'deputy_director') {
+        return <DeputyDashboard />;
+    }
+
     const [selectedProvince, setSelectedProvince] = useState('All provinces');
     const [selectedTimeRange, setSelectedTimeRange] = useState('Last 30 Days');
 

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { ChevronDown, ChevronRight, ChevronLeft, LogOut } from 'lucide-react';
-import { SIDEBAR_ITEMS, EMPLOYEE_SIDEBAR, SUPERVISOR_SIDEBAR, OHS_SIDEBAR, OHS_NATIONAL_SIDEBAR, FIRST_AIDER_SIDEBAR, HR_SIDEBAR, INVESTIGATOR_SIDEBAR, CHAIRPERSON_SIDEBAR, EA_DA_SIDEBAR } from '../../data/navigation';
+import { SIDEBAR_ITEMS, EMPLOYEE_SIDEBAR, SUPERVISOR_SIDEBAR, OHS_SIDEBAR, OHS_NATIONAL_SIDEBAR, FIRST_AIDER_SIDEBAR, HR_SIDEBAR, INVESTIGATOR_SIDEBAR, CHAIRPERSON_SIDEBAR, EA_DA_SIDEBAR, PSSC_SIDEBAR, DEPUTY_SIDEBAR, CHIEF_DIRECTOR_SIDEBAR, FACILITIES_SIDEBAR } from '../../data/navigation';
 import clsx from 'clsx';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth.store';
 import { useUIStore } from '../../store/ui.store';
+import { getUserRoleName } from '../../utils/rolePaths';
 
 const Sidebar: React.FC = () => {
     const location = useLocation();
@@ -15,7 +16,7 @@ const Sidebar: React.FC = () => {
     const { sidebarCollapsed, setSidebarCollapsed, toggleSidebar } = useUIStore();
 
     const getSidebarItems = () => {
-        const role = user?.role?.name?.toLowerCase().replace(/\s+/g, '_');
+        const role = getUserRoleName(user);
         if (role === 'employee') return EMPLOYEE_SIDEBAR;
         if (role === 'supervisor') return SUPERVISOR_SIDEBAR;
         if (role === 'ohs_practitioner') return OHS_SIDEBAR;
@@ -28,6 +29,10 @@ const Sidebar: React.FC = () => {
         if (role === 'finance_official') return SIDEBAR_ITEMS;
         if (role === 'manager') return SIDEBAR_ITEMS;
         if (role === 'ea_da') return EA_DA_SIDEBAR;
+        if (role === 'pssc_coordinator') return PSSC_SIDEBAR;
+        if (role === 'deputy_director') return DEPUTY_SIDEBAR;
+        if (role === 'chief_director') return CHIEF_DIRECTOR_SIDEBAR;
+        if (role === 'facilities_coordinator') return FACILITIES_SIDEBAR;
         return SIDEBAR_ITEMS;
     };
 
@@ -197,11 +202,13 @@ const Sidebar: React.FC = () => {
                 })}
             </nav>
 
-            {/* Inspector Information — shown for OHS and First Aider roles */}
-            {!sidebarCollapsed && (user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'ohs_practitioner' || user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'ohs_national_office' || user?.role?.name?.toLowerCase().replace(/\s+/g, '_') === 'first_aider') && (
+            {/* Inspector / Coordinator Information — shown for OHS, First Aider, Chief Director and Facilities roles */}
+            {!sidebarCollapsed && (['ohs_practitioner', 'ohs_national_office', 'first_aider', 'chief_director', 'facilities_coordinator'].includes(getUserRoleName(user))) && (
                 <div className="px-4 pb-2 shrink-0">
                     <div className="border-t border-white/10 pt-4 mb-3">
-                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Inspector Information</p>
+                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">
+                            {getUserRoleName(user) === 'facilities_coordinator' ? 'Coordinator Information' : 'Inspector Information'}
+                        </p>
                         <div className="space-y-2">
                             <div className="flex justify-between items-start text-xs gap-2">
                                 <span className="text-gray-400">Name:</span>

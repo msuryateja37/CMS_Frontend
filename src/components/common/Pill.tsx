@@ -142,8 +142,39 @@ export const Pill: React.FC<PillProps> = ({ label, variant = 'default', classNam
             case 'pending final decision':
                 return 'bg-[#FFF07E] text-[#034C3D] border-[#FCB74D]';
 
+            // Unified Workflow Statuses
+            case 'referred to ohs & hr':
+            case 'referred_to_ohs_and_hr':
+                return 'bg-purple-100 text-purple-800 border-purple-200 font-bold';
+            case 'assigned to ohs':
+            case 'assigned_to_ohs':
+                return 'bg-teal-100 text-teal-800 border-teal-200 font-bold';
+            case 'under facilities coordinator':
+            case 'under_facilities_coordinator':
+                return 'bg-cyan-100 text-cyan-800 border-cyan-200 font-bold';
+            case 'under investigation':
+            case 'under_investigation':
+                return 'bg-amber-100 text-amber-800 border-amber-300 font-bold';
+            case 'under pssc recommendation':
+            case 'under_pssc_recommendation':
+                return 'bg-orange-100 text-orange-900 border-orange-300 font-bold';
+            case 'under dep director recommendation':
+            case 'under_dep_director_recommendation':
+                return 'bg-amber-100 text-amber-900 border-amber-400 font-bold';
+            case 'under chief director review':
+            case 'chief director approval':
+            case 'director_approval':
+            case 'director approval':
+                return 'bg-purple-100 text-purple-900 border-purple-300 font-bold';
+            case 'chief director approved':
+            case 'approved':
+                return 'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold';
+            case 'case closed':
+            case 'closed':
+                return 'bg-gray-100 text-gray-700 border-gray-300 font-bold';
+
             default:
-                return 'bg-gray-100 text-gray-600 border-gray-300';
+                return 'bg-gray-100 text-gray-700 border-gray-300';
         }
     };
 
